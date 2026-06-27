@@ -13,7 +13,6 @@ export default function Home() {
       }}
     >
       <Noise />
-      {/* Top Navbar */}
       <header className="w-full max-w-7xl mx-auto px-6 h-24 flex items-center justify-between z-10">
         <Link href="/" className="flex items-center group">
           <img
@@ -34,7 +33,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Body */}
       <main className="flex-1 flex flex-col justify-center items-center py-16 md:py-24 text-center z-10 max-w-5xl mx-auto px-6">
         <div className="flex flex-col items-center gap-3 md:gap-8">
           <h1 className="text-white text-4xl sm:text-6xl md:text-8xl font-bold max-w-4xl mx-auto">
@@ -56,7 +54,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer Logo Bar */}
       <footer className="w-full pb-10 md:pb-14 pt-4 flex flex-col items-center justify-center gap-4 z-10">
         <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 px-6">
           <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-all duration-200 text-white text-sm font-medium tracking-wide">
@@ -99,7 +96,6 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Bottom Mask Blur Overlay (10% height) */}
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-1"
         style={{
