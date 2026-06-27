@@ -44,21 +44,22 @@ const Noise: React.FC<NoiseProps> = ({
       const imageData = ctx.createImageData(canvasSize, canvasSize);
       const data = imageData.data;
 
-      const randomValues = new Uint8Array(canvasSize * canvasSize);
+      const randomSize = 65536;
+      const randomValues = new Uint8Array(randomSize);
       const crypto = window.crypto || (window as Window & { msCrypto?: Crypto }).msCrypto;
 
       if (crypto) {
         crypto.getRandomValues(randomValues);
       } else {
         let seed = 123456789;
-        for (let i = 0; i < randomValues.length; i++) {
+        for (let i = 0; i < randomSize; i++) {
           seed = (seed * 1664525 + 1013904223) % 4294967296;
           randomValues[i] = seed % 256;
         }
       }
 
       for (let i = 0; i < data.length; i += 4) {
-        const value = randomValues[i >> 2];
+        const value = randomValues[(i >> 2) & 65535];
         data[i] = value;
         data[i + 1] = value;
         data[i + 2] = value;
