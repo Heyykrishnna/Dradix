@@ -50,8 +50,10 @@ const Noise: React.FC<NoiseProps> = ({
         if (crypto) {
           crypto.getRandomValues(randomValues);
         } else {
+          let seed = 123456789;
           for (let i = 0; i < randomValues.length; i++) {
-            randomValues[i] = Math.random() * 255;
+            seed = (seed * 1664525 + 1013904223) % 4294967296;
+            randomValues[i] = seed % 256;
           }
         }
       } else {
@@ -62,8 +64,10 @@ const Noise: React.FC<NoiseProps> = ({
             randomValues[i] = buf[i];
           }
         } catch {
+          let seed = 987654321;
           for (let i = 0; i < randomValues.length; i++) {
-            randomValues[i] = Math.random() * 255;
+            seed = (seed * 1664525 + 1013904223) % 4294967296;
+            randomValues[i] = seed % 256;
           }
         }
       }
