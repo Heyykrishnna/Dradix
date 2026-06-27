@@ -45,30 +45,15 @@ const Noise: React.FC<NoiseProps> = ({
       const data = imageData.data;
 
       const randomValues = new Uint8Array(canvasSize * canvasSize);
-      if (typeof window !== "undefined") {
-        const crypto = window.crypto || (window as any).msCrypto;
-        if (crypto) {
-          crypto.getRandomValues(randomValues);
-        } else {
-          let seed = 123456789;
-          for (let i = 0; i < randomValues.length; i++) {
-            seed = (seed * 1664525 + 1013904223) % 4294967296;
-            randomValues[i] = seed % 256;
-          }
-        }
+      const crypto = window.crypto || (window as Window & { msCrypto?: Crypto }).msCrypto;
+
+      if (crypto) {
+        crypto.getRandomValues(randomValues);
       } else {
-        try {
-          const cryptoModule = eval("require")("crypto");
-          const buf = cryptoModule.randomBytes(randomValues.length);
-          for (let i = 0; i < randomValues.length; i++) {
-            randomValues[i] = buf[i];
-          }
-        } catch {
-          let seed = 987654321;
-          for (let i = 0; i < randomValues.length; i++) {
-            seed = (seed * 1664525 + 1013904223) % 4294967296;
-            randomValues[i] = seed % 256;
-          }
+        let seed = 123456789;
+        for (let i = 0; i < randomValues.length; i++) {
+          seed = (seed * 1664525 + 1013904223) % 4294967296;
+          randomValues[i] = seed % 256;
         }
       }
 

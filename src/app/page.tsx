@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Noise from "@/components/Noise";
 
 export default function Home() {
@@ -15,10 +16,12 @@ export default function Home() {
       <Noise />
       <header className="w-full max-w-7xl mx-auto px-6 h-24 flex items-center justify-between z-10">
         <Link href="/" className="flex items-center group">
-          <img
+          <Image
             src="https://ik.imagekit.io/yatharth/DRADIX-LOGO.png"
             alt="Dradix Logo"
-            className="w-18 h-18 rounded-lg object-contain -mr-2.5"
+            width={72}
+            height={72}
+            className="rounded-lg object-contain -mr-2.5"
           />
           <span className="font-heading font-bold text-xl text-white">Dradix</span>
         </Link>
