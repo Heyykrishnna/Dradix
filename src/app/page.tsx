@@ -19,9 +19,9 @@ export default function Home() {
           <Image
             src="https://ik.imagekit.io/yatharth/DRADIX-LOGO.png"
             alt="Dradix Logo"
-            width={72}
-            height={72}
-            className="rounded-lg object-contain -mr-2.5"
+            width={40}
+            height={40}
+            className="rounded-lg object-contain mr-2"
           />
           <span className="font-heading font-bold text-xl text-white">Dradix</span>
         </Link>
