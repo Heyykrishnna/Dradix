@@ -44,8 +44,32 @@ const Noise: React.FC<NoiseProps> = ({
       const imageData = ctx.createImageData(canvasSize, canvasSize);
       const data = imageData.data;
 
+      const randomValues = new Uint8Array(canvasSize * canvasSize);
+      if (typeof window !== "undefined") {
+        const crypto = window.crypto || (window as any).msCrypto;
+        if (crypto) {
+          crypto.getRandomValues(randomValues);
+        } else {
+          for (let i = 0; i < randomValues.length; i++) {
+            randomValues[i] = Math.random() * 255;
+          }
+        }
+      } else {
+        try {
+          const cryptoModule = eval("require")("crypto");
+          const buf = cryptoModule.randomBytes(randomValues.length);
+          for (let i = 0; i < randomValues.length; i++) {
+            randomValues[i] = buf[i];
+          }
+        } catch {
+          for (let i = 0; i < randomValues.length; i++) {
+            randomValues[i] = Math.random() * 255;
+          }
+        }
+      }
+
       for (let i = 0; i < data.length; i += 4) {
-        const value = Math.random() * 255;
+        const value = randomValues[i >> 2];
         data[i] = value;
         data[i + 1] = value;
         data[i + 2] = value;
