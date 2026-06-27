@@ -1,10 +1,48 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const cabinetGrotesk = localFont({
+  src: [
+    {
+      path: "../../assets/fonts/CabinetGrotesk/CabinetGrotesk-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../assets/fonts/CabinetGrotesk/CabinetGrotesk-Extrabold.otf",
+      weight: "800",
+      style: "normal",
+    },
+    {
+      path: "../../assets/fonts/CabinetGrotesk/CabinetGrotesk-Black.otf",
+      weight: "900",
+      style: "normal",
+    },
+  ],
+  variable: "--font-cabinet-grotesk",
+});
+
+const poppins = localFont({
+  src: [
+    {
+      path: "../../assets/fonts/Poppins/Poppins-Light.otf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../../assets/fonts/Poppins/Poppins-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../assets/fonts/Poppins/Poppins-SemiBold.otf",
+      weight: "600",
+      style: "normal",
+    },
+  ],
+  variable: "--font-poppins",
 });
 
 const geistMono = Geist_Mono({
@@ -25,7 +63,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${cabinetGrotesk.variable} ${poppins.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
