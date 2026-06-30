@@ -1,15 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import CandyButton from "@/components/ui/candy-button";
 import Noise from "@/components/Noise";
-import { TbBrandLeetcode } from "react-icons/tb";
-import { FaLinkedinIn } from "react-icons/fa";
-import { SiCodeforces } from "react-icons/si";
-import { FaHackerrank } from "react-icons/fa";
-import { FaGithub } from "react-icons/fa";
+import { AsciiStrip } from "@/components/AsciiEffect";
+import { useState } from "react";
 
 
 export default function Home() {
+
   return (
     <div
       className="relative min-h-screen flex flex-col justify-between text-white overflow-x-hidden font-sans"
@@ -21,6 +21,7 @@ export default function Home() {
       }}
     >
       <Noise />
+
       <header className="w-full max-w-7xl mx-auto px-6 h-24 flex items-center justify-between z-10">
         <Link href="/" className="flex items-center group">
           {/* <Image
@@ -43,7 +44,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col justify-center items-center py-16 md:pb-64 text-center z-10 max-w-5xl mx-auto px-6">
+      <main className="flex-1 flex flex-col justify-center items-center py-16 md:pb-85 text-center z-10 max-w-5xl mx-auto px-6">
         <div className="flex flex-col items-center gap-3 md:gap-8">
           <h1 className="text-white text-4xl sm:text-6xl md:text-8xl font-bold max-w-4xl mx-auto">
             <span className="font-serif italic font-normal block sm:inline">Showcase git Activity</span>{" "}
@@ -63,34 +64,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="w-full pb-10 md:pb-14 pt-4 flex flex-col items-center justify-center gap-4 z-10">
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 px-6">
-          <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-all duration-200 text-white text-sm font-medium tracking-wide">
-            <FaGithub className="h-5 w-5"/>
-            <span>GitHub</span>
-          </div>
-
-          <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-all duration-200 text-white text-sm font-medium tracking-wide">
-            <TbBrandLeetcode className="h-5 w-5"/>
-            <span>LeetCode</span>
-          </div>
-
-          <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-all duration-200 text-white text-sm font-medium tracking-wide">
-            <FaLinkedinIn className="h-5 w-5"/>
-            <span>LinkedIn</span>
-          </div>
-
-          <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-all duration-200 text-white text-sm font-medium tracking-wide">
-            <SiCodeforces className="h-5 w-5"/>
-            <span>Codeforces</span>
-          </div>
-
-          <div className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-all duration-200 text-white text-sm font-medium tracking-wide">
-            <FaHackerrank className="h-5 w-5"/>
-            <span>HackerRank</span>
-          </div>
-        </div>
-      </footer>
+      <AsciiStrip />
 
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-1"
