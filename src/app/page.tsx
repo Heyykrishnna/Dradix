@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import CandyButton from "@/components/ui/candy-button";
 import Noise from "@/components/Noise";
 import { AsciiStrip } from "@/components/AsciiEffect";
-import { useState } from "react";
 
 
 export default function Home() {
