@@ -4,8 +4,34 @@ import { useEffect, useRef } from "react";
 
 const ASCII_CHARS = "X8@#OS0$x8@#os0$BbDdGgHhKkMmNnPpQqRrTtVvWwYyZzAaEeIiUu+=-_.,:;!?/|\\[]{}()^&*%~`";
 
+const getSecureRandom = (() => {
+  let seed = 123456789;
+  let buffer: Uint32Array | null = null;
+  let bufferIndex = 0;
+
+  return () => {
+    if (typeof window !== "undefined") {
+      const crypto = window.crypto || (window as Window & { msCrypto?: Crypto }).msCrypto;
+      if (crypto) {
+        if (!buffer) {
+          buffer = new Uint32Array(1024);
+          bufferIndex = 1024;
+        }
+        if (bufferIndex >= 1024) {
+          crypto.getRandomValues(buffer);
+          bufferIndex = 0;
+        }
+        return buffer[bufferIndex++] / 4294967296;
+      }
+    }
+
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+})();
+
 function randomChar() {
-  return ASCII_CHARS[Math.floor(Math.random() * ASCII_CHARS.length)];
+  return ASCII_CHARS[Math.floor(getSecureRandom() * ASCII_CHARS.length)];
 }
 
 export function AsciiStrip() {
@@ -56,8 +82,8 @@ export function AsciiStrip() {
       if (tickRef.current % 2 === 0) {
         const mutations = Math.floor(cols * rows * 0.08);
         for (let m = 0; m < mutations; m++) {
-          const r = Math.floor(Math.random() * rows);
-          const c = Math.floor(Math.random() * cols);
+          const r = Math.floor(getSecureRandom() * rows);
+          const c = Math.floor(getSecureRandom() * cols);
           gridRef.current[r][c] = randomChar();
         }
       }
@@ -67,7 +93,7 @@ export function AsciiStrip() {
         const baseAlpha = 0.15 + rowProgress * 0.65; 
 
         for (let c = 0; c < cols; c++) {
-          const alpha = Math.min(1, baseAlpha + (Math.random() - 0.5) * 0.1);
+          const alpha = Math.min(1, baseAlpha + (getSecureRandom() - 0.5) * 0.1);
           const brightness = 160 + Math.floor(rowProgress * 80);
           ctx.fillStyle = `rgba(${brightness - 40}, ${brightness - 80}, ${brightness + 20}, ${alpha})`;
           ctx.fillText(
