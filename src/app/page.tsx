@@ -3,7 +3,7 @@
 import Link from "next/link";
 import CandyButton from "@/components/ui/candy-button";
 import Noise from "@/components/Noise";
-import { AsciiStrip } from "@/components/AsciiEffect";
+
 
 
 export default function Home() {
@@ -17,13 +17,6 @@ export default function Home() {
 
       <header className="w-full max-w-7xl mx-auto px-6 h-24 flex items-center justify-between z-10">
         <Link href="/" className="flex items-center group">
-          {/* <Image
-            src="https://ik.imagekit.io/yatharth/DRADIX-LOGO.png"
-            alt="Dradix Logo"
-            width={40}
-            height={40}
-            className="rounded-lg object-contain mr-2"
-          /> */}
           <span className="font-heading font-bold text-xl text-[#015451]">Dradix</span>
         </Link>
 
@@ -56,8 +49,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-
-      {/* <AsciiStrip /> */}
 
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-1 backdrop-blur-lg [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)] mask-[linear-gradient(to_bottom,transparent_0%,black_100%)]"

@@ -13,14 +13,11 @@ export default function AuthPage() {
 
   return (
     <div className="relative min-h-screen w-full bg-[#101010] text-white font-sans overflow-hidden selection:bg-zinc-800">
-      
-      {/* FORM HALF */}
       <div
         className={`absolute top-0 left-0 w-full lg:w-1/2 h-full flex flex-col transition-transform duration-700 ease-in-out z-10 bg-[#101010] shadow-[0_0_50px_rgba(0,0,0,0.5)] ${
           isLogin ? "lg:translate-x-full" : "translate-x-0"
         }`}
       >
-        {/* Back Button */}
         <div className="absolute top-8 left-8 sm:left-12 lg:left-16 z-20">
           <Link
             href="/"
@@ -31,7 +28,6 @@ export default function AuthPage() {
         </div>
 
         <div className="relative flex-1 w-full h-full flex items-center justify-center">
-          {/* SIGNUP FORM */}
           <div
             className={`absolute inset-0 flex flex-col justify-center max-w-[420px] w-full mx-auto px-8 sm:px-0 transition-all duration-700 ${
               isLogin 
@@ -123,7 +119,6 @@ export default function AuthPage() {
             </p>
           </div>
 
-          {/* LOGIN FORM */}
           <div
             className={`absolute inset-0 flex flex-col justify-center max-w-[420px] w-full mx-auto px-8 sm:px-0 transition-all duration-700 ${
               isLogin 
@@ -189,7 +184,7 @@ export default function AuthPage() {
             </form>
 
             <p className="text-center text-[14px] text-zinc-400 mt-8">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <button
                 type="button"
                 onClick={() => setIsLogin(false)}
@@ -202,21 +197,18 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* IMAGE HALF */}
       <div
         className={`hidden lg:block absolute top-0 left-1/2 w-1/2 h-full transition-transform duration-700 ease-in-out z-0 bg-[#181818] ${
           isLogin ? "-translate-x-full" : "translate-x-0"
         }`}
       >
         <div className="relative w-full h-full overflow-hidden">
-            {/* Left fade (smooth blend when image is on right side) */}
             <div 
               className={`absolute inset-y-0 left-0 w-16 bg-linear-to-r from-[#101010]/70 to-transparent z-10 transition-opacity duration-700 ease-in-out ${
                 isLogin ? 'opacity-0' : 'opacity-100'
               }`} 
             />
             
-            {/* Right fade (smooth blend when image is on left side) */}
             <div 
               className={`absolute inset-y-0 right-0 w-16 bg-linear-to-l from-[#101010]/70 to-transparent z-10 transition-opacity duration-700 ease-in-out ${
                 isLogin ? 'opacity-100' : 'opacity-0'
@@ -233,12 +225,12 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* FORGOT PASSWORD MODAL */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowForgotModal(false)}
+            aria-hidden="true"
           />
           <div className="relative w-full max-w-md bg-[#101010] border border-zinc-800/80 rounded-2xl shadow-2xl p-8 transform transition-all">
             <button 
@@ -250,7 +242,7 @@ export default function AuthPage() {
 
             <h2 className="text-2xl font-serif mb-2 tracking-tight">Reset Password</h2>
             <p className="text-zinc-400 text-[14px] mb-8">
-              Enter your email address and we'll send you a link to reset your password.
+              Enter your email address and we&apos;ll send you a link to reset your password.
             </p>
 
             <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setShowForgotModal(false); }}>
