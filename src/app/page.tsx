@@ -10,8 +10,9 @@ export default function Home() {
 
   return (
     <div
-      className="relative min-h-screen flex flex-col justify-between text-white overflow-x-hidden font-sans bg-[url('https://github.com/Heyykrishnna/dradix/blob/main/assets/images/HERO-BG.png')] bg-cover bg-center bg-no-repeat"
+      className="relative min-h-screen flex flex-col justify-between text-white overflow-x-hidden font-sans bg-[url('/assets/images/HERO-BG.png')] bg-cover bg-center bg-no-repeat"
     >
+      <div className="absolute inset-0 backdrop-blur-[3px] pointer-events-none" />
       <Noise />
 
       <header className="w-full max-w-7xl mx-auto px-6 h-24 flex items-center justify-between z-10">
@@ -23,14 +24,14 @@ export default function Home() {
             height={40}
             className="rounded-lg object-contain mr-2"
           /> */}
-          <span className="font-heading font-bold text-xl text-white">Dradix</span>
+          <span className="font-heading font-bold text-xl text-[#015451]">Dradix</span>
         </Link>
 
         <div className="flex items-center gap-6">
-          <Link href="/login" className="text-white/80 hover:text-white font-medium text-sm transition-colors">
+          <Link href="/login" className="text-[#015451] font-medium text-sm transition-colors">
             Login
           </Link>
-          <Link href="/register" className="border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white font-medium text-sm px-5 py-2 rounded-full transition-all backdrop-blur-sm">
+          <Link href="/register" className="border border-[#015451]/20 hover:border-[#015451]/40 bg-[#015451]/5 hover:bg-[#015451]/10 text-[#015451] font-medium text-sm px-5 py-2 rounded-full transition-all backdrop-blur-sm">
             Get Started
           </Link>
         </div>
