@@ -37,7 +37,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col justify-center items-center py-16 md:pb-85 text-center z-10 max-w-5xl mx-auto px-6">
+      <main className="flex-1 flex flex-col justify-center items-center py-16 md:pb-40 text-center z-10 max-w-5xl mx-auto px-6">
         <div className="flex flex-col items-center gap-3 md:gap-8">
           <h1 className="text-white text-4xl sm:text-6xl md:text-8xl font-bold max-w-4xl mx-auto">
             <span className="font-serif italic font-normal block sm:inline">Showcase git Activity</span>{" "}
@@ -45,7 +45,7 @@ export default function Home() {
             <span className="font-serif italic font-normal block sm:inline">With Smart AI.</span>
           </h1>
 
-          <p className="text-[#003c3a]/80 font-sans text-sm sm:text-base md:text-md max-w-xl sm:max-w-xl mx-auto leading-relaxed font-light">
+          <p className="text-[#003c3a]/80 font-sans text-sm sm:text-base md:text-md max-w-xl sm:max-w-xl mx-auto leading-relaxed font-medium">
             AI unifies your coding activity, highlights key achievements, and guides your career so you spend less time building portfolios.
           </p>
 
