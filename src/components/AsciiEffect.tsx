@@ -119,17 +119,7 @@ export function AsciiStrip() {
     <div className="absolute bottom-0 left-0 right-0 h-[120px] pointer-events-none z-5 overflow-hidden">
       <canvas
         ref={canvasRef}
-        className="w-full h-full"
-        style={{
-          maskImage:
-            "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%), " +
-            "linear-gradient(to bottom, transparent 0%, black 30%, black 100%)",
-          maskComposite: "intersect",
-          WebkitMaskImage:
-            "linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%), " +
-            "linear-gradient(to bottom, transparent 0%, black 30%, black 100%)",
-          WebkitMaskComposite: "source-in",
-        }}
+        className="w-full h-full mask-[linear-gradient(to_right,transparent_0%,black_12%,black_88%,transparent_100%),linear-gradient(to_bottom,transparent_0%,black_30%,black_100%)] mask-intersect [-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_12%,black_88%,transparent_100%),linear-gradient(to_bottom,transparent_0%,black_30%,black_100%)] [-webkit-mask-composite:source-in]"
       />
     </div>
   );

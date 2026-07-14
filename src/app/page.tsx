@@ -10,13 +10,7 @@ export default function Home() {
 
   return (
     <div
-      className="relative min-h-screen flex flex-col justify-between text-white overflow-x-hidden font-sans"
-      style={{
-        backgroundImage: `url('https://ik.imagekit.io/yatharth/HLmPyeRaAAApl9_.jpeg')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
+      className="relative min-h-screen flex flex-col justify-between text-white overflow-x-hidden font-sans bg-[url('https://github.com/Heyykrishnna/dradix/blob/main/assets/images/HERO-BG.png')] bg-cover bg-center bg-no-repeat"
     >
       <Noise />
 
@@ -62,16 +56,10 @@ export default function Home() {
         </div>
       </main>
 
-      <AsciiStrip />
+      {/* <AsciiStrip /> */}
 
       <div
-        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-1"
-        style={{
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          WebkitMaskImage: "linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)",
-          maskImage: "linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)",
-        }}
+        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-1 backdrop-blur-lg [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)] mask-[linear-gradient(to_bottom,transparent_0%,black_100%)]"
       />
     </div>
   );
