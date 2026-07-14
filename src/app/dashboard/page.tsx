@@ -30,7 +30,8 @@ import {
   Cell,
   LineChart,
   Line,
-  CartesianGrid
+  CartesianGrid,
+  Tooltip
 } from "recharts";
 
 // 1. Core Dev Stats
@@ -366,10 +367,10 @@ export default function DashboardPage() {
         {/* Large Dark Card: Fulfillment & Sales Performance Overview */}
         <div className="bg-[#18181b] text-white rounded-[28px] p-6 lg:p-8 grid grid-cols-1 md:grid-cols-5 gap-6">
           
-          {/* Fulfillment Performance Bar Chart (Col span 3) */}
+          {/* Fulfillment Performance Bar Chart (Col span 3) -> Coding Velocity */}
           <div className="md:col-span-3 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-white tracking-tight">Fulfillment Performance</h3>
+              <h3 className="text-[16px] font-bold text-white tracking-tight">Coding Velocity</h3>
               <div className="flex items-center gap-2">
                 <button className="w-8 h-8 rounded-lg bg-[#27272a] flex items-center justify-center">
                   <CalendarIcon className="w-4 h-4 text-zinc-300" />
@@ -406,6 +407,21 @@ export default function DashboardPage() {
                 >
                   <XAxis dataKey="month" tick={{ fill: "#52525b", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: "#52525b", fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
+                    content={({ active, payload }: { active?: boolean; payload?: readonly { payload?: { month: string; commits: number } }[] }) => {
+                      if (active && payload && payload.length && payload[0].payload) {
+                        const cellData = payload[0].payload;
+                        return (
+                          <div className="bg-zinc-900 border border-zinc-800 text-white p-2.5 rounded-xl shadow-lg text-[11px] font-bold">
+                            <p className="text-zinc-500">{cellData.month}</p>
+                            <p className="text-white text-[13px] font-black">{cellData.commits} commits</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
                   <Bar 
                     dataKey="commits" 
                     fill="#3f3f46" 
@@ -431,10 +447,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Sales Overview Donut Dial (Col span 2) */}
+          {/* Sales Overview Donut Dial (Col span 2) -> Profile Traffic */}
           <div className="md:col-span-2 space-y-4 border-t md:border-t-0 md:border-l border-[#27272a] pt-6 md:pt-0 md:pl-6 flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <h3 className="text-[16px] font-bold text-white tracking-tight">Sales Overview</h3>
+              <h3 className="text-[16px] font-bold text-white tracking-tight">Profile Traffic</h3>
               <div className="flex items-center gap-1.5">
                 <button className="w-8 h-8 rounded-lg bg-[#27272a] flex items-center justify-center">
                   <svg className="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -450,8 +466,8 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-black text-white">$716,084</p>
-              <span className="text-[10px] text-[#00c9a7] bg-[#00c9a7]/10 rounded-md px-1.5 py-0.5">32.2% ↑</span>
+              <p className="text-3xl font-black text-white">716,084</p>
+              <span className="text-[10px] text-[#00c9a7] bg-[#00c9a7]/10 rounded-md px-1.5 py-0.5">32.2% ↑ Views</span>
             </div>
 
             {/* Speedometer/Semi-circular Dial Chart */}
@@ -473,6 +489,19 @@ export default function DashboardPage() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
+                  <Tooltip 
+                    content={({ active, payload }: { active?: boolean; payload?: readonly { payload?: { name: string; value: number } }[] }) => {
+                      if (active && payload && payload.length && payload[0].payload) {
+                        const cellData = payload[0].payload;
+                        return (
+                          <div className="bg-zinc-900 border border-zinc-800 text-white p-2.5 rounded-xl shadow-lg text-[11px] font-bold">
+                            <p className="text-white">{cellData.name}: {cellData.value}%</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute bottom-2 flex flex-col items-center">
@@ -523,8 +552,22 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
                   <XAxis dataKey="day" tick={{ fill: "#9ca3af", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: "#9ca3af", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Line type="monotone" dataKey="hours" stroke="#00c9a7" strokeWidth={2.5} dot={false} />
-                  <Line type="monotone" dataKey="commits" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                  <Tooltip 
+                    content={({ active, payload }: { active?: boolean; payload?: readonly { value?: string | number | readonly (string | number)[]; payload?: { day: string } }[] }) => {
+                      if (active && payload && payload.length && payload[0].payload) {
+                        return (
+                          <div className="bg-white text-zinc-950 p-2.5 rounded-xl shadow-md border border-zinc-100 text-[11px] font-bold">
+                            <p className="text-zinc-500 mb-1">{payload[0].payload.day}</p>
+                            <p className="text-[#00c9a7]">{payload[0].value} Coding Hours</p>
+                            {payload[1] && <p className="text-[#3b82f6]">{payload[1].value} Commits</p>}
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Line type="monotone" dataKey="hours" stroke="#00c9a7" strokeWidth={2.5} dot={false} activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 1.5 }} />
+                  <Line type="monotone" dataKey="commits" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 1.5 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
