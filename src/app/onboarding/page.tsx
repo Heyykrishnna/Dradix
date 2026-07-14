@@ -31,7 +31,7 @@ export default function OnboardingPage() {
     e.preventDefault();
     localStorage.setItem("userProfile", JSON.stringify(formData));
     localStorage.setItem("isOnboarded", "true");
-    router.push("/");
+    router.push("/dashboard");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
