@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, EyeOff, Eye, X } from "lucide-react";
+import { ChevronLeftIcon, EyeClosedIcon, EyeOpenIcon, Cross1Icon } from "@radix-ui/react-icons";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 
@@ -23,7 +23,7 @@ export default function AuthPage() {
             href="/"
             className="flex items-center justify-center w-10 h-10 rounded-full border border-zinc-800 bg-[#161616] hover:bg-zinc-800 transition-all duration-200 group"
           >
-            <ChevronLeft className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
+            <ChevronLeftIcon className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
           </Link>
         </div>
 
@@ -36,7 +36,9 @@ export default function AuthPage() {
             }`}
           >
             <div className="text-center mb-10">
-              <h1 className="text-[2rem] font-serif mb-3 tracking-tight">Sign up Account</h1>
+              <h1 className="text-white text-3xl sm:text-4xl font-bold mb-4 tracking-tight">
+                <span className="font-serif italic font-normal block sm:inline">Sign up Account.</span>
+              </h1>
               <p className="text-zinc-400 text-[15px]">Enter your personal data to create your account</p>
             </div>
 
@@ -93,7 +95,7 @@ export default function AuthPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
                   >
-                    {showPassword ? <Eye className="w-[18px] h-[18px]" /> : <EyeOff className="w-[18px] h-[18px]" />}
+                    {showPassword ? <EyeOpenIcon className="w-[18px] h-[18px]" /> : <EyeClosedIcon className="w-[18px] h-[18px]" />}
                   </button>
                 </div>
                 <p className="text-[13px] text-zinc-500 pt-1">Must be atleast 8 characters</p>
@@ -127,7 +129,9 @@ export default function AuthPage() {
             }`}
           >
             <div className="text-center mb-10">
-              <h1 className="text-[2rem] font-serif mb-3 tracking-tight">Welcome Back</h1>
+              <h1 className="text-white text-3xl sm:text-4xl font-bold mb-4 tracking-tight">
+                <span className="font-serif italic font-normal block sm:inline">Welcome Back.</span>
+              </h1>
               <p className="text-zinc-400 text-[15px]">Enter your credentials to access your account</p>
             </div>
 
@@ -170,7 +174,7 @@ export default function AuthPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
                   >
-                    {showPassword ? <Eye className="w-[18px] h-[18px]" /> : <EyeOff className="w-[18px] h-[18px]" />}
+                    {showPassword ? <EyeOpenIcon className="w-[18px] h-[18px]" /> : <EyeClosedIcon className="w-[18px] h-[18px]" />}
                   </button>
                 </div>
               </div>
@@ -237,7 +241,7 @@ export default function AuthPage() {
               onClick={() => setShowForgotModal(false)}
               className="absolute top-4 right-4 p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-full transition-colors"
             >
-              <X className="w-5 h-5" />
+              <Cross1Icon className="w-5 h-5" />
             </button>
 
             <h2 className="text-2xl font-serif mb-2 tracking-tight">Reset Password</h2>
