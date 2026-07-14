@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, EyeOff, Eye } from "lucide-react";
+import Image from "next/image";
+import { ChevronLeft, EyeOff, Eye, X } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   return (
     <div className="relative min-h-screen w-full bg-[#101010] text-white font-sans overflow-hidden selection:bg-zinc-800">
@@ -59,7 +61,7 @@ export default function AuthPage() {
                   <label className="text-[14px] font-medium text-zinc-200">First Name</label>
                   <input
                     type="text"
-                    placeholder="Joe"
+                    placeholder="Yatharth"
                     className="w-full px-4 py-3.5 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[15px] placeholder:text-zinc-600 transition-colors"
                   />
                 </div>
@@ -67,7 +69,7 @@ export default function AuthPage() {
                   <label className="text-[14px] font-medium text-zinc-200">Last Name</label>
                   <input
                     type="text"
-                    placeholder="Green"
+                    placeholder="Khandelwal"
                     className="w-full px-4 py-3.5 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[15px] placeholder:text-zinc-600 transition-colors"
                   />
                 </div>
@@ -77,7 +79,7 @@ export default function AuthPage() {
                 <label className="text-[14px] font-medium text-zinc-200">Email</label>
                 <input
                   type="email"
-                  placeholder="joegreen@gmail.com"
+                  placeholder="yatharthkhandelwal@gmail.com"
                   className="w-full px-4 py-3.5 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[15px] placeholder:text-zinc-600 transition-colors"
                 />
               </div>
@@ -150,7 +152,7 @@ export default function AuthPage() {
                 <label className="text-[14px] font-medium text-zinc-200">Email</label>
                 <input
                   type="email"
-                  placeholder="joegreen@gmail.com"
+                  placeholder="yatharthkhandelwal@gmail.com"
                   className="w-full px-4 py-3.5 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[15px] placeholder:text-zinc-600 transition-colors"
                 />
               </div>
@@ -158,9 +160,9 @@ export default function AuthPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-[14px] font-medium text-zinc-200">Password</label>
-                  <Link href="#" className="text-[13px] text-zinc-400 hover:text-white transition-colors">
+                  <button type="button" onClick={() => setShowForgotModal(true)} className="text-[13px] text-zinc-400 hover:text-white transition-colors">
                     Forgot password?
-                  </Link>
+                  </button>
                 </div>
                 <div className="relative">
                   <input
@@ -202,32 +204,76 @@ export default function AuthPage() {
 
       {/* IMAGE HALF */}
       <div
-        className={`hidden lg:block absolute top-0 left-1/2 w-1/2 h-full transition-transform duration-700 ease-in-out z-0 bg-[#181818] border-x border-zinc-800/50 ${
+        className={`hidden lg:block absolute top-0 left-1/2 w-1/2 h-full transition-transform duration-700 ease-in-out z-0 bg-[#181818] ${
           isLogin ? "-translate-x-full" : "translate-x-0"
         }`}
       >
         <div className="relative w-full h-full overflow-hidden">
-            {/* The image component - replace src when ready */}
-            {/* <Image 
-            src="YOUR_IMAGE_URL_HERE" 
-            alt="Auth background" 
-            fill
-            priority
-            className="object-cover"
-            /> */}
+            {/* Left fade (smooth blend when image is on right side) */}
+            <div 
+              className={`absolute inset-y-0 left-0 w-16 bg-linear-to-r from-[#101010]/70 to-transparent z-10 transition-opacity duration-700 ease-in-out ${
+                isLogin ? 'opacity-0' : 'opacity-100'
+              }`} 
+            />
             
-            {/* Placeholder UI until image is added */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-950 p-12 text-center">
-                <div className="w-24 h-24 mb-6 rounded-2xl border border-dashed border-zinc-700 flex items-center justify-center bg-zinc-900/50 text-zinc-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                </div>
-                <h3 className="text-xl font-medium text-zinc-300 mb-2">Image Placeholder</h3>
-                <p className="text-zinc-500 text-sm max-w-sm">
-                    The layout is ready. Replace the commented Image component in the code with your uploaded image link.
-                </p>
-            </div>
+            {/* Right fade (smooth blend when image is on left side) */}
+            <div 
+              className={`absolute inset-y-0 right-0 w-16 bg-linear-to-l from-[#101010]/70 to-transparent z-10 transition-opacity duration-700 ease-in-out ${
+                isLogin ? 'opacity-100' : 'opacity-0'
+              }`} 
+            />
+
+            <Image 
+              src="/assets/images/AUTH-IMG.png" 
+              alt="Auth background" 
+              fill
+              priority
+              className="object-cover"
+            />
         </div>
       </div>
+
+      {/* FORGOT PASSWORD MODAL */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowForgotModal(false)}
+          />
+          <div className="relative w-full max-w-md bg-[#101010] border border-zinc-800/80 rounded-2xl shadow-2xl p-8 transform transition-all">
+            <button 
+              onClick={() => setShowForgotModal(false)}
+              className="absolute top-4 right-4 p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h2 className="text-2xl font-serif mb-2 tracking-tight">Reset Password</h2>
+            <p className="text-zinc-400 text-[14px] mb-8">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+
+            <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setShowForgotModal(false); }}>
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium text-zinc-200">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="name@example.com"
+                  required
+                  className="w-full px-4 py-3.5 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[15px] placeholder:text-zinc-600 transition-colors"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 bg-zinc-200 hover:bg-white text-black rounded-lg font-semibold text-[15px] transition-colors shadow-[0_0_20px_rgba(255,255,255,0.05)] hover:shadow-[0_0_25px_rgba(255,255,255,0.1)]"
+              >
+                Send Reset Link
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
