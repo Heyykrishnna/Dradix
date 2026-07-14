@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ChevronLeftIcon, EyeClosedIcon, EyeOpenIcon, Cross1Icon } from "@radix-ui/react-icons";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
@@ -10,6 +11,12 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const router = useRouter();
+
+  const handleAuthAction = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    router.push("/onboarding");
+  };
 
   return (
     <div className="relative min-h-screen w-full bg-[#101010] text-white font-sans overflow-hidden selection:bg-zinc-800">
@@ -42,7 +49,7 @@ export default function AuthPage() {
               <p className="text-zinc-400 text-[15px]">Enter your personal data to create your account</p>
             </div>
 
-            <button className="flex items-center justify-center gap-3 w-full py-3.5 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-8">
+            <button type="button" onClick={() => handleAuthAction()} className="flex items-center justify-center gap-3 w-full py-3.5 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-8">
               <FcGoogle className="w-5 h-5" />
               <span className="text-[15px] font-medium text-zinc-200">Google</span>
             </button>
@@ -53,7 +60,7 @@ export default function AuthPage() {
               <div className="flex-1 h-px bg-zinc-800/80"></div>
             </div>
 
-            <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-5" onSubmit={handleAuthAction}>
               <div className="flex gap-5">
                 <div className="flex-1 space-y-2">
                   <label className="text-[14px] font-medium text-zinc-200">First Name</label>
@@ -135,7 +142,7 @@ export default function AuthPage() {
               <p className="text-zinc-400 text-[15px]">Enter your credentials to access your account</p>
             </div>
 
-            <button className="flex items-center justify-center gap-3 w-full py-3.5 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-8">
+            <button type="button" onClick={() => handleAuthAction()} className="flex items-center justify-center gap-3 w-full py-3.5 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-8">
               <FcGoogle className="w-5 h-5" />
               <span className="text-[15px] font-medium text-zinc-200">Google</span>
             </button>
@@ -146,7 +153,7 @@ export default function AuthPage() {
               <div className="flex-1 h-px bg-zinc-800/80"></div>
             </div>
 
-            <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-5" onSubmit={handleAuthAction}>
               <div className="space-y-2">
                 <label className="text-[14px] font-medium text-zinc-200">Email</label>
                 <input
