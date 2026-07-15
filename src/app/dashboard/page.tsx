@@ -182,6 +182,7 @@ export default function DashboardPage() {
   const [activeActivityToggle, setActiveActivityToggle] = useState<"Daily" | "Weekly" | "Monthly" | "Yearly">("Weekly");
   const [showHours, setShowHours] = useState(true);
   const [showCommits, setShowCommits] = useState(true);
+  const [trafficTooltipPos, setTrafficTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
   const [sortField, setSortField] = useState<"name" | "views" | "likes" | "stars" | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -552,7 +553,14 @@ export default function DashboardPage() {
 
                         <div className="h-32 relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <PieChart
+                  onMouseMove={(e: any) => {
+                    if (e && e.chartX !== undefined && e.chartY !== undefined) {
+                      setTrafficTooltipPos({ x: e.chartX + 15, y: e.chartY + 15 });
+                    }
+                  }}
+                  onMouseLeave={() => setTrafficTooltipPos(null)}
+                >
                   <Pie
                     data={languageData}
                     cx="50%"
@@ -569,6 +577,7 @@ export default function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip 
+                    position={trafficTooltipPos || undefined}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length && payload[0].payload) {
                         const cellData = payload[0].payload;

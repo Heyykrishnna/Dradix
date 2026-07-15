@@ -18,7 +18,14 @@ const recentActivity = [
 export default function AIInsightsCard() {
   return (
     <div className="flex flex-col gap-4 h-full">
-      <div className="bg-[#161616] rounded-2xl p-5 flex-1">
+      <div className="relative overflow-hidden bg-[#161616] rounded-2xl p-5 flex-1">
+        {/* Noise overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-[0.035] mix-blend-overlay"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+          }}
+        />
         <div className="flex items-center gap-2 mb-5">
           <div className="w-7 h-7 rounded-lg bg-[#00c9a7]/15 flex items-center justify-center">
             <MagicWandIcon className="w-4 h-4 text-[#00c9a7]" />
@@ -68,7 +75,14 @@ export default function AIInsightsCard() {
         </div>
       </div>
 
-      <div className="bg-[#161616] rounded-2xl p-5">
+      <div className="relative overflow-hidden bg-[#161616] rounded-2xl p-5">
+        {/* Noise overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-[0.035] mix-blend-overlay"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+          }}
+        />
         <p className="text-[11px] font-semibold text-[#555] uppercase tracking-wider mb-3">Recent Activity</p>
         <div className="space-y-3">
           {recentActivity.map((a, i) => (

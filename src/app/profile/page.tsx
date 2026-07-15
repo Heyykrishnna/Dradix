@@ -21,7 +21,13 @@ import {
   FaUpload,
   FaLink,
   FaImage,
-  FaCircleCheck
+  FaCircleCheck,
+  FaGear,
+  FaBookmark,
+  FaBriefcase,
+  FaShield,
+  FaUserPlus,
+  FaGift
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -32,7 +38,9 @@ import {
   Tooltip,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  LineChart,
+  Line
 } from "recharts";
 
 interface Skill {
@@ -56,6 +64,12 @@ interface Education {
   details: string;
 }
 
+interface CustomSocial {
+  id: string;
+  name: string;
+  url: string;
+}
+
 interface ProfileState {
   name: string;
   username: string;
@@ -73,6 +87,10 @@ interface ProfileState {
   github: string;
   linkedin: string;
   portfolio: string;
+  dribbble?: string;
+  behance?: string;
+  medium?: string;
+  customSocials?: CustomSocial[];
   resumeName: string;
   skills: Skill[];
   techStack: string[];
@@ -82,7 +100,40 @@ interface ProfileState {
   messages: number;
   activityRate: number;
   responseTime: string;
+  jobStatus: "Open" | "Closed";
+  verified: boolean;
+  customDomain: string;
+  bookmarksCount: number;
+  rewardPoints: number;
 }
+
+const getSocialLogoUrl = (name: string, url: string) => {
+  const lowerName = name.toLowerCase().trim();
+  if (lowerName === "github") return "https://cdn.simpleicons.org/github";
+  if (lowerName === "linkedin") return "/linkedin.svg";
+  if (lowerName === "dribbble") return "https://cdn.simpleicons.org/dribbble";
+  if (lowerName === "behance") return "https://cdn.simpleicons.org/behance";
+  if (lowerName === "medium") return "https://cdn.simpleicons.org/medium";
+  if (lowerName === "portfolio") return "/globe.svg";
+
+  const simpleBrands = [
+    "twitter", "x", "figma", "youtube", "discord", "reddit", "substack", 
+    "instagram", "facebook", "twitch", "tiktok", "unsplash", "stackoverflow", 
+    "gitlab", "bitbucket", "hashnode", "devto", "producthunt", "hackernews", "codepen"
+  ];
+  const matchedBrand = simpleBrands.find(brand => lowerName.includes(brand) || url.toLowerCase().includes(brand));
+  if (matchedBrand) {
+    const slug = matchedBrand === "twitter" ? "x" : matchedBrand === "devto" ? "devdotto" : matchedBrand === "hackernews" ? "ycombinator" : matchedBrand;
+    return `https://cdn.simpleicons.org/${slug}`;
+  }
+
+  try {
+    const domain = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+  } catch (e) {
+    return "/globe.svg";
+  }
+};
 
 const COVER_PRESETS = [
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop",
@@ -115,6 +166,12 @@ const initialProfile: ProfileState = {
   github: "https://github.com/yatharthk",
   linkedin: "https://linkedin.com/in/yatharthk",
   portfolio: "https://yatharthk.dev",
+  dribbble: "https://dribbble.com/yatharthk",
+  behance: "https://behance.net/yatharthk",
+  medium: "https://medium.com/@yatharthk",
+  customSocials: [
+    { id: "1", name: "Twitter", url: "https://x.com/yatharthk" }
+  ],
   resumeName: "yatharth_resume.pdf",
   skills: [
     { name: "Frontend Development", level: "Advanced", pct: 90, color: "#3b82f6" },
@@ -124,6 +181,18 @@ const initialProfile: ProfileState = {
   ],
   techStack: ["Next.js", "TypeScript", "React", "Node.js", "Rust", "Go", "Python", "Tailwind CSS", "PostgreSQL", "Docker", "Git"],
   experience: [
+    {
+      company: "Asia Youth International MUN",
+      role: "Global Representative",
+      duration: "Oct 2025 - Present",
+      desc: "Representing IIIT in global model united nations forums, leading delegate panels and coordinating discussions on international relations."
+    },
+    {
+      company: "Freelance",
+      role: "Full-stack Developer",
+      duration: "Aug 2025 - Present",
+      desc: "Building custom web applications using Next.js, React, Node.js and PostgreSQL. Collaborating with clients globally."
+    },
     {
       company: "Dradix",
       role: "Founding Engineer",
@@ -139,6 +208,18 @@ const initialProfile: ProfileState = {
   ],
   education: [
     {
+      school: "Newton School of Technology",
+      degree: "Bachelor of Technology - BTech",
+      duration: "2023 - 2027",
+      details: "Pursuing specialized curriculum in Computer Science and Software Engineering."
+    },
+    {
+      school: "Rishihood University",
+      degree: "Bachelor of Technology - BTech",
+      duration: "2023 - 2027",
+      details: "Joint degree partnership with Newton School of Technology, focusing on Leadership and Tech Innovation."
+    },
+    {
       school: "Indian Institute of Information Technology",
       degree: "B.Tech in Computer Science",
       duration: "2018 - 2022",
@@ -148,7 +229,12 @@ const initialProfile: ProfileState = {
   views: 95202,
   messages: 324,
   activityRate: 88,
-  responseTime: "2 hours"
+  responseTime: "2 hours",
+  jobStatus: "Open",
+  verified: true,
+  customDomain: "",
+  bookmarksCount: 3,
+  rewardPoints: 250
 };
 
 const weeklyActivityData = [
@@ -165,6 +251,7 @@ export default function ProfilePage() {
   const [formState, setFormState] = useState<ProfileState>(initialProfile);
   const hasChanges = isEditing && JSON.stringify(profile) !== JSON.stringify(formState);
   const [newTechTag, setNewTechTag] = useState("");
+  const [activeModal, setActiveModal] = useState<"settings" | "bookmarks" | "invite" | "rewards" | "verification" | "domain" | null>(null);
 
   const [imageModalType, setImageModalType] = useState<"cover" | "avatar" | null>(null);
   const [modalInputUrl, setModalInputUrl] = useState("");
@@ -265,7 +352,7 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    if (imageModalType !== null) {
+    if (imageModalType !== null || activeModal !== null) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -273,7 +360,7 @@ export default function ProfilePage() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [imageModalType]);
+  }, [imageModalType, activeModal]);
 
   const handleSave = () => {
     setProfile(formState);
@@ -598,215 +685,494 @@ export default function ProfilePage() {
         
                 <div className="lg:col-span-1 space-y-8">
           
+                    {/* 1. Sidebar Navigation Menu Card */}
+                    <div className="bg-[#161616] rounded-3xl border border-zinc-800 shadow-xl p-5 space-y-4 text-white">
+                      {/* Profile Summary Row */}
+                      <div className="flex items-center gap-3 p-3 bg-zinc-800/40 rounded-2xl border border-zinc-700/50">
+                        <div className="w-9 h-9 rounded-full overflow-hidden border border-zinc-700 shrink-0">
+                          <img 
+                            src={isEditing ? formState.avatarUrl : profile.avatarUrl} 
+                            alt={isEditing ? formState.name : profile.name} 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                        <div className="text-left leading-none">
+                          <p className="text-[13px] font-bold text-white leading-tight">{isEditing ? formState.name : profile.name}</p>
+                          <p className="text-[10px] text-zinc-400 mt-0.5">@{isEditing ? formState.username : profile.username}</p>
+                        </div>
+                      </div>
+
+                      {/* Navigation Menu Links */}
+                      <div className="space-y-1">
+                        <button
+                          type="button"
+                          onClick={() => setActiveModal("bookmarks")}
+                          className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-zinc-800/60 transition-colors text-left text-[12px] font-bold text-zinc-200 cursor-pointer"
+                        >
+                          <FaBookmark className="w-4 h-4 text-zinc-400" />
+                          <span>Bookmarks</span>
+                          <span className="ml-auto text-[9px] font-bold text-zinc-400 bg-zinc-800 px-2.5 py-0.5 rounded-full">
+                            {isEditing ? formState.bookmarksCount : profile.bookmarksCount}
+                          </span>
+                        </button>
+
+                        <div className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-800/60 transition-colors text-left text-[12px] font-bold text-zinc-200">
+                          <div className="flex items-center gap-3">
+                            <FaBriefcase className="w-4 h-4 text-zinc-400" />
+                            <span>Job Preferences</span>
+                          </div>
+                          {isEditing ? (
+                            <select
+                              value={formState.jobStatus}
+                              onChange={(e) => setFormState({ ...formState, jobStatus: e.target.value as "Open" | "Closed" })}
+                              className="text-[9px] font-bold text-zinc-300 bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 focus:outline-none"
+                            >
+                              <option value="Open">Open</option>
+                              <option value="Closed">Closed</option>
+                            </select>
+                          ) : (
+                            <span 
+                              className={`text-[9px] font-bold px-2 py-0.5 rounded ${
+                                profile.jobStatus === "Open" ? "bg-emerald-500/15 text-emerald-400" : "bg-zinc-500/15 text-zinc-400"
+                              }`}
+                            >
+                              {profile.jobStatus === "Open" ? "Open" : "Closed"}
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setActiveModal("verification")}
+                          className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-zinc-800/60 transition-colors text-left text-[12px] font-bold text-zinc-200 cursor-pointer"
+                        >
+                          <FaShield className="w-4 h-4 text-zinc-400" />
+                          <span>Verification</span>
+                          <span className="ml-auto text-[9px] font-bold text-emerald-400 bg-emerald-500/10 rounded-md px-2 py-0.5">
+                            Verified
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setActiveModal("invite")}
+                          className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-zinc-800/60 transition-colors text-left text-[12px] font-bold text-zinc-200 cursor-pointer"
+                        >
+                          <FaUserPlus className="w-4 h-4 text-zinc-400" />
+                          <span>Invite Friends</span>
+                          <span className="ml-auto text-[9px] font-bold text-indigo-400 bg-indigo-500/10 rounded px-2 py-0.5">
+                            Share
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 2. Contact & Info Card */}
                     <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
-            
-                        <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
-              <span className="text-[14px] font-bold text-zinc-900 font-heading">Public Profile</span>
-              <button className="text-zinc-400 hover:text-zinc-600">
-                <FaEllipsis className="w-5 h-5" />
-              </button>
-            </div>
+                      <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+                        <span className="text-[14px] font-bold text-zinc-900 font-heading">Contact & Info</span>
+                      </div>
 
-                        <div className="flex flex-col items-center text-center py-2">
-              <div className="relative w-20 h-20 rounded-full border border-orange-200 bg-orange-100 overflow-hidden flex items-center justify-center p-1">
-                <img 
-                  src={isEditing ? formState.avatarUrl : profile.avatarUrl} 
-                  alt={isEditing ? formState.name : profile.name}
-                  className="w-full h-full object-cover rounded-full" 
-                />
-                <span className="absolute bottom-1 right-1 w-3 h-3 bg-[#005c58] border-2 border-orange-100 rounded-full" />
-              </div>
-              <p className="text-[20px] font-extrabold text-zinc-900 mt-3">{isEditing ? formState.name : profile.name}</p>
-              <p className="text-[10px] font-bold text-indigo-600 mt-1 uppercase tracking-wider">{isEditing ? formState.subtitle : profile.subtitle}</p>
-            </div>
+                      <div className="space-y-4 text-left">
+                        <div>
+                          <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Email</p>
+                          {isEditing ? (
+                            <input
+                              type="email"
+                              value={formState.email}
+                              onChange={(e) => setFormState({ ...formState, email: e.target.value })}
+                              className="w-full mt-1 rounded-lg border border-zinc-200 p-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-bold"
+                            />
+                          ) : (
+                            <p className="text-[12px] font-bold text-zinc-700 mt-0.5 break-all">{profile.email}</p>
+                          )}
+                        </div>
 
-                        <div className="space-y-4 pt-2">
-              <div>
-                <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Email</p>
-                {isEditing ? (
-                  <input
-                    type="email"
-                    value={formState.email}
-                    onChange={(e) => setFormState({ ...formState, email: e.target.value })}
-                    className="w-full mt-1 rounded-lg border border-zinc-200 p-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-bold"
-                  />
-                ) : (
-                  <p className="text-[12px] font-bold text-zinc-700 mt-0.5 break-all">{profile.email}</p>
-                )}
-              </div>
+                        <div>
+                          <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Phone</p>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={formState.phone}
+                              onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
+                              className="w-full mt-1 rounded-lg border border-zinc-200 p-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-bold"
+                            />
+                          ) : (
+                            <p className="text-[12px] font-bold text-zinc-700 mt-0.5">{profile.phone}</p>
+                          )}
+                        </div>
 
-              <div>
-                <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Phone</p>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={formState.phone}
-                    onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
-                    className="w-full mt-1 rounded-lg border border-zinc-200 p-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-bold"
-                  />
-                ) : (
-                  <p className="text-[12px] font-bold text-zinc-700 mt-0.5">{profile.phone}</p>
-                )}
-              </div>
+                        <div>
+                          <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Location</p>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={formState.location}
+                              onChange={(e) => setFormState({ ...formState, location: e.target.value })}
+                              className="w-full mt-1 rounded-lg border border-zinc-200 p-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-bold"
+                            />
+                          ) : (
+                            <p className="text-[12px] font-bold text-zinc-700 mt-0.5">{profile.location}</p>
+                          )}
+                        </div>
+                      </div>
 
-              <div>
-                <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Location</p>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={formState.location}
-                    onChange={(e) => setFormState({ ...formState, location: e.target.value })}
-                    className="w-full mt-1 rounded-lg border border-zinc-200 p-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-bold"
-                  />
-                ) : (
-                  <p className="text-[12px] font-bold text-zinc-700 mt-0.5">{profile.location}</p>
-                )}
-              </div>
-            </div>
+                      <div className="pt-2 text-left">
+                        <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-2.5">Contacts</p>
+                        <div className="flex items-center -space-x-2">
+                          <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=64&auto=format&fit=crop" alt="c1" />
+                          <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=64&auto=format&fit=crop" alt="c2" />
+                          <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=64&auto=format&fit=crop" alt="c3" />
+                          <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=64&auto=format&fit=crop" alt="c4" />
+                          <div className="w-8 h-8 rounded-full border-2 border-white bg-zinc-100 flex items-center justify-center text-[10px] font-bold text-zinc-500">
+                            +75
+                          </div>
+                        </div>
+                      </div>
 
-                        <div className="pt-2">
-              <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-2.5">Contacts</p>
-              <div className="flex items-center -space-x-2">
-                <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=64&auto=format&fit=crop" alt="c1" />
-                <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=64&auto=format&fit=crop" alt="c2" />
-                <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=64&auto=format&fit=crop" alt="c3" />
-                <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=64&auto=format&fit=crop" alt="c4" />
-                <div className="w-8 h-8 rounded-full border-2 border-white bg-zinc-100 flex items-center justify-center text-[10px] font-bold text-zinc-500">
-                  +75
-                </div>
-              </div>
-            </div>
+                      <div className="space-y-2 pt-2 text-left">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Activity</span>
+                          <span className="text-[9px] font-bold bg-[#003c3a]/15 text-[#005c58] px-2 py-0.5 rounded uppercase tracking-wider">Active</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-[12px] font-bold text-zinc-800">{profile.responseTime} response time</p>
+                          {isEditing && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-zinc-400 font-bold">Gauge:</span>
+                              <input 
+                                type="number" 
+                                min="0" 
+                                max="100" 
+                                value={formState.activityRate} 
+                                onChange={(e) => setFormState({ ...formState, activityRate: Math.max(0, Math.min(100, Number(e.target.value))) })}
+                                className="w-12 text-center rounded border border-zinc-200 p-0.5 text-[10px] font-bold text-zinc-700 bg-zinc-50"
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#003c3a] rounded-full transition-all duration-500" style={{ width: `${isEditing ? formState.activityRate : profile.activityRate}%` }} />
+                        </div>
+                        <div className="flex justify-end">
+                          <span className="text-[9px] text-zinc-400 font-bold">{isEditing ? formState.activityRate : profile.activityRate}/100%</span>
+                        </div>
+                      </div>
 
-                        <div className="space-y-2 pt-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Activity</span>
-                <span className="text-[9px] font-bold bg-[#003c3a]/15 text-[#005c58] px-2 py-0.5 rounded uppercase tracking-wider">Active</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="text-[12px] font-bold text-zinc-800">2 hours response time</p>
-                {isEditing && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-zinc-400 font-bold">Gauge:</span>
-                    <input 
-                      type="number" 
-                      min="0" 
-                      max="100" 
-                      value={formState.activityRate} 
-                      onChange={(e) => setFormState({ ...formState, activityRate: Math.max(0, Math.min(100, Number(e.target.value))) })}
-                      className="w-12 text-center rounded border border-zinc-200 p-0.5 text-[10px] font-bold text-zinc-700 bg-zinc-50"
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#003c3a] rounded-full transition-all duration-500" style={{ width: `${isEditing ? formState.activityRate : profile.activityRate}%` }} />
-              </div>
-              <div className="flex justify-end">
-                <span className="text-[9px] text-zinc-400 font-bold">{isEditing ? formState.activityRate : profile.activityRate}/100%</span>
-              </div>
-            </div>
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-100 text-left">
+                        <div>
+                          <p className="text-[10px] font-bold text-zinc-400">Total Views</p>
+                          <p className="text-[20px] font-extrabold text-zinc-900 leading-none mt-1.5">{profile.views.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-zinc-400">Messages</p>
+                          <p className="text-[20px] font-extrabold text-zinc-900 leading-none mt-1.5">{profile.messages}</p>
+                        </div>
+                      </div>
+                    </div>
 
-                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-100 text-left">
-              <div>
-                <p className="text-[10px] font-bold text-zinc-400">Total Views</p>
-                <p className="text-[20px] font-extrabold text-zinc-900 leading-none mt-1.5">{profile.views.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-zinc-400">Messages</p>
-                <p className="text-[20px] font-extrabold text-zinc-900 leading-none mt-1.5">{profile.messages}</p>
-              </div>
-            </div>
+                    {/* 3. Profile Analytics Card */}
+                    <div className="bg-[#161616] rounded-3xl border border-zinc-800 shadow-xl p-5 space-y-4 text-white text-left">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[13px] font-extrabold text-white uppercase tracking-wider">Profile Analytics</span>
+                        <span className="text-[9px] font-semibold text-zinc-400 bg-zinc-800 rounded px-2 py-0.5">last 7 days</span>
+                      </div>
 
-          </div>
+                      <div className="flex gap-8 border-b border-zinc-800 pb-3">
+                        <div>
+                          <p className="text-[20px] font-extrabold text-white leading-none">2 <span className="text-[11px] font-bold text-emerald-500">↑ 2</span></p>
+                          <p className="text-[10px] font-bold text-zinc-400 mt-1.5">Views</p>
+                        </div>
+                        <div>
+                          <p className="text-[20px] font-extrabold text-white leading-none">2 <span className="text-[11px] font-bold text-rose-500">↓ 2</span></p>
+                          <p className="text-[10px] font-bold text-zinc-400 mt-1.5">Followers</p>
+                        </div>
+                      </div>
+
+                      {/* Line Chart */}
+                      <div className="h-28 w-full -ml-3">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart 
+                            data={[
+                              { day: "09", views: 0 },
+                              { day: "10", views: 0 },
+                              { day: "11", views: 0 },
+                              { day: "12", views: 0 },
+                              { day: "13", views: 2 },
+                              { day: "14", views: 0 },
+                              { day: "15", views: 0 },
+                            ]} 
+                            margin={{ top: 15, right: 10, left: 10, bottom: 5 }}
+                          >
+                            <XAxis 
+                              dataKey="day" 
+                              tickLine={false} 
+                              axisLine={false} 
+                              tick={{ fontSize: 9, fill: "#71717a", fontWeight: 600 }} 
+                            />
+                            <Tooltip 
+                              cursor={{ stroke: "#333", strokeWidth: 1 }}
+                              contentStyle={{ backgroundColor: "#1c1c1c", borderColor: "#333", borderRadius: "8px", fontSize: "10px", color: "#fff" }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="views" 
+                              stroke="#3b82f6" 
+                              strokeWidth={2} 
+                              dot={{ r: 2.5, stroke: "#3b82f6", strokeWidth: 1.5, fill: "#161616" }}
+                              activeDot={{ r: 4 }} 
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      <a 
+                        href="/dashboard"
+                        className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-zinc-800 hover:bg-zinc-700/80 text-white rounded-xl text-[11px] font-bold transition-all"
+                      >
+                        <span>Analytics Dashboard</span>
+                        <FaArrowUpRightFromSquare className="w-3 h-3 text-zinc-400" />
+                      </a>
+                    </div>
+
+                    {/* 4. Profile Highlights Card */}
+                    <div 
+                      className="relative bg-linear-to-br from-zinc-800 to-zinc-950 text-white rounded-3xl border border-zinc-750 shadow-xl p-5 overflow-hidden text-left"
+                    >
+                      {/* Noise overlay */}
+                      <div 
+                        className="absolute inset-0 pointer-events-none opacity-[0.06] mix-blend-overlay"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+                        }}
+                      />
+
+                      <div className="relative z-10 space-y-4">
+                        <div className="flex items-center gap-2 pb-2 border-b border-zinc-700/60">
+                          <span className="text-sm text-yellow-400">✦</span>
+                          <span className="text-[13px] font-bold font-heading uppercase tracking-wider">Profile Highlights</span>
+                        </div>
+
+                        <ul className="space-y-3.5 text-[11.5px] leading-relaxed text-zinc-300 list-disc pl-4 text-left">
+                          {(isEditing ? formState : profile).experience[0] && (
+                            <li>
+                              Currently works at <strong className="text-white font-extrabold">{(isEditing ? formState : profile).experience[0].company}</strong> as a {(isEditing ? formState : profile).experience[0].role} since {(isEditing ? formState : profile).experience[0].duration.split(" - ")[0]}.
+                            </li>
+                          )}
+                          {(isEditing ? formState : profile).experience[1] && (
+                            <li>
+                              Currently also works at <strong className="text-white font-extrabold">{(isEditing ? formState : profile).experience[1].company}</strong> as a {(isEditing ? formState : profile).experience[1].role} since {(isEditing ? formState : profile).experience[1].duration.split(" - ")[0]}.
+                            </li>
+                          )}
+                          <li>
+                            Has made <strong className="text-[#00c9a7] font-extrabold">2,238 contributions</strong> on GitHub in the last year.
+                          </li>
+                          {(isEditing ? formState : profile).education[0] && (
+                            <li>
+                              Pursuing {(isEditing ? formState : profile).education[0].degree} from <strong className="text-white font-extrabold">{(isEditing ? formState : profile).education[0].school}</strong>.
+                            </li>
+                          )}
+                          {(isEditing ? formState : profile).education[1] && (
+                            <li>
+                              Pursuing {(isEditing ? formState : profile).education[1].degree} from <strong className="text-white font-extrabold">{(isEditing ? formState : profile).education[1].school}</strong>.
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
 
                     <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-4">
             <span className="text-[14px] font-bold text-zinc-900 font-heading block pb-2 border-b border-zinc-100">Socials & Assets</span>
             
             <div className="space-y-4">
-              
-                            <div className="space-y-1">
-                <a 
-                  href={isEditing ? formState.github : profile.github} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white">
-                      <FaGithub className="w-4 h-4" />
-                    </div>
-                    <span className="text-[12px] font-bold text-zinc-800">GitHub</span>
-                  </div>
-                  <FaArrowUpRightFromSquare className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
-                </a>
-                {isEditing && (
-                  <input
-                    type="url"
-                    value={formState.github}
-                    onChange={(e) => setFormState({ ...formState, github: e.target.value })}
-                    placeholder="https://github.com/..."
-                    className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
-                  />
-                )}
-              </div>
+              {(() => {
+                const standardSocialsList = [
+                  { key: "github", name: "GitHub", placeholder: "https://github.com/..." },
+                  { key: "linkedin", name: "LinkedIn", placeholder: "https://linkedin.com/in/..." },
+                  { key: "portfolio", name: "Portfolio", placeholder: "https://yourwebsite.com" },
+                  { key: "dribbble", name: "Dribbble", placeholder: "https://dribbble.com/..." },
+                  { key: "behance", name: "Behance", placeholder: "https://behance.net/..." },
+                  { key: "medium", name: "Medium", placeholder: "https://medium.com/@..." },
+                ] as const;
 
-                            <div className="space-y-1">
-                <a 
-                  href={isEditing ? formState.linkedin : profile.linkedin} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#0a66c2] flex items-center justify-center text-white">
-                      <FaLinkedin className="w-4 h-4" />
-                    </div>
-                    <span className="text-[12px] font-bold text-zinc-800">LinkedIn</span>
-                  </div>
-                  <FaArrowUpRightFromSquare className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
-                </a>
-                {isEditing && (
-                  <input
-                    type="url"
-                    value={formState.linkedin}
-                    onChange={(e) => setFormState({ ...formState, linkedin: e.target.value })}
-                    placeholder="https://linkedin.com/in/..."
-                    className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
-                  />
-                )}
-              </div>
+                return (
+                  <>
+                    {standardSocialsList.map((item) => {
+                      const value = isEditing ? formState[item.key] : profile[item.key];
+                      if (!isEditing && !value) return null;
 
-                            <div className="space-y-1">
-                <a 
-                  href={isEditing ? formState.portfolio : profile.portfolio} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#003c3a] flex items-center justify-center text-white">
-                      <FaGlobe className="w-4 h-4" />
-                    </div>
-                    <span className="text-[12px] font-bold text-zinc-800">Portfolio</span>
-                  </div>
-                  <FaArrowUpRightFromSquare className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
-                </a>
-                {isEditing && (
-                  <input
-                    type="url"
-                    value={formState.portfolio}
-                    onChange={(e) => setFormState({ ...formState, portfolio: e.target.value })}
-                    placeholder="https://yourwebsite.com"
-                    className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
-                  />
-                )}
-              </div>
+                      const logoUrl = getSocialLogoUrl(item.name, value || "");
 
-                            <div className="space-y-1">
+                      return (
+                        <div key={item.key} className="space-y-1 text-left">
+                          <a 
+                            href={value || undefined} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            onClick={(e) => { if (!value) e.preventDefault(); }}
+                            className={`flex items-center justify-between p-3 rounded-2xl transition-colors group ${
+                              value ? "bg-zinc-50 hover:bg-zinc-100 cursor-pointer" : "bg-zinc-50/50 cursor-default opacity-60"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 font-medium">
+                              <div className="w-8 h-8 rounded-xl bg-white border border-zinc-150 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                <img 
+                                  src={logoUrl} 
+                                  alt={item.name} 
+                                  className="w-5 h-5 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.src = "/globe.svg";
+                                  }}
+                                />
+                              </div>
+                              <span className="text-[12px] font-bold text-zinc-800">{item.name}</span>
+                            </div>
+                            {value && (
+                              <FaArrowUpRightFromSquare className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+                            )}
+                          </a>
+                          {isEditing && (
+                            <input
+                              type="url"
+                              value={formState[item.key] || ""}
+                              onChange={(e) => setFormState({ ...formState, [item.key]: e.target.value })}
+                              placeholder={item.placeholder}
+                              className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
+                );
+              })()}
+
+              {(() => {
+                const customs = isEditing ? (formState.customSocials || []) : (profile.customSocials || []);
+                return (
+                  <>
+                    {customs.map((custom, index) => {
+                      if (!isEditing && !custom.url) return null;
+
+                      const logoUrl = getSocialLogoUrl(custom.name, custom.url);
+
+                      return (
+                        <div key={custom.id} className="space-y-1 text-left">
+                          {isEditing ? (
+                            <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-150 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-lg bg-white border border-zinc-150 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                    <img 
+                                      src={logoUrl} 
+                                      alt={custom.name || "Custom Link"} 
+                                      className="w-4 h-4 object-contain"
+                                      onError={(e) => {
+                                        e.currentTarget.src = "/globe.svg";
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Custom Platform</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = (formState.customSocials || []).filter(item => item.id !== custom.id);
+                                    setFormState({ ...formState, customSocials: updated });
+                                  }}
+                                  className="p-1 rounded-lg text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center border border-transparent hover:border-red-100 cursor-pointer"
+                                >
+                                  <FaTrashCan className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={custom.name}
+                                  onChange={(e) => {
+                                    const updated = [...(formState.customSocials || [])];
+                                    updated[index] = { ...updated[index], name: e.target.value };
+                                    setFormState({ ...formState, customSocials: updated });
+                                  }}
+                                  placeholder="Platform name (e.g. YouTube)"
+                                  className="w-1/3 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-bold"
+                                />
+                                <input
+                                  type="url"
+                                  value={custom.url}
+                                  onChange={(e) => {
+                                    const updated = [...(formState.customSocials || [])];
+                                    updated[index] = { ...updated[index], url: e.target.value };
+                                    setFormState({ ...formState, customSocials: updated });
+                                  }}
+                                  placeholder="https://..."
+                                  className="flex-1 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <a 
+                              href={custom.url} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 transition-colors group cursor-pointer"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-white border border-zinc-150 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                  <img 
+                                    src={logoUrl} 
+                                    alt={custom.name} 
+                                    className="w-5 h-5 object-contain"
+                                    onError={(e) => {
+                                      e.currentTarget.src = "/globe.svg";
+                                    }}
+                                  />
+                                </div>
+                                <span className="text-[12px] font-bold text-zinc-800">{custom.name || "Web Link"}</span>
+                              </div>
+                              <FaArrowUpRightFromSquare className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {isEditing && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newCustom: CustomSocial = {
+                            id: Date.now().toString(),
+                            name: "",
+                            url: ""
+                          };
+                          setFormState({
+                            ...formState,
+                            customSocials: [...(formState.customSocials || []), newCustom]
+                          });
+                        }}
+                        className="w-full flex items-center justify-center gap-2 p-2.5 rounded-2xl bg-zinc-50 hover:bg-zinc-100 border border-dashed border-zinc-200 text-zinc-650 hover:text-zinc-800 text-[11px] font-bold transition-all cursor-pointer mt-2"
+                      >
+                        <FaPlus className="w-3 h-3" />
+                        <span>Add Custom Social Link</span>
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
+
+              <div className="space-y-1 text-left">
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center text-white">
-                      <FaFileLines className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-xl bg-white border border-zinc-150 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                      <img 
+                        src="/file.svg" 
+                        alt="Resume" 
+                        className="w-5 h-5 object-contain" 
+                        onError={(e) => {
+                          e.currentTarget.src = "/globe.svg";
+                        }}
+                      />
                     </div>
                     <div className="text-left">
                       <p className="text-[12px] font-bold text-zinc-800 leading-none">Resume</p>
@@ -1549,6 +1915,163 @@ export default function ProfilePage() {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic Modals Overlay */}
+      {activeModal && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all">
+          <div className="bg-[#161616] border border-zinc-800 text-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative space-y-4 text-left">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <h3 className="text-[14px] font-extrabold uppercase tracking-wider">
+                {activeModal === "bookmarks" && "My Bookmarks"}
+                {activeModal === "invite" && "Invite Friends & Earn"}
+                {activeModal === "rewards" && "Rewards & Achievements"}
+                {activeModal === "verification" && "Verification Status"}
+                {activeModal === "domain" && "Custom Domain Setup"}
+              </h3>
+              <button 
+                onClick={() => setActiveModal(null)}
+                className="w-7 h-7 rounded-full bg-zinc-800/80 hover:bg-zinc-700/85 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <FaXmark className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="py-2 text-[12.5px] leading-relaxed text-zinc-300">
+              {activeModal === "bookmarks" && (
+                <div className="space-y-3">
+                  <p className="text-zinc-400">You have bookmarked these tech platforms and resources:</p>
+                  <div className="space-y-2">
+                    {[
+                      { name: "Next.js 15 Documentation", url: "https://nextjs.org", desc: "For reference on new App Router features" },
+                      { name: "Simple Icons CDN", url: "https://simpleicons.org", desc: "Source of clean SVG brand logos" },
+                      { name: "Agentic AI Developer Roadmap", url: "https://dradix.dev", desc: "Syllabus on building autonomous AI assistants" }
+                    ].map((b, i) => (
+                      <a 
+                        key={i} 
+                        href={b.url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="block p-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all text-left"
+                      >
+                        <p className="font-bold text-white flex items-center gap-1.5">
+                          {b.name} <FaArrowUpRightFromSquare className="w-3 h-3 text-zinc-500" />
+                        </p>
+                        <p className="text-[10px] text-zinc-500 mt-1">{b.desc}</p>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeModal === "invite" && (
+                <div className="space-y-4">
+                  <p className="text-zinc-400">Share your referral link with developer friends. You both unlock premium analytics features and get 100 XP rewards!</p>
+                  <div className="flex gap-2 bg-zinc-900 p-2 rounded-xl border border-zinc-800">
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={`https://dradix.dev/ref/${profile.username}`} 
+                      className="bg-transparent border-none text-[11px] text-zinc-300 flex-1 px-1 focus:outline-none"
+                    />
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://dradix.dev/ref/${profile.username}`);
+                        alert("Referral link copied to clipboard!");
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-[#00c9a7] text-black font-bold text-[10px] hover:bg-[#00b89a] transition-colors cursor-pointer"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-zinc-500 pt-2 border-t border-zinc-800/65">
+                    <span>Total Invites: 0</span>
+                    <span>Pending Rewards: 0 XP</span>
+                  </div>
+                </div>
+              )}
+
+              {activeModal === "rewards" && (
+                <div className="space-y-3">
+                  <div className="p-4 rounded-2xl bg-linear-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-center">
+                    <p className="text-[11px] text-amber-400 font-bold uppercase tracking-wider">Your Balance</p>
+                    <p className="text-3xl font-black text-white mt-1">{profile.rewardPoints} XP</p>
+                    <p className="text-[10px] text-zinc-400 mt-1.5">Bronze Tier Developer</p>
+                  </div>
+                  <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest pt-2">Unlocked Achievements</p>
+                  <div className="space-y-2">
+                    {[
+                      { name: "Git Sync Master", xp: "+100 XP", desc: "Synced your GitHub profile details successfully." },
+                      { name: "Resume Analytics Pro", xp: "+150 XP", desc: "Analyzed your resume readiness for recruiters." }
+                    ].map((badge, i) => (
+                      <div key={i} className="flex justify-between items-center p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-left">
+                        <div>
+                          <p className="font-bold text-white">{badge.name}</p>
+                          <p className="text-[9px] text-zinc-500 mt-0.5">{badge.desc}</p>
+                        </div>
+                        <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md shrink-0">{badge.xp}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeModal === "verification" && (
+                <div className="text-center py-4 space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto text-emerald-400 border border-emerald-500/20">
+                    <FaCircleCheck className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[16px] font-black text-white">Profile Verified</p>
+                    <p className="text-[12px] text-zinc-400 max-w-xs mx-auto">This developer profile has been fully authenticated with verified GitHub and LinkedIn credentials.</p>
+                  </div>
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-[11px] text-zinc-500 flex justify-between">
+                    <span>Verified: Oct 2025</span>
+                    <span className="text-emerald-400 font-bold">100% Genuine</span>
+                  </div>
+                </div>
+              )}
+
+              {activeModal === "domain" && (
+                <div className="space-y-3">
+                  <p className="text-zinc-400">Connect your custom domain (e.g., <code className="text-white">yourname.com</code>) to point directly to your Dradix profile.</p>
+                  <div className="space-y-2">
+                    <div className="p-3 bg-zinc-900 rounded-xl border border-zinc-800 space-y-2">
+                      <p className="font-bold text-white text-[11px]">1. Add a CNAME Record</p>
+                      <div className="flex justify-between text-[10px] text-zinc-400 bg-zinc-950 p-2 rounded">
+                        <span>Host: <code className="text-white">@</code></span>
+                        <span>Value: <code className="text-[#00c9a7]">profile.dradix.dev</code></span>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-zinc-900 rounded-xl border border-zinc-800 space-y-2">
+                      <p className="font-bold text-white text-[11px]">2. Add an A Record</p>
+                      <div className="flex justify-between text-[10px] text-zinc-400 bg-zinc-950 p-2 rounded">
+                        <span>Host: <code className="text-white">@</code></span>
+                        <span>Value: <code className="text-[#00c9a7]">76.76.21.21</code></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900/60 p-3 rounded-xl border border-dashed border-zinc-800 text-[10px] text-zinc-500 leading-normal">
+                    DNS propagation can take up to 24 hours. Verify connection using the custom domain text input in Settings edit mode.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end pt-2">
+              <button 
+                onClick={() => setActiveModal(null)}
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-[11px] font-bold transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
