@@ -33,8 +33,11 @@ const recentFeed = [
 ];
 
 const ContribHeatmap = () => {
-  const weeks = Array.from({ length: 26 }, () =>
-    Array.from({ length: 7 }, () => Math.floor(Math.random() * 5))
+  const weeks = Array.from({ length: 26 }, (_, wi) =>
+    Array.from({ length: 7 }, (_, di) => {
+      const val = (wi * 3 + di * 5) % 5;
+      return val;
+    })
   );
   const opacities = [0.05, 0.2, 0.4, 0.65, 0.9];
   return (

@@ -41,8 +41,8 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
 }
 
 function MiniHeatmap({ color }: { color: string }) {
-  const weeks = Array.from({ length: 10 }, () =>
-    Array.from({ length: 7 }, () => Math.random())
+  const weeks = Array.from({ length: 10 }, (_, wi) =>
+    Array.from({ length: 7 }, (_, di) => ((wi * 2 + di * 3) % 10) / 10)
   );
   return (
     <div className="flex gap-0.5">

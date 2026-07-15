@@ -34,7 +34,6 @@ import {
   Tooltip
 } from "recharts";
 
-// Mock Data
 const initialDevStats = {
   score: 92,
   contributions: 1487,
@@ -178,18 +177,15 @@ const upcomingEvents = [
 ];
 
 export default function DashboardPage() {
-  // Tabs & Toggles
   const [activeTab, setActiveTab] = useState("All");
   const [hoveredBar, setHoveredBar] = useState<{ month: string; commits: number } | null>(null);
   const [activeActivityToggle, setActiveActivityToggle] = useState<"Daily" | "Weekly" | "Monthly" | "Yearly">("Weekly");
   const [showHours, setShowHours] = useState(true);
   const [showCommits, setShowCommits] = useState(true);
 
-  // Sorting
   const [sortField, setSortField] = useState<"name" | "views" | "likes" | "stars" | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  // Interactive Goals Checklist State
   const [todayGoals, setTodayGoals] = useState([
     { l: "Complete 2 Problems", done: true },
     { l: "Push 3 Commits", done: true },
@@ -197,22 +193,17 @@ export default function DashboardPage() {
     { l: "Finish Resume Update", done: false }
   ]);
 
-  // Recruiter Checklist State
   const [checklist, setChecklist] = useState(initialRecruiterChecklist);
 
-  // Chat/Coach State
   const [chatInput, setChatInput] = useState("");
   const [messages, setMessages] = useState<Array<{ sender: "user" | "coach"; text: string }>>([
     { sender: "coach", text: "Welcome Yatharth. Ask me anything about your resume, portfolio matching, or target companies like Google!" }
   ]);
 
-  // Notifications State
   const [notifications, setNotifications] = useState(initialNotifications);
 
-  // Sync state (simulated sync feedback)
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Handle Sort
   const handleSort = (field: "name" | "views" | "likes" | "stars") => {
     if (sortField === field) {
       setSortDirection(prev => (prev === "asc" ? "desc" : "asc"));
@@ -222,17 +213,14 @@ export default function DashboardPage() {
     }
   };
 
-  // Toggle Goal
   const toggleGoal = (index: number) => {
     setTodayGoals(prev => prev.map((g, idx) => idx === index ? { ...g, done: !g.done } : g));
   };
 
-  // Toggle Recruiter Checklist Item
   const toggleChecklistItem = (index: number) => {
     setChecklist(prev => prev.map((c, idx) => idx === index ? { ...c, done: !c.done } : c));
   };
 
-  // Handle Coach Input
   const handleAskCoach = (query: string) => {
     if (!query.trim()) return;
     const userMessage = { sender: "user" as const, text: query };
@@ -252,7 +240,6 @@ export default function DashboardPage() {
     }, 600);
   };
 
-  // Handle Sync Action
   const handleSyncAll = () => {
     setIsSyncing(true);
     setTimeout(() => {
@@ -264,12 +251,10 @@ export default function DashboardPage() {
     }, 1500);
   };
 
-  // Clear Notifications
   const handleClearNotifications = () => {
     setNotifications([]);
   };
 
-  // Calculate stats dynamically
   const goalsDone = todayGoals.filter(g => g.done).length;
   const goalsPct = Math.round((goalsDone / todayGoals.length) * 100);
 
@@ -277,7 +262,6 @@ export default function DashboardPage() {
   const recruiterPct = Math.round((recruiterDone / checklist.length) * 100);
   const missingItems = checklist.filter(c => !c.done).map(c => `No ${c.label.split(" ")[0]}`);
 
-  // Sort and Filter Projects list
   const sortedProjects = [...initialProjectsList]
     .filter(p => activeTab === "All" || p.status === activeTab)
     .sort((a, b) => {
@@ -293,11 +277,9 @@ export default function DashboardPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
       
-      {/* LEFT COLUMN PANEL */}
-      <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-6">
         
-        {/* Card 1: Performance Overview */}
-        <div id="overview" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div id="overview" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h2 className="text-[16px] font-bold text-black tracking-tight">Performance Overview</h2>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white rounded-xl p-3">
@@ -345,15 +327,15 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 2: Recruiter Checklist (Interactive Toggles) */}
-        <div id="recruiter" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div id="recruiter" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h2 className="text-[16px] font-bold text-black tracking-tight">Recruiter Readiness</h2>
           <div className="space-y-2">
             {checklist.map((item, idx) => (
-              <div 
+              <button 
+                type="button"
                 key={item.label} 
                 onClick={() => toggleChecklistItem(idx)}
-                className="bg-white rounded-xl p-3 flex items-center gap-2.5 cursor-pointer hover:bg-zinc-50 transition-colors"
+                className="w-full text-left bg-white rounded-xl p-3 flex items-center gap-2.5 cursor-pointer hover:bg-zinc-50 transition-colors"
               >
                 {item.done ? (
                   <CheckCircledIcon className="w-4 h-4 text-[#005c58]" />
@@ -361,7 +343,7 @@ export default function DashboardPage() {
                   <CrossCircledIcon className="w-4 h-4 text-[#ef4444]" />
                 )}
                 <span className={`text-[12px] font-semibold ${item.done ? "text-zinc-700" : "text-zinc-400"}`}>{item.label}</span>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -386,12 +368,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 3: AI Career Coach Widget (Interactive Chat History) */}
-        <div id="ai-coach" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div id="ai-coach" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h2 className="text-[16px] font-bold text-black tracking-tight">AI Career Coach</h2>
           
-          {/* Chat Messages */}
-          <div className="bg-white rounded-xl p-3 h-48 overflow-y-auto space-y-2.5 scrollbar-thin text-[11px]">
+                    <div className="bg-white rounded-xl p-3 h-48 overflow-y-auto space-y-2.5 scrollbar-thin text-[11px]">
             {messages.map((m, idx) => (
               <div key={idx} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
                 <span className="text-[9px] text-zinc-400 font-bold mb-0.5">{m.sender === "user" ? "You" : "Coach"}</span>
@@ -426,8 +406,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 4: Tall Green Illustration Card */}
-        <div className="bg-[#e6edde] rounded-[24px] p-5 space-y-4 flex flex-col items-center text-center">
+                <div className="bg-[#e6edde] rounded-[24px] p-5 space-y-4 flex flex-col items-center text-center">
           <div className="w-full max-w-[160px] aspect-square relative flex items-center justify-center bg-white/40 rounded-2xl p-4">
             <svg viewBox="0 0 24 24" className="w-16 h-16 text-[#4d6a34]" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0v1.5H3v-1.5M9 7.5h6M9 10.5h3" />
@@ -449,8 +428,7 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Card 5: Public Profile Preview */}
-        <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-3.5">
+                <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-3.5">
           <h2 className="text-[16px] font-bold text-black tracking-tight">Public Profile</h2>
           <div className="bg-white rounded-xl p-3 font-mono text-[11px] text-zinc-500 truncate">
             dradix.dev/yatharth
@@ -468,14 +446,11 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* RIGHT COLUMN MAIN PANEL */}
-      <div className="lg:col-span-3 space-y-6">
+            <div className="lg:col-span-3 space-y-6">
         
-        {/* Large Dark Card: Fulfillment & Sales Performance Overview */}
-        <div className="bg-[#18181b] text-white rounded-[28px] p-6 lg:p-8 grid grid-cols-1 md:grid-cols-5 gap-6">
+                <div className="bg-[#18181b] text-white rounded-[28px] p-6 lg:p-8 grid grid-cols-1 md:grid-cols-5 gap-6">
           
-          {/* Fulfillment Performance Bar Chart (Col span 3) -> Coding Velocity */}
-          <div className="md:col-span-3 space-y-4">
+                    <div className="md:col-span-3 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-[16px] font-bold text-white tracking-tight">Coding Velocity</h3>
               <div className="flex items-center gap-2">
@@ -544,8 +519,7 @@ export default function DashboardPage() {
                 </ReChartsBarChart>
               </ResponsiveContainer>
 
-              {/* Cursor Overlay matching the image */}
-              <div className="absolute top-2 left-[36%] pointer-events-none flex flex-col items-center">
+                            <div className="absolute top-2 left-[36%] pointer-events-none flex flex-col items-center">
                 <div className="bg-white text-black text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow">
                   87%
                 </div>
@@ -554,8 +528,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Sales Overview Donut Dial (Col span 2) -> Profile Traffic */}
-          <div className="md:col-span-2 space-y-4 border-t md:border-t-0 md:border-l border-[#27272a] pt-6 md:pt-0 md:pl-6 flex flex-col justify-between">
+                    <div className="md:col-span-2 space-y-4 border-t md:border-t-0 md:border-l border-[#27272a] pt-6 md:pt-0 md:pl-6 flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <h3 className="text-[16px] font-bold text-white tracking-tight">Profile Traffic</h3>
               <div className="flex items-center gap-1.5">
@@ -577,8 +550,7 @@ export default function DashboardPage() {
               <span className="text-[10px] text-[#005c58] bg-[#003c3a]/15 rounded-md px-1.5 py-0.5">32.2% ↑ Views</span>
             </div>
 
-            {/* Speedometer/Semi-circular Dial Chart */}
-            <div className="h-32 relative flex items-center justify-center">
+                        <div className="h-32 relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -617,8 +589,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Language legend */}
-            <div className="grid grid-cols-2 gap-2 text-[10px] text-zinc-400">
+                        <div className="grid grid-cols-2 gap-2 text-[10px] text-zinc-400">
               {languageData.map((lang) => (
                 <div key={lang.name} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: lang.color }} />
@@ -631,10 +602,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 2: Weekly Activity Graph & Productivity Goals */}
-        <div id="activity" className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Coding Hours & Commits (Area Chart) */}
-          <div className="md:col-span-2 bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div id="activity" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-2 bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-[15px] font-bold text-black tracking-tight font-heading">Weekly Activity</h3>
@@ -679,8 +648,7 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </div>
             
-            {/* Interactive Filters below line graph */}
-            <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-200 text-center">
+                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-200 text-center">
               <button 
                 onClick={() => setShowHours(!showHours)}
                 className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showHours ? "bg-[#003c3a]/15" : "opacity-40"}`}
@@ -706,24 +674,24 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Productivity Goals Widget (Interactive checkboxes) */}
-          <div className="md:col-span-1 bg-[#f4f4f5] rounded-[24px] p-5 flex flex-col justify-between">
+                    <div className="md:col-span-1 bg-[#f4f4f5] rounded-[24px] p-5 flex flex-col justify-between">
             <div>
               <h3 className="text-[15px] font-bold text-black tracking-tight">Today&apos;s Goals</h3>
               <p className="text-[10px] text-zinc-400 mt-0.5">Click tasks to update daily goals</p>
             </div>
             <div className="space-y-2 mt-3">
               {todayGoals.map((goal, index) => (
-                <div 
+                <button 
+                  type="button"
                   key={index} 
                   onClick={() => toggleGoal(index)}
-                  className="bg-white rounded-lg p-2.5 flex items-center gap-2 cursor-pointer hover:bg-zinc-50 transition-colors"
+                  className="w-full text-left bg-white rounded-lg p-2.5 flex items-center gap-2 cursor-pointer hover:bg-zinc-50 transition-colors"
                 >
                   <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 border ${goal.done ? "bg-[#003c3a] border-[#003c3a]" : "border-zinc-300"}`}>
                     {goal.done && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
                   </div>
                   <span className={`text-[11px] font-semibold truncate ${goal.done ? "line-through text-zinc-400" : "text-zinc-800"}`}>{goal.l}</span>
-                </div>
+                </button>
               ))}
             </div>
             <div className="mt-3 pt-2">
@@ -741,16 +709,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 3: Projects Table (Interactive Sorting Headers) */}
-        <div id="projects" className="space-y-4">
+                <div id="projects" className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <h2 className="text-[18px] font-black text-black">Projects</h2>
               <span className="text-[11px] font-bold text-zinc-400 bg-[#f4f4f5] rounded-full px-2 py-0.5">19 Total</span>
             </div>
 
-            {/* Filters Pill */}
-            <div className="flex items-center gap-1 bg-[#f4f4f5] rounded-xl p-1">
+                        <div className="flex items-center gap-1 bg-[#f4f4f5] rounded-xl p-1">
               {["All", "Live", "In Progress", "Archived"].map((tab) => (
                 <button
                   key={tab}
@@ -819,8 +785,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 4: Coding Platforms */}
-        <div id="platforms" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div id="platforms" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-[15px] font-bold text-black tracking-tight font-heading">Coding Platforms</h3>
             <span className="text-[11px] font-bold text-zinc-400 bg-white rounded-full px-2.5 py-0.5">6 Connected</span>
@@ -868,10 +833,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 5: Skills Inventory & Learning Tracker */}
-        <div id="skills" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Skills Section */}
-          <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div id="skills" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
             <h3 className="text-[15px] font-bold text-black tracking-tight">Skills Section</h3>
             <div className="grid grid-cols-2 gap-3">
               {skillsList.map((skill) => (
@@ -889,8 +852,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Learning Tracker Courses */}
-          <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                    <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
             <h3 className="text-[15px] font-bold text-black tracking-tight">Active Courses</h3>
             <div className="space-y-3">
               {learningCourses.map((c) => (
@@ -911,10 +873,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 6: Career Progress & Developer Wrapped */}
-        <div id="career-progress" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Career Progress */}
-          <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div id="career-progress" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
             <h3 className="text-[15px] font-bold text-black tracking-tight">Career Progress</h3>
             <div className="grid grid-cols-3 gap-3 text-center">
               {careerRings.map((r) => (
@@ -932,8 +892,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Developer Wrapped */}
-          <div className="bg-[#f4f4f5] rounded-[24px] p-5 flex flex-col justify-between gap-4">
+                    <div className="bg-[#f4f4f5] rounded-[24px] p-5 flex flex-col justify-between gap-4">
             <div>
               <h3 className="text-[15px] font-bold text-black tracking-tight">Developer Wrapped</h3>
               <p className="text-[10px] text-zinc-400 mt-0.5">2026 year in review summary</p>
@@ -953,10 +912,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 7: Achievement Center & Leaderboard */}
-        <div id="achievements" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Achievement Center Badges */}
-          <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div id="achievements" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
             <h3 className="text-[15px] font-bold text-black tracking-tight">Achievement Center</h3>
             <div className="grid grid-cols-4 gap-2">
               {achievementBadges.map((badge) => (
@@ -979,8 +936,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Leaderboard */}
-          <div id="leaderboard" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                    <div id="leaderboard" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
             <h3 className="text-[15px] font-bold text-black tracking-tight">Leaderboard Rankings</h3>
             <div className="space-y-2">
               {leaderboardRankings.map((user) => (
@@ -999,10 +955,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 8: Developer Timeline & Notifications */}
-        <div id="timeline" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Vertical Timeline */}
-          <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div id="timeline" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
             <h3 className="text-[15px] font-bold text-black tracking-tight">Developer Timeline</h3>
             <div className="relative pl-6 space-y-4">
               <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-zinc-200" />
@@ -1019,8 +973,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Notifications & Activity Feed */}
-          <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                    <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-[15px] font-bold text-black tracking-tight">Activity & Notifications</h3>
               {notifications.length > 0 && (
@@ -1063,8 +1016,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 9: Upcoming Events Calendar Preview */}
-        <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h3 className="text-[15px] font-bold text-black tracking-tight">Upcoming Events</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {upcomingEvents.map((evt, idx) => (
@@ -1082,8 +1034,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 10: Quick Actions Panel */}
-        <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h3 className="text-[15px] font-bold text-black tracking-tight">Quick Actions Panel</h3>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {[
@@ -1110,8 +1061,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Footer info bar */}
-        <footer className="pt-4 border-t border-[#f4f4f5] flex flex-wrap items-center justify-between gap-4 text-[11px] text-zinc-400 font-semibold">
+                <footer className="pt-4 border-t border-[#f4f4f5] flex flex-wrap items-center justify-between gap-4 text-[11px] text-zinc-400 font-semibold">
           <div className="flex items-center gap-4">
             <span>Storage Used: 2.4 MB / 100 MB</span>
             <span>Last Sync: 2 min ago</span>

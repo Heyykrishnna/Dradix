@@ -1,6 +1,5 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-
 import React, { useState, useEffect, useRef } from "react";
 import { 
   FaGithub, 
@@ -36,7 +35,6 @@ import {
   Cell
 } from "recharts";
 
-// TypeScript Interfaces
 interface Skill {
   name: string;
   level: "Advanced" | "Intermediate" | "Beginner";
@@ -86,7 +84,6 @@ interface ProfileState {
   responseTime: string;
 }
 
-// Preset Images for the Modal
 const COVER_PRESETS = [
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop",
@@ -101,7 +98,6 @@ const AVATAR_PRESETS = [
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop"
 ];
 
-// Initial Profile Mock Data
 const initialProfile: ProfileState = {
   name: "Yatharth K.",
   username: "yatharthk",
@@ -155,7 +151,6 @@ const initialProfile: ProfileState = {
   responseTime: "2 hours"
 };
 
-// Activity Charts mock data
 const weeklyActivityData = [
   { day: "09. Mo.", commits: 800, problems: 1450 },
   { day: "10. Tue.", commits: 550, problems: 920 },
@@ -171,20 +166,17 @@ export default function ProfilePage() {
   const hasChanges = isEditing && JSON.stringify(profile) !== JSON.stringify(formState);
   const [newTechTag, setNewTechTag] = useState("");
 
-  // Image Upload Modal States
   const [imageModalType, setImageModalType] = useState<"cover" | "avatar" | null>(null);
   const [modalInputUrl, setModalInputUrl] = useState("");
   const [modalPreview, setModalPreview] = useState("");
   const [modalActiveTab, setModalActiveTab] = useState<"upload" | "url" | "presets">("upload");
 
-  // Cover image crop / reposition parameters
   const [modalZoom, setModalZoom] = useState(100);
   const [modalPositionX, setModalPositionX] = useState(50);
   const [modalPositionY, setModalPositionY] = useState(50);
 
   const modalFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Drag-to-pan states
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, posX: 50, posY: 50 });
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -272,9 +264,6 @@ export default function ProfilePage() {
     setIsDragging(false);
   };
 
-
-
-  // Prevent background scrolling when image modal is open
   useEffect(() => {
     if (imageModalType !== null) {
       document.body.style.overflow = "hidden";
@@ -296,7 +285,6 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  // Image modal triggers
   const openImageModal = (type: "cover" | "avatar") => {
     setImageModalType(type);
     const currentUrl = type === "cover" ? formState.coverUrl : formState.avatarUrl;
@@ -345,7 +333,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Experience edit helpers - Prepend at index 0 (top)
   const handleAddExperience = () => {
     setFormState({
       ...formState,
@@ -368,7 +355,6 @@ export default function ProfilePage() {
     setFormState({ ...formState, experience: updated });
   };
 
-  // Reorder Experience
   const moveExperience = (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= formState.experience.length) return;
@@ -379,7 +365,6 @@ export default function ProfilePage() {
     setFormState({ ...formState, experience: updated });
   };
 
-  // Education edit helpers - Prepend at index 0 (top)
   const handleAddEducation = () => {
     setFormState({
       ...formState,
@@ -402,7 +387,6 @@ export default function ProfilePage() {
     setFormState({ ...formState, education: updated });
   };
 
-  // Reorder Education
   const moveEducation = (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= formState.education.length) return;
@@ -413,7 +397,6 @@ export default function ProfilePage() {
     setFormState({ ...formState, education: updated });
   };
 
-  // Skills edit helpers
   const handleAddSkill = () => {
     setFormState({
       ...formState,
@@ -442,7 +425,6 @@ export default function ProfilePage() {
     setFormState({ ...formState, skills: updated });
   };
 
-  // Tech tags helpers
   const handleRemoveTechTag = (tagToRemove: string) => {
     setFormState({
       ...formState,
@@ -461,7 +443,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Radial Graph data calculation for activity rate
   const radialData = [
     { name: "Activity", value: isEditing ? formState.activityRate : profile.activityRate, fill: "#005c58" },
     { name: "Remaining", value: 100 - (isEditing ? formState.activityRate : profile.activityRate), fill: "#e5e7eb" }
@@ -470,11 +451,9 @@ export default function ProfilePage() {
   return (
     <div className="relative pb-24 space-y-8 animate-fade-in text-left">
       
-      {/* 1. Header Banner & Profile Details Overlay Container */}
-      <div className="relative bg-white rounded-3xl overflow-hidden border border-dashed border-zinc-200 shadow-sm group/banner">
+            <div className="relative bg-white rounded-3xl overflow-hidden border border-dashed border-zinc-200 shadow-sm group/banner">
         
-        {/* Cover Banner Image */}
-        <div className="h-48 md:h-84 w-full relative overflow-hidden bg-zinc-200">
+                <div className="h-48 md:h-84 w-full relative overflow-hidden bg-zinc-200">
           <img 
             src={isEditing ? formState.coverUrl : profile.coverUrl} 
             alt="Cover Banner" 
@@ -486,11 +465,9 @@ export default function ProfilePage() {
           />
           <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
           
-          {/* Smooth Fade/Blur Overlay at the bottom edge */}
-          <div className="absolute bottom-0 left-0 right-0 h-15 bg-linear-to-b from-transparent via-white/50 to-white backdrop-blur-[2px] pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 h-15 bg-linear-to-b from-transparent via-white/50 to-white backdrop-blur-[2px] pointer-events-none" />
           
-          {/* Cover Edit Centered Hover Overlay */}
-          {isEditing && (
+                    {isEditing && (
             <div className="absolute inset-0 bg-black/45 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center z-10 duration-200">
               <button
                 onClick={() => openImageModal("cover")}
@@ -503,19 +480,16 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Profile Overlay Details */}
-        <div className="px-6 md:px-8 pb-8 pt-16 md:pt-20 flex flex-col md:flex-row md:items-end justify-between gap-6 relative">
+                <div className="px-6 md:px-8 pb-8 pt-16 md:pt-20 flex flex-col md:flex-row md:items-end justify-between gap-6 relative">
           
-          {/* Overlapping Profile Photo */}
-          <div className="absolute -top-16 left-6 md:left-8 w-28 h-28 md:w-32 md:h-32 rounded-3xl border-4 border-white bg-white overflow-hidden shadow-md flex items-center justify-center shrink-0 group/avatar z-20">
+                    <div className="absolute -top-16 left-6 md:left-8 w-28 h-28 md:w-32 md:h-32 rounded-3xl border-4 border-white bg-white overflow-hidden shadow-md flex items-center justify-center shrink-0 group/avatar z-20">
             <img 
               src={isEditing ? formState.avatarUrl : profile.avatarUrl} 
               alt={isEditing ? formState.name : profile.name}
               className="w-full h-full object-cover rounded-2xl" 
             />
             
-            {/* Avatar Edit Camera Hover Overlay */}
-            {isEditing && (
+                        {isEditing && (
               <div className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 cursor-pointer">
                 <button
                   onClick={() => openImageModal("avatar")}
@@ -528,8 +502,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Name & Basic Info Text */}
-          <div className="flex-1 md:pl-36 text-left">
+                    <div className="flex-1 md:pl-36 text-left">
             <div className="group/verified relative flex items-center gap-1.5 mb-2 w-fit">
               <FaCircleCheck className="w-4 h-4 text-[#003c3a] cursor-pointer" />
               <span className="absolute bottom-full left-0 mb-1.5 hidden group-hover/verified:block bg-zinc-950 text-white text-[9px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-30 transition-all">
@@ -591,8 +564,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3 self-start md:self-end">
+                    <div className="flex items-center gap-3 self-start md:self-end">
             <button 
               onClick={() => {
                 if (!isEditing) {
@@ -622,25 +594,20 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 2. Main Two Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* LEFT COLUMN: Public Profile Details & Socials */}
-        <div className="lg:col-span-1 space-y-8">
+                <div className="lg:col-span-1 space-y-8">
           
-          {/* Public Profile card */}
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
+                    <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
             
-            {/* Title Row */}
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+                        <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <span className="text-[14px] font-bold text-zinc-900 font-heading">Public Profile</span>
               <button className="text-zinc-400 hover:text-zinc-600">
                 <FaEllipsis className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Profile Avatar & Name */}
-            <div className="flex flex-col items-center text-center py-2">
+                        <div className="flex flex-col items-center text-center py-2">
               <div className="relative w-20 h-20 rounded-full border border-orange-200 bg-orange-100 overflow-hidden flex items-center justify-center p-1">
                 <img 
                   src={isEditing ? formState.avatarUrl : profile.avatarUrl} 
@@ -653,8 +620,7 @@ export default function ProfilePage() {
               <p className="text-[10px] font-bold text-indigo-600 mt-1 uppercase tracking-wider">{isEditing ? formState.subtitle : profile.subtitle}</p>
             </div>
 
-            {/* Contact Details Fields */}
-            <div className="space-y-4 pt-2">
+                        <div className="space-y-4 pt-2">
               <div>
                 <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Email</p>
                 {isEditing ? (
@@ -698,8 +664,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Contacts list */}
-            <div className="pt-2">
+                        <div className="pt-2">
               <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-2.5">Contacts</p>
               <div className="flex items-center -space-x-2">
                 <img className="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=64&auto=format&fit=crop" alt="c1" />
@@ -712,8 +677,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Response Time Progress Bar */}
-            <div className="space-y-2 pt-2">
+                        <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between">
                 <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Activity</span>
                 <span className="text-[9px] font-bold bg-[#003c3a]/15 text-[#005c58] px-2 py-0.5 rounded uppercase tracking-wider">Active</span>
@@ -742,8 +706,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Views and Messages Count Footer */}
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-100 text-left">
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-100 text-left">
               <div>
                 <p className="text-[10px] font-bold text-zinc-400">Total Views</p>
                 <p className="text-[20px] font-extrabold text-zinc-900 leading-none mt-1.5">{profile.views.toLocaleString()}</p>
@@ -756,14 +719,12 @@ export default function ProfilePage() {
 
           </div>
 
-          {/* Social Links & Resume Card */}
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-4">
+                    <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-4">
             <span className="text-[14px] font-bold text-zinc-900 font-heading block pb-2 border-b border-zinc-100">Socials & Assets</span>
             
             <div className="space-y-4">
               
-              {/* GitHub */}
-              <div className="space-y-1">
+                            <div className="space-y-1">
                 <a 
                   href={isEditing ? formState.github : profile.github} 
                   target="_blank" 
@@ -789,8 +750,7 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              {/* LinkedIn */}
-              <div className="space-y-1">
+                            <div className="space-y-1">
                 <a 
                   href={isEditing ? formState.linkedin : profile.linkedin} 
                   target="_blank" 
@@ -816,8 +776,7 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              {/* Portfolio */}
-              <div className="space-y-1">
+                            <div className="space-y-1">
                 <a 
                   href={isEditing ? formState.portfolio : profile.portfolio} 
                   target="_blank" 
@@ -843,8 +802,7 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              {/* Resume */}
-              <div className="space-y-1">
+                            <div className="space-y-1">
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center text-white">
@@ -878,11 +836,9 @@ export default function ProfilePage() {
 
         </div>
 
-        {/* RIGHT COLUMN: About, Recharts Stats, Skills, Experience, Education */}
-        <div className="lg:col-span-2 space-y-8">
+                <div className="lg:col-span-2 space-y-8">
 
-          {/* About Me Card */}
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-4">
+                    <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-4">
             <span className="text-[14px] font-bold text-zinc-900 font-heading block pb-2 border-b border-zinc-100">About Me</span>
             {isEditing ? (
               <textarea 
@@ -896,11 +852,9 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Statistics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            {/* Double Bar Chart */}
-            <div className="md:col-span-2 bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-5 space-y-4">
+                        <div className="md:col-span-2 bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between pb-2">
                 <div>
                   <span className="text-[14px] font-bold text-zinc-900 font-heading">Activity Stats</span>
@@ -921,8 +875,7 @@ export default function ProfilePage() {
                 </span>
               </div>
 
-              {/* Responsive Bar Chart */}
-              <div className="h-56 w-full">
+                            <div className="h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyActivityData} barGap={4} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                     <XAxis 
@@ -947,8 +900,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Radial Activity Gauge */}
-            <div className="md:col-span-1 bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-5 flex flex-col justify-between">
+                        <div className="md:col-span-1 bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-5 flex flex-col justify-between">
               <span className="text-[14px] font-bold text-zinc-900 font-heading block pb-2 border-b border-zinc-100">Profile Gauge</span>
               
               <div className="relative flex items-center justify-center py-4">
@@ -989,8 +941,7 @@ export default function ProfilePage() {
 
           </div>
 
-          {/* Skills & Tech Stack Section */}
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
+                    <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
             
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
               <span className="text-[14px] font-bold text-zinc-900 font-heading">Skills & Tech Stack</span>
@@ -1005,16 +956,14 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Core Tracked Skills */}
-            <div className="space-y-4">
+                        <div className="space-y-4">
               <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">Tracked Proficiency</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(isEditing ? formState.skills : profile.skills).map((s, idx) => (
                   <div key={idx} className="p-3.5 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 relative text-left">
                     
-                    {/* Delete button inline when editing */}
-                    {isEditing && (
+                                        {isEditing && (
                       <button
                         onClick={() => handleRemoveSkill(idx)}
                         className="absolute top-3 right-3 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
@@ -1055,8 +1004,7 @@ export default function ProfilePage() {
                       )}
                     </div>
                     
-                    {/* Progress Slider */}
-                    <div className="space-y-1.5 pt-1.5">
+                                        <div className="space-y-1.5 pt-1.5">
                       {isEditing ? (
                         <div className="flex items-center h-5">
                           <input 
@@ -1100,8 +1048,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Tech Stack tags */}
-            <div className="space-y-3 pt-2 text-left">
+                        <div className="space-y-3 pt-2 text-left">
               <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">Technologies</p>
               
               <div className="flex flex-wrap gap-2">
@@ -1124,8 +1071,7 @@ export default function ProfilePage() {
                 ))}
               </div>
 
-              {/* Add Tech Tag input inline */}
-              {isEditing && (
+                            {isEditing && (
                 <form onSubmit={handleAddTechTag} className="flex items-center gap-2 mt-3 max-w-xs">
                   <input
                     type="text"
@@ -1145,8 +1091,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Work Experience Timeline */}
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
+                    <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
               <span className="text-[14px] font-bold text-zinc-900 font-heading">Work Experience</span>
               {isEditing && (
@@ -1164,14 +1109,12 @@ export default function ProfilePage() {
               {(isEditing ? formState.experience : profile.experience).map((exp, idx) => (
                 <div key={idx} className="relative pl-8 text-left group/item">
                   
-                  {/* Timeline Dot */}
-                  <span className="absolute left-[5px] top-1.5 w-3.5 h-3.5 bg-black border-4 border-white rounded-full group-hover/item:scale-110 transition-transform shadow-sm" />
+                                    <span className="absolute left-[5px] top-1.5 w-3.5 h-3.5 bg-black border-4 border-white rounded-full group-hover/item:scale-110 transition-transform shadow-sm" />
                   
                   {isEditing ? (
                     <div className="space-y-3 p-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200 relative">
                       
-                      {/* Action buttons (Delete & Reorder) */}
-                      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                                            <div className="absolute top-3 right-3 flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => moveExperience(idx, "up")}
@@ -1258,8 +1201,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Education Section */}
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
+                    <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
               <span className="text-[14px] font-bold text-zinc-900 font-heading">Education</span>
               {isEditing && (
@@ -1284,8 +1226,7 @@ export default function ProfilePage() {
                   {isEditing ? (
                     <div className="flex-1 space-y-3 pr-24">
                       
-                      {/* Action buttons (Delete & Reorder) */}
-                      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                                            <div className="absolute top-3 right-3 flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => moveEducation(idx, "up")}
@@ -1376,8 +1317,7 @@ export default function ProfilePage() {
 
       </div>
 
-      {/* 3. Floating Bottom Action Bar for Unsaved Changes */}
-      {isEditing && hasChanges && (
+            {isEditing && hasChanges && (
         <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 animate-slide-up">
           <div className="bg-zinc-950 border border-white/10 text-white rounded-2xl py-3.5 px-5 shadow-2xl flex items-center justify-between gap-6 w-full max-w-xl backdrop-blur-md bg-opacity-95">
             <div className="flex items-center gap-2">
@@ -1406,13 +1346,11 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* 4. Smooth Image Upload & Edit Modal */}
-      {imageModalType !== null && (
+            {imageModalType !== null && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in text-left">
             
-            {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
+                        <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-zinc-50 border border-dashed border-zinc-200 flex items-center justify-center text-zinc-800">
                   <FaCamera className="w-4 h-4" />
@@ -1429,8 +1367,7 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            {/* Modal Tabs */}
-            <div className="px-6 pt-4">
+                        <div className="px-6 pt-4">
               <div className="flex bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1">
                 <button
                   onClick={() => setModalActiveTab("upload")}
@@ -1462,11 +1399,9 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Modal Content */}
-            <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
+                        <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
               
-              {/* TAB: Upload File */}
-              {modalActiveTab === "upload" && (
+                            {modalActiveTab === "upload" && (
                 <div className="space-y-4">
                   <input
                     type="file"
@@ -1475,9 +1410,10 @@ export default function ProfilePage() {
                     className="hidden"
                     accept="image/*"
                   />
-                  <div 
+                  <button 
+                    type="button"
                     onClick={() => modalFileInputRef.current?.click()}
-                    className="border-2 border-dashed border-zinc-200 bg-zinc-50 hover:bg-zinc-100/50 hover:border-zinc-300 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-all duration-200"
+                    className="w-full border-2 border-dashed border-zinc-200 bg-zinc-50 hover:bg-zinc-100/50 hover:border-zinc-300 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-all duration-200"
                   >
                     <div className="w-12 h-12 rounded-full bg-white border border-dashed border-zinc-200 flex items-center justify-center text-zinc-500 shadow-sm">
                       <FaUpload className="w-5 h-5" />
@@ -1486,12 +1422,11 @@ export default function ProfilePage() {
                       <p className="text-[13px] font-bold text-zinc-800">Select Image File</p>
                       <p className="text-[10px] text-zinc-400 mt-1">Supports PNG, JPG, GIF or WEBP up to 5MB</p>
                     </div>
-                  </div>
+                  </button>
                 </div>
               )}
 
-              {/* TAB: Enter URL */}
-              {modalActiveTab === "url" && (
+                            {modalActiveTab === "url" && (
                 <div className="space-y-3">
                   <label className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">Image Destination URL</label>
                   <div className="flex gap-2">
@@ -1512,8 +1447,7 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* TAB: Presets */}
-              {modalActiveTab === "presets" && (
+                            {modalActiveTab === "presets" && (
                 <div className="space-y-3">
                   <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">Choose Template</p>
                   <div className="grid grid-cols-4 gap-3">
@@ -1537,8 +1471,7 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {/* LIVE PREVIEW & CROP BOX */}
-              {modalPreview && (
+                            {modalPreview && (
                 <div className="pt-4 border-t border-zinc-100 flex flex-col items-center">
                   <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-3 self-start">Live Preview & Reposition</span>
                   
@@ -1567,8 +1500,7 @@ export default function ProfilePage() {
                         }}
                       />
                       
-                      {/* Professional Rule-Of-Thirds 3x3 Crop Grid */}
-                      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-40">
+                                            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-40">
                         <div className="border-r border-b border-dashed border-white/50" />
                         <div className="border-r border-b border-dashed border-white/50" />
                         <div className="border-b border-dashed border-white/50" />
@@ -1586,8 +1518,7 @@ export default function ProfilePage() {
                     </div>
                   )}
  
-                  {/* Interactive Crop Helper text */}
-                  {imageModalType === "cover" && (
+                                    {imageModalType === "cover" && (
                     <div className="mt-3 text-center">
                       <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
                         Scroll wheel to zoom • Click & Drag image to position
@@ -1599,8 +1530,7 @@ export default function ProfilePage() {
 
             </div>
 
-            {/* Modal Action Buttons */}
-            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
+                        <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setImageModalType(null)}
