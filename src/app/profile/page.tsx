@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   FaGithub, 
   FaLinkedin, 
@@ -24,7 +24,9 @@ import {
   FaChartLine,
   FaWandMagicSparkles,
   FaLock,
-  FaLockOpen
+  FaLockOpen,
+  FaArrowUp,
+  FaArrowDown
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -96,7 +98,7 @@ const initialProfile: ProfileState = {
   phone: "+91 98765 43210",
   location: "Bengaluru, Karnataka, India",
   avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop",
-  coverUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1600&auto=format&fit=crop", // Beautiful abstract banner
+  coverUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1600&auto=format&fit=crop",
   github: "https://github.com/yatharthk",
   linkedin: "https://linkedin.com/in/yatharthk",
   portfolio: "https://yatharthk.dev",
@@ -156,6 +158,10 @@ export default function ProfilePage() {
   const [showAvatarInput, setShowAvatarInput] = useState(false);
   const [newTechTag, setNewTechTag] = useState("");
 
+  // Refs for hidden file inputs
+  const bannerFileRef = useRef<HTMLInputElement>(null);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
+
   // Sync formState with profile when editing toggles
   useEffect(() => {
     if (isEditing) {
@@ -187,11 +193,38 @@ export default function ProfilePage() {
     setShowAvatarInput(false);
   };
 
-  // Experience edit helpers
+  // Image Upload handler (as Base64 Data URL)
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setFormState(prev => ({ ...prev, coverUrl: reader.result as string }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setFormState(prev => ({ ...prev, avatarUrl: reader.result as string }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Experience edit helpers - Prepend at index 0 (top)
   const handleAddExperience = () => {
     setFormState({
       ...formState,
-      experience: [...formState.experience, { company: "", role: "", duration: "", desc: "" }]
+      experience: [{ company: "", role: "", duration: "", desc: "" }, ...formState.experience]
     });
   };
 
@@ -210,11 +243,22 @@ export default function ProfilePage() {
     setFormState({ ...formState, experience: updated });
   };
 
-  // Education edit helpers
+  // Reorder Experience
+  const moveExperience = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= formState.experience.length) return;
+    const updated = [...formState.experience];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    setFormState({ ...formState, experience: updated });
+  };
+
+  // Education edit helpers - Prepend at index 0 (top)
   const handleAddEducation = () => {
     setFormState({
       ...formState,
-      education: [...formState.education, { school: "", degree: "", duration: "", details: "" }]
+      education: [{ school: "", degree: "", duration: "", details: "" }, ...formState.education]
     });
   };
 
@@ -230,6 +274,17 @@ export default function ProfilePage() {
       }
       return edu;
     });
+    setFormState({ ...formState, education: updated });
+  };
+
+  // Reorder Education
+  const moveEducation = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= formState.education.length) return;
+    const updated = [...formState.education];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
     setFormState({ ...formState, education: updated });
   };
 
@@ -251,7 +306,6 @@ export default function ProfilePage() {
       if (i === index) {
         const nextSkill = { ...skill, [field]: value };
         if (field === "level") {
-          // Adjust percent roughly based on level selection
           if (value === "Advanced") nextSkill.pct = 90;
           if (value === "Intermediate") nextSkill.pct = 70;
           if (value === "Beginner") nextSkill.pct = 40;
@@ -291,8 +345,24 @@ export default function ProfilePage() {
   return (
     <div className="relative pb-24 space-y-8 animate-fade-in text-left">
       
+      {/* Hidden File Inputs for Banner & Avatar Uploads */}
+      <input 
+        type="file" 
+        ref={bannerFileRef} 
+        onChange={handleBannerUpload} 
+        className="hidden" 
+        accept="image/*" 
+      />
+      <input 
+        type="file" 
+        ref={avatarFileRef} 
+        onChange={handleAvatarUpload} 
+        className="hidden" 
+        accept="image/*" 
+      />
+      
       {/* 1. Header Banner & Profile Details Overlay Container */}
-      <div className="relative bg-white rounded-3xl overflow-hidden border border-zinc-100 shadow-sm group/banner">
+      <div className="relative bg-white rounded-3xl overflow-hidden border border-dashed border-zinc-200 shadow-sm group/banner">
         
         {/* Cover Banner Image */}
         <div className="h-48 md:h-64 w-full relative overflow-hidden bg-zinc-200">
@@ -306,13 +376,21 @@ export default function ProfilePage() {
           {/* Cover Edit Overlay */}
           {isEditing && (
             <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
-              <button
-                onClick={() => setShowBannerInput(!showBannerInput)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-black/80 hover:bg-black text-white rounded-xl text-[10px] font-bold transition-all shadow-md backdrop-blur-sm"
-              >
-                <FaCamera className="w-3.5 h-3.5" />
-                <span>Change Cover Image</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => bannerFileRef.current?.click()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-black/80 hover:bg-black text-white rounded-xl text-[10px] font-bold transition-all shadow-md backdrop-blur-sm cursor-pointer"
+                >
+                  <FaCamera className="w-3.5 h-3.5" />
+                  <span>Upload Cover Image</span>
+                </button>
+                <button
+                  onClick={() => setShowBannerInput(!showBannerInput)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800/80 hover:bg-zinc-800 text-white rounded-xl text-[10px] font-bold transition-all shadow-md backdrop-blur-sm cursor-pointer"
+                >
+                  <span>Edit URL</span>
+                </button>
+              </div>
               
               {showBannerInput && (
                 <div className="w-64 bg-white rounded-xl p-3 shadow-xl border border-zinc-100 text-left animate-slide-down">
@@ -345,13 +423,21 @@ export default function ProfilePage() {
             
             {/* Avatar Edit Camera Overlay */}
             {isEditing && (
-              <button
-                onClick={() => setShowAvatarInput(!showAvatarInput)}
-                className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center gap-1 opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer"
-              >
-                <FaCamera className="w-5 h-5" />
-                <span className="text-[9px] font-bold">Edit Photo</span>
-              </button>
+              <div className="absolute inset-0 bg-black/60 text-white flex flex-col items-center justify-center gap-2 opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                <button
+                  onClick={() => avatarFileRef.current?.click()}
+                  className="flex items-center gap-1.5 bg-black/90 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-black transition-colors cursor-pointer"
+                >
+                  <FaCamera className="w-3 h-3" />
+                  <span>Upload File</span>
+                </button>
+                <button
+                  onClick={() => setShowAvatarInput(!showAvatarInput)}
+                  className="flex items-center gap-1.5 bg-zinc-800/90 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-zinc-700 transition-colors cursor-pointer"
+                >
+                  <span>Enter URL</span>
+                </button>
+              </div>
             )}
           </div>
 
@@ -459,7 +545,7 @@ export default function ProfilePage() {
         <div className="lg:col-span-1 space-y-8">
           
           {/* Public Profile card */}
-          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-6">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
             
             {/* Title Row */}
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
@@ -479,8 +565,8 @@ export default function ProfilePage() {
                 />
                 <span className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-500 border-2 border-orange-100 rounded-full" />
               </div>
-              <p className="text-[15px] font-extrabold text-zinc-900 mt-3">{isEditing ? formState.name : profile.name}</p>
-              <p className="text-[11px] font-bold text-indigo-600 mt-1 uppercase tracking-wider">{isEditing ? formState.subtitle : profile.subtitle}</p>
+              <p className="text-[20px] font-extrabold text-zinc-900 mt-3">{isEditing ? formState.name : profile.name}</p>
+              <p className="text-[10px] font-bold text-indigo-600 mt-1 uppercase tracking-wider">{isEditing ? formState.subtitle : profile.subtitle}</p>
             </div>
 
             {/* Contact Details Fields */}
@@ -587,7 +673,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Social Links & Resume Card */}
-          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-4">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-4">
             <span className="text-[14px] font-bold text-zinc-900 font-heading block pb-2 border-b border-zinc-100">Socials & Assets</span>
             
             <div className="space-y-4">
@@ -712,7 +798,7 @@ export default function ProfilePage() {
         <div className="lg:col-span-2 space-y-8">
 
           {/* About Me Card */}
-          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-4">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-4">
             <span className="text-[14px] font-bold text-zinc-900 font-heading block pb-2 border-b border-zinc-100">About Me</span>
             {isEditing ? (
               <textarea 
@@ -730,7 +816,7 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Double Bar Chart */}
-            <div className="md:col-span-2 bg-white rounded-3xl border border-zinc-100 shadow-sm p-5 space-y-4">
+            <div className="md:col-span-2 bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between pb-2">
                 <div>
                   <span className="text-[14px] font-bold text-zinc-900 font-heading">Activity Stats</span>
@@ -778,7 +864,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Radial Activity Gauge */}
-            <div className="md:col-span-1 bg-white rounded-3xl border border-zinc-100 shadow-sm p-5 flex flex-col justify-between">
+            <div className="md:col-span-1 bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-5 flex flex-col justify-between">
               <span className="text-[14px] font-bold text-zinc-900 font-heading block pb-2 border-b border-zinc-100">Profile Gauge</span>
               
               <div className="relative flex items-center justify-center py-4">
@@ -820,7 +906,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Skills & Tech Stack Section */}
-          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-6">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
             
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
               <span className="text-[14px] font-bold text-zinc-900 font-heading">Skills & Tech Stack</span>
@@ -841,7 +927,7 @@ export default function ProfilePage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(isEditing ? formState.skills : profile.skills).map((s, idx) => (
-                  <div key={idx} className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/60 relative text-left">
+                  <div key={idx} className="p-3.5 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 relative text-left">
                     
                     {/* Delete button inline when editing */}
                     {isEditing && (
@@ -885,7 +971,7 @@ export default function ProfilePage() {
                       )}
                     </div>
                     
-                    {/* Progress Slider or Progress bar */}
+                    {/* Progress Slider */}
                     <div className="space-y-1.5 pt-1.5">
                       {isEditing ? (
                         <div className="flex items-center h-5">
@@ -976,7 +1062,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Work Experience Timeline */}
-          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-6">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
               <span className="text-[14px] font-bold text-zinc-900 font-heading">Work Experience</span>
               {isEditing && (
@@ -992,21 +1078,49 @@ export default function ProfilePage() {
             
             <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-zinc-100">
               {(isEditing ? formState.experience : profile.experience).map((exp, idx) => (
-                <div key={idx} className="relative pl-8 text-left group">
+                <div key={idx} className="relative pl-8 text-left group/item">
                   
                   {/* Timeline Dot */}
-                  <span className="absolute left-[5px] top-1.5 w-3.5 h-3.5 bg-black border-4 border-white rounded-full group-hover:scale-110 transition-transform shadow-sm" />
+                  <span className="absolute left-[5px] top-1.5 w-3.5 h-3.5 bg-black border-4 border-white rounded-full group-hover/item:scale-110 transition-transform shadow-sm" />
                   
                   {isEditing ? (
-                    <div className="space-y-3 p-4 bg-zinc-50 rounded-2xl border border-zinc-200/40 relative">
-                      <button
-                        onClick={() => handleRemoveExperience(idx)}
-                        className="absolute top-3 right-3 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
-                      >
-                        <FaTrashCan className="w-3.5 h-3.5" />
-                      </button>
+                    <div className="space-y-3 p-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200 relative">
+                      
+                      {/* Action buttons (Delete & Reorder) */}
+                      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => moveExperience(idx, "up")}
+                          disabled={idx === 0}
+                          className={`p-1.5 rounded-lg border border-zinc-200 bg-white transition-colors cursor-pointer ${
+                            idx === 0 ? "opacity-30 cursor-not-allowed" : "text-zinc-600 hover:bg-zinc-100"
+                          }`}
+                          title="Move Up"
+                        >
+                          <FaArrowUp className="w-2.5 h-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveExperience(idx, "down")}
+                          disabled={idx === formState.experience.length - 1}
+                          className={`p-1.5 rounded-lg border border-zinc-200 bg-white transition-colors cursor-pointer ${
+                            idx === formState.experience.length - 1 ? "opacity-30 cursor-not-allowed" : "text-zinc-600 hover:bg-zinc-100"
+                          }`}
+                          title="Move Down"
+                        >
+                          <FaArrowDown className="w-2.5 h-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExperience(idx)}
+                          className="p-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
+                          title="Delete"
+                        >
+                          <FaTrashCan className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
 
-                      <div className="grid grid-cols-2 gap-3 pr-6">
+                      <div className="grid grid-cols-2 gap-3 pr-24">
                         <div>
                           <label className="block text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">Company</label>
                           <input
@@ -1027,7 +1141,7 @@ export default function ProfilePage() {
                         </div>
                       </div>
 
-                      <div className="pr-6">
+                      <div className="pr-24">
                         <label className="block text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">Duration (e.g. Jan 2024 - Present)</label>
                         <input
                           type="text"
@@ -1061,7 +1175,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Education Section */}
-          <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm p-6 space-y-6">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
               <span className="text-[14px] font-bold text-zinc-900 font-heading">Education</span>
               {isEditing && (
@@ -1077,20 +1191,48 @@ export default function ProfilePage() {
             
             <div className="space-y-5">
               {(isEditing ? formState.education : profile.education).map((edu, idx) => (
-                <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-zinc-50 border border-zinc-100 text-left relative">
+                <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 text-left relative">
                   
-                  <div className="w-10 h-10 rounded-xl bg-white border border-zinc-200/60 flex items-center justify-center text-zinc-400 shrink-0 self-start">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-dashed border-zinc-200 flex items-center justify-center text-zinc-400 shrink-0 self-start">
                     <FaBookOpen className="w-5 h-5 text-zinc-800" />
                   </div>
                   
                   {isEditing ? (
-                    <div className="flex-1 space-y-3 pr-6">
-                      <button
-                        onClick={() => handleRemoveEducation(idx)}
-                        className="absolute top-3 right-3 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
-                      >
-                        <FaTrashCan className="w-3.5 h-3.5" />
-                      </button>
+                    <div className="flex-1 space-y-3 pr-24">
+                      
+                      {/* Action buttons (Delete & Reorder) */}
+                      <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => moveEducation(idx, "up")}
+                          disabled={idx === 0}
+                          className={`p-1.5 rounded-lg border border-zinc-200 bg-white transition-colors cursor-pointer ${
+                            idx === 0 ? "opacity-30 cursor-not-allowed" : "text-zinc-600 hover:bg-zinc-100"
+                          }`}
+                          title="Move Up"
+                        >
+                          <FaArrowUp className="w-2.5 h-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveEducation(idx, "down")}
+                          disabled={idx === formState.education.length - 1}
+                          className={`p-1.5 rounded-lg border border-zinc-200 bg-white transition-colors cursor-pointer ${
+                            idx === formState.education.length - 1 ? "opacity-30 cursor-not-allowed" : "text-zinc-600 hover:bg-zinc-100"
+                          }`}
+                          title="Move Down"
+                        >
+                          <FaArrowDown className="w-2.5 h-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveEducation(idx)}
+                          className="p-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
+                          title="Delete"
+                        >
+                          <FaTrashCan className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
