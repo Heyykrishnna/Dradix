@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import React, { useState, useEffect, useRef } from "react";
 import { 
@@ -6,23 +7,14 @@ import {
   FaLinkedin, 
   FaGlobe, 
   FaFileLines, 
-  FaEnvelope, 
-  FaPhone, 
-  FaLocationDot, 
-  FaPen, 
   FaPlus, 
   FaTrashCan, 
   FaCheck, 
   FaXmark, 
   FaCamera, 
   FaEllipsis, 
-  FaBriefcase, 
   FaBookOpen, 
-  FaAward,
   FaArrowUpRightFromSquare,
-  FaEye,
-  FaChartLine,
-  FaWandMagicSparkles,
   FaLock,
   FaLockOpen,
   FaArrowUp,
@@ -130,7 +122,7 @@ const initialProfile: ProfileState = {
   resumeName: "yatharth_resume.pdf",
   skills: [
     { name: "Frontend Development", level: "Advanced", pct: 90, color: "#3b82f6" },
-    { name: "Backend Development", level: "Advanced", pct: 85, color: "#00c9a7" },
+    { name: "Backend Development", level: "Advanced", pct: 85, color: "#005c58" },
     { name: "UI/UX & Design", level: "Intermediate", pct: 75, color: "#f59e0b" },
     { name: "System Architecture", level: "Intermediate", pct: 70, color: "#ef4444" }
   ],
@@ -176,7 +168,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileState>(initialProfile);
   const [isEditing, setIsEditing] = useState(false);
   const [formState, setFormState] = useState<ProfileState>(initialProfile);
-  const [hasChanges, setHasChanges] = useState(false);
+  const hasChanges = isEditing && JSON.stringify(profile) !== JSON.stringify(formState);
   const [newTechTag, setNewTechTag] = useState("");
 
   // Image Upload Modal States
@@ -192,22 +184,95 @@ export default function ProfilePage() {
 
   const modalFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync formState with profile when editing toggles
-  useEffect(() => {
-    if (isEditing) {
-      setFormState({ ...profile });
-    }
-  }, [isEditing]);
+  // Drag-to-pan states
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0, posX: 50, posY: 50 });
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
-  // Deep comparison to check for unsaved changes
-  useEffect(() => {
-    if (!isEditing) {
-      setHasChanges(false);
-      return;
-    }
-    const changed = JSON.stringify(profile) !== JSON.stringify(formState);
-    setHasChanges(changed);
-  }, [formState, profile, isEditing]);
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (imageModalType !== "cover") return;
+    e.preventDefault();
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      posX: modalPositionX,
+      posY: modalPositionY
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || imageModalType !== "cover") return;
+    const container = previewContainerRef.current;
+    if (!container) return;
+    
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    
+    const zoomFactor = 100 / modalZoom;
+    const nextX = dragStartRef.current.posX - (dx / containerWidth) * 100 * zoomFactor;
+    const nextY = dragStartRef.current.posY - (dy / containerHeight) * 100 * zoomFactor;
+    
+    setModalPositionX(Math.max(0, Math.min(100, nextX)));
+    setModalPositionY(Math.max(0, Math.min(100, nextY)));
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (imageModalType !== "cover") return;
+    e.preventDefault();
+    const zoomStep = 8;
+    const nextZoom = e.deltaY < 0 ? modalZoom + zoomStep : modalZoom - zoomStep;
+    setModalZoom(Math.max(100, Math.min(300, nextZoom)));
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (imageModalType !== "cover" || e.touches.length !== 1) return;
+    setIsDragging(true);
+    const touch = e.touches[0];
+    dragStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      posX: modalPositionX,
+      posY: modalPositionY
+    };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging || imageModalType !== "cover" || e.touches.length !== 1) return;
+    const container = previewContainerRef.current;
+    if (!container) return;
+    
+    const touch = e.touches[0];
+    const dx = touch.clientX - dragStartRef.current.x;
+    const dy = touch.clientY - dragStartRef.current.y;
+    
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    
+    const zoomFactor = 100 / modalZoom;
+    const nextX = dragStartRef.current.posX - (dx / containerWidth) * 100 * zoomFactor;
+    const nextY = dragStartRef.current.posY - (dy / containerHeight) * 100 * zoomFactor;
+    
+    setModalPositionX(Math.max(0, Math.min(100, nextX)));
+    setModalPositionY(Math.max(0, Math.min(100, nextY)));
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+
 
   // Prevent background scrolling when image modal is open
   useEffect(() => {
@@ -361,7 +426,7 @@ export default function ProfilePage() {
     setFormState({ ...formState, skills: updated });
   };
 
-  const handleSkillChange = (index: number, field: keyof Skill, value: any) => {
+  const handleSkillChange = (index: number, field: keyof Skill, value: string | number) => {
     const updated = formState.skills.map((skill, i) => {
       if (i === index) {
         const nextSkill = { ...skill, [field]: value };
@@ -398,7 +463,7 @@ export default function ProfilePage() {
 
   // Radial Graph data calculation for activity rate
   const radialData = [
-    { name: "Activity", value: isEditing ? formState.activityRate : profile.activityRate, fill: "#00c9a7" },
+    { name: "Activity", value: isEditing ? formState.activityRate : profile.activityRate, fill: "#005c58" },
     { name: "Remaining", value: 100 - (isEditing ? formState.activityRate : profile.activityRate), fill: "#e5e7eb" }
   ];
 
@@ -529,7 +594,12 @@ export default function ProfilePage() {
           {/* Action Buttons */}
           <div className="flex items-center gap-3 self-start md:self-end">
             <button 
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => {
+                if (!isEditing) {
+                  setFormState({ ...profile });
+                }
+                setIsEditing(!isEditing);
+              }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm cursor-pointer ${
                 isEditing 
                   ? "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-200" 
@@ -577,7 +647,7 @@ export default function ProfilePage() {
                   alt={isEditing ? formState.name : profile.name}
                   className="w-full h-full object-cover rounded-full" 
                 />
-                <span className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-500 border-2 border-orange-100 rounded-full" />
+                <span className="absolute bottom-1 right-1 w-3 h-3 bg-[#005c58] border-2 border-orange-100 rounded-full" />
               </div>
               <p className="text-[20px] font-extrabold text-zinc-900 mt-3">{isEditing ? formState.name : profile.name}</p>
               <p className="text-[10px] font-bold text-indigo-600 mt-1 uppercase tracking-wider">{isEditing ? formState.subtitle : profile.subtitle}</p>
@@ -646,7 +716,7 @@ export default function ProfilePage() {
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between">
                 <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">Activity</span>
-                <span className="text-[9px] font-bold bg-[#00c9a7]/10 text-[#00c9a7] px-2 py-0.5 rounded uppercase tracking-wider">Active</span>
+                <span className="text-[9px] font-bold bg-[#003c3a]/15 text-[#005c58] px-2 py-0.5 rounded uppercase tracking-wider">Active</span>
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-[12px] font-bold text-zinc-800">2 hours response time</p>
@@ -665,7 +735,7 @@ export default function ProfilePage() {
                 )}
               </div>
               <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#00c9a7] rounded-full transition-all duration-500" style={{ width: `${isEditing ? formState.activityRate : profile.activityRate}%` }} />
+                <div className="h-full bg-[#003c3a] rounded-full transition-all duration-500" style={{ width: `${isEditing ? formState.activityRate : profile.activityRate}%` }} />
               </div>
               <div className="flex justify-end">
                 <span className="text-[9px] text-zinc-400 font-bold">{isEditing ? formState.activityRate : profile.activityRate}/100%</span>
@@ -755,7 +825,7 @@ export default function ProfilePage() {
                   className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 transition-colors group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
+                    <div className="w-8 h-8 rounded-xl bg-[#003c3a] flex items-center justify-center text-white">
                       <FaGlobe className="w-4 h-4" />
                     </div>
                     <span className="text-[12px] font-bold text-zinc-800">Portfolio</span>
@@ -896,7 +966,7 @@ export default function ProfilePage() {
                         paddingAngle={0}
                         dataKey="value"
                       >
-                        <Cell key="cell-0" fill="#00c9a7" />
+                        <Cell key="cell-0" fill="#005c58" />
                         <Cell key="cell-1" fill="#f3f4f6" />
                       </Pie>
                     </PieChart>
@@ -907,7 +977,7 @@ export default function ProfilePage() {
                   <span className="text-[28px] font-extrabold text-zinc-900 tracking-tight leading-none">
                     {isEditing ? formState.activityRate : profile.activityRate}%
                   </span>
-                  <span className="text-[9px] font-bold text-[#00c9a7] uppercase tracking-widest mt-1">Excellent</span>
+                  <span className="text-[9px] font-bold text-[#005c58] uppercase tracking-widest mt-1">Excellent</span>
                 </div>
               </div>
 
@@ -1311,7 +1381,6 @@ export default function ProfilePage() {
         <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 animate-slide-up">
           <div className="bg-zinc-950 border border-white/10 text-white rounded-2xl py-3.5 px-5 shadow-2xl flex items-center justify-between gap-6 w-full max-w-xl backdrop-blur-md bg-opacity-95">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#00c9a7] animate-pulse" />
               <span className="text-[11px] md:text-[12px] font-bold tracking-tight">You have unsaved changes</span>
             </div>
             
@@ -1327,7 +1396,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={handleSave}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#00c9a7] hover:bg-[#00b596] text-black rounded-xl text-[11px] font-black transition-all shadow-md cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#003c3a] hover:bg-[#002d2b] text-white rounded-xl text-[11px] font-black transition-all shadow-md cursor-pointer"
               >
                 <FaCheck className="w-3 h-3" />
                 <span>Save Changes</span>
@@ -1474,11 +1543,24 @@ export default function ProfilePage() {
                   <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-3 self-start">Live Preview & Reposition</span>
                   
                   {imageModalType === "cover" ? (
-                    <div className="w-full h-36 rounded-xl overflow-hidden bg-zinc-100 border border-dashed border-zinc-200 relative group/preview">
+                    <div 
+                      ref={previewContainerRef}
+                      onMouseDown={handleMouseDown}
+                      onMouseMove={handleMouseMove}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseLeave}
+                      onWheel={handleWheel}
+                      onTouchStart={handleTouchStart}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
+                      className={`w-full h-36 rounded-xl overflow-hidden bg-zinc-100 border border-dashed border-zinc-200 relative group/preview select-none transition-shadow ${
+                        isDragging ? "cursor-grabbing shadow-inner" : "cursor-grab"
+                      }`}
+                    >
                       <img 
                         src={modalPreview} 
                         alt="Cover Preview" 
-                        className="w-full h-full object-cover origin-center transition-all duration-150"
+                        className="w-full h-full object-cover origin-center pointer-events-none select-none"
                         style={{
                           objectPosition: `${modalPositionX}% ${modalPositionY}%`,
                           transform: `scale(${modalZoom / 100})`
@@ -1503,59 +1585,13 @@ export default function ProfilePage() {
                       <img src={modalPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
                     </div>
                   )}
-
-                  {/* Crop Reposition Controls for Cover Banner */}
+ 
+                  {/* Interactive Crop Helper text */}
                   {imageModalType === "cover" && (
-                    <div className="w-full mt-4 space-y-4 bg-zinc-50 rounded-2xl p-4 border border-dashed border-zinc-200">
-                      <p className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest mb-1">Reposition Controls</p>
-                      
-                      {/* Zoom Scale Slider */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold">
-                          <span>Scale (Zoom)</span>
-                          <span>{modalZoom}%</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="100"
-                          max="300"
-                          value={modalZoom}
-                          onChange={(e) => setModalZoom(Number(e.target.value))}
-                          className="w-full h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-black"
-                        />
-                      </div>
-
-                      {/* Vertical Shift Slider */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold">
-                          <span>Vertical Shift (Y-Axis)</span>
-                          <span>{modalPositionY}%</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={modalPositionY}
-                          onChange={(e) => setModalPositionY(Number(e.target.value))}
-                          className="w-full h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-black"
-                        />
-                      </div>
-
-                      {/* Horizontal Shift Slider */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold">
-                          <span>Horizontal Shift (X-Axis)</span>
-                          <span>{modalPositionX}%</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={modalPositionX}
-                          onChange={(e) => setModalPositionX(Number(e.target.value))}
-                          className="w-full h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-black"
-                        />
-                      </div>
+                    <div className="mt-3 text-center">
+                      <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
+                        Scroll wheel to zoom • Click & Drag image to position
+                      </p>
                     </div>
                   )}
                 </div>

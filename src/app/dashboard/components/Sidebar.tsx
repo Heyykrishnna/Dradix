@@ -37,7 +37,7 @@ const navSections: NavItem[] = [
     icon: HomeIcon,
     label: "Overview",
     href: "/dashboard",
-    accent: "#00c9a7",
+    accent: "#003c3a",
   },
   {
     icon: ActivityLogIcon,
@@ -165,11 +165,11 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 h-full w-[230px] bg-[#0c0c0c] flex flex-col z-40">
       <div className="px-5 py-5">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#00c9a7] flex items-center justify-center shrink-0">
-            <span className="text-[11px] font-black text-black tracking-tighter">DR</span>
+          <div className="w-8 h-8 rounded-xl bg-[#003c3a] flex items-center justify-center shrink-0">
+            <span className="text-[11px] font-black text-white tracking-tighter">DR</span>
           </div>
           <span className="text-white font-bold text-[16px] tracking-tight">dradix</span>
-          <span className="ml-auto text-[9px] font-semibold text-[#00c9a7] bg-[#00c9a7]/10 rounded-md px-2 py-0.5">BETA</span>
+          <span className="ml-auto text-[9px] font-semibold text-[#003c3a] bg-[#003c3a]/15 rounded-md px-2 py-0.5">BETA</span>
         </div>
       </div>
 
@@ -205,8 +205,8 @@ export default function Sidebar() {
 
       <div className="p-4">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-[#161616] cursor-pointer hover:bg-[#1c1c1c] transition-all group">
-          <div className="w-8 h-8 rounded-full bg-[#00c9a7] flex items-center justify-center shrink-0">
-            <span className="text-[11px] font-black text-black">YK</span>
+          <div className="w-8 h-8 rounded-full bg-[#003c3a] flex items-center justify-center shrink-0">
+            <span className="text-[11px] font-black text-white">YK</span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[12px] font-semibold text-white truncate">Yatharth K.</p>

@@ -3,7 +3,7 @@
 import { StarIcon, ArrowRightIcon, PlusIcon } from "@radix-ui/react-icons";
 
 const projects = [
-  { name: "dradix", desc: "Developer portfolio & analytics platform. Track your coding journey across all platforms in one place.", stack: ["Next.js", "TypeScript", "Tailwind", "Supabase"], stars: 127, views: 4821, likes: 89, status: "Live", color: "#00c9a7", langColor: "#3b82f6", updated: "2h ago" },
+  { name: "dradix", desc: "Developer portfolio & analytics platform. Track your coding journey across all platforms in one place.", stack: ["Next.js", "TypeScript", "Tailwind", "Supabase"], stars: 127, views: 4821, likes: 89, status: "Live", color: "#005c58", langColor: "#3b82f6", updated: "2h ago" },
   { name: "algo-vault", desc: "Curated collection of algorithms and data structures with step-by-step visualizations.", stack: ["Python", "React", "D3.js"], stars: 89, views: 2100, likes: 62, status: "In Progress", color: "#f59e0b", langColor: "#f59e0b", updated: "1d ago" },
   { name: "rustify", desc: "Rust learning platform with interactive challenges and progress tracking for beginners.", stack: ["Rust", "WebAssembly", "React"], stars: 54, views: 890, likes: 41, status: "Archived", color: "#f43f5e", langColor: "#f43f5e", updated: "3d ago" },
 ];
@@ -16,7 +16,7 @@ export default function ProjectsSection() {
           <p className="text-[11px] font-semibold text-[#555] uppercase tracking-wider">Projects</p>
           <p className="text-[11px] text-[#555] mt-0.5">19 total · 4 Live</p>
         </div>
-        <button className="ml-auto flex items-center gap-1.5 text-[12px] font-bold text-black bg-[#00c9a7] hover:bg-[#00b89a] rounded-xl px-3 py-2 transition-colors">
+        <button className="ml-auto flex items-center gap-1.5 text-[12px] font-bold text-white bg-[#003c3a] hover:bg-[#002d2b] rounded-xl px-3 py-2 transition-colors">
           <PlusIcon className="w-3.5 h-3.5" /> Add Project
         </button>
       </div>

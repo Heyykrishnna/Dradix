@@ -59,18 +59,18 @@ function MiniHeatmap({ color }: { color: string }) {
 }
 
 const cards = [
-  { label: "Developer Score", value: "92", change: "+4 this week", sparkData: [72, 78, 74, 82, 85, 90, 92], type: "ring", ringValue: 92, color: "#00c9a7", bg: "#00c9a7", sub: "Top 8% globally" },
+  { label: "Developer Score", value: "92", change: "+4 this week", sparkData: [72, 78, 74, 82, 85, 90, 92], type: "ring", ringValue: 92, color: "#005c58", bg: "#003c3a", sub: "Top 8% globally" },
   { label: "GitHub Contributions", value: "1,487", change: "+42 today", sparkData: [32, 45, 38, 60, 42, 55, 70], type: "heatmap", color: "#3b82f6", bg: "#3b82f6", sub: "This year" },
   { label: "Problems Solved", value: "1,250", change: "+12 today", sparkData: [800, 900, 1020, 1080, 1140, 1200, 1250], type: "spark", color: "#f59e0b", bg: "#f59e0b", sub: "All platforms" },
   { label: "Current Streak", value: "42", suffix: "days", change: "Personal best!", sparkData: [10, 18, 30, 35, 38, 40, 42], type: "ring", ringValue: 75, color: "#f43f5e", bg: "#f43f5e", sub: "On fire" },
 ];
 
 const miniStats = [
-  { label: "Projects", value: "19", sub: "4 Live", color: "#00c9a7" },
+  { label: "Projects", value: "19", sub: "4 Live", color: "#005c58" },
   { label: "Repositories", value: "52", sub: "12 Public", color: "#3b82f6" },
   { label: "Followers", value: "624", sub: "GitHub", color: "#f59e0b" },
   { label: "Stars Earned", value: "382", sub: "Total", color: "#f43f5e" },
-  { label: "Pull Requests", value: "145", sub: "Merged", color: "#00c9a7" },
+  { label: "Pull Requests", value: "145", sub: "Merged", color: "#005c58" },
   { label: "Issues Closed", value: "81", sub: "Resolved", color: "#3b82f6" },
   { label: "Hackathons", value: "8", sub: "2 Wins", color: "#f59e0b" },
   { label: "Certificates", value: "12", sub: "Verified", color: "#f43f5e" },

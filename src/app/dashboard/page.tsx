@@ -57,16 +57,16 @@ const codingPlatforms = [
   { name: "LeetCode", rating: 2156, rank: "Guardian", solved: 847, color: "#f59e0b", streak: 42, history: [1, 2, 1, 3, 2] },
   { name: "Codeforces", rating: 1742, rank: "Specialist", solved: 312, color: "#3b82f6", streak: 18, history: [2, 3, 1, 2, 1] },
   { name: "CodeChef", rating: 1920, rank: "4 Star", solved: 91, color: "#f43f5e", streak: 7, history: [1, 1, 2, 1, 2] },
-  { name: "AtCoder", rating: 1420, rank: "2 Star", solved: 55, color: "#00c9a7", streak: 0, history: [1, 0, 1, 2, 0] },
+  { name: "AtCoder", rating: 1420, rank: "2 Star", solved: 55, color: "#005c58", streak: 0, history: [1, 0, 1, 2, 0] },
   { name: "HackerRank", rating: 2100, rank: "5 Star", solved: 180, color: "#34d399", streak: 12, history: [2, 1, 2, 1, 1] },
   { name: "GeeksforGeeks", rating: 1850, rank: "Expert", solved: 120, color: "#10b981", streak: 5, history: [1, 2, 1, 1, 2] }
 ];
 
 const initialProjectsList = [
-  { id: "#875412903", name: "dradix", creator: "Yatharth K.", stack: "Next.js, TS", platform: "GitHub", date: "05 Oct, 2025", status: "Live", statusColor: "#00c9a7", views: 4821, likes: 89, stars: 127 },
+  { id: "#875412903", name: "dradix", creator: "Yatharth K.", stack: "Next.js, TS", platform: "GitHub", date: "05 Oct, 2025", status: "Live", statusColor: "#005c58", views: 4821, likes: 89, stars: 127 },
   { id: "#458729654", name: "algo-vault", creator: "Yatharth K.", stack: "Python, React", platform: "Vercel", date: "05 Oct, 2025", status: "In Progress", statusColor: "#f59e0b", views: 2100, likes: 62, stars: 89 },
   { id: "#913562478", name: "rustify", creator: "Yatharth K.", stack: "Rust, Wasm", platform: "GitHub", date: "05 Oct, 2025", status: "Archived", statusColor: "#ef4444", views: 890, likes: 41, stars: 54 },
-  { id: "#324561327", name: "dradix-cli", creator: "Yatharth K.", stack: "Go, Cobra", platform: "npm", date: "15 Sep, 2025", status: "Live", statusColor: "#00c9a7", views: 1200, likes: 32, stars: 15 }
+  { id: "#324561327", name: "dradix-cli", creator: "Yatharth K.", stack: "Go, Cobra", platform: "npm", date: "15 Sep, 2025", status: "Live", statusColor: "#005c58", views: 1200, likes: 32, stars: 15 }
 ];
 
 const fulfillmentData = [
@@ -86,14 +86,14 @@ const languageData = [
   { name: "TypeScript", value: 42, color: "#3b82f6" },
   { name: "Python", value: 27, color: "#f59e0b" },
   { name: "Rust", value: 22, color: "#f43f5e" },
-  { name: "Go", value: 9, color: "#00c9a7" }
+  { name: "Go", value: 9, color: "#005c58" }
 ];
 
 const skillsList = [
   { name: "TypeScript", level: "Advanced", pct: 90, projects: 12, color: "#3b82f6" },
-  { name: "React", level: "Advanced", pct: 88, projects: 10, color: "#00c9a7" },
+  { name: "React", level: "Advanced", pct: 88, projects: 10, color: "#005c58" },
   { name: "Next.js", level: "Advanced", pct: 85, projects: 8, color: "#f5f5f5" },
-  { name: "Node.js", level: "Advanced", pct: 80, projects: 7, color: "#00c9a7" },
+  { name: "Node.js", level: "Advanced", pct: 80, projects: 7, color: "#005c58" },
   { name: "Python", level: "Intermediate", pct: 72, projects: 5, color: "#f59e0b" },
   { name: "Rust", level: "Intermediate", pct: 55, projects: 2, color: "#f43f5e" }
 ];
@@ -109,35 +109,35 @@ const weeklyActivityData = [
 ];
 
 const learningCourses = [
-  { title: "Full Stack Open", provider: "University of Helsinki", pct: 78, color: "#00c9a7" },
+  { title: "Full Stack Open", provider: "University of Helsinki", pct: 78, color: "#005c58" },
   { title: "Advanced Rust Programming", provider: "Udemy", pct: 45, color: "#f43f5e" },
   { title: "System Design Masterclass", provider: "Educative", pct: 92, color: "#3b82f6" }
 ];
 
 const achievementBadges = [
-  { label: "100 Commits", icon: "C", unlocked: true, color: "#00c9a7" },
+  { label: "100 Commits", icon: "C", unlocked: true, color: "#005c58" },
   { label: "500 Problems", icon: "P", unlocked: true, color: "#f59e0b" },
   { label: "1000 Problems", icon: "1K", unlocked: true, color: "#f59e0b" },
   { label: "First OSS PR", icon: "O", unlocked: true, color: "#3b82f6" },
   { label: "100 Stars", icon: "S", unlocked: true, color: "#f59e0b" },
-  { label: "100 Followers", icon: "F", unlocked: true, color: "#00c9a7" },
+  { label: "100 Followers", icon: "F", unlocked: true, color: "#005c58" },
   { label: "Top 5%", icon: "T", unlocked: false, color: "#f43f5e" }
 ];
 
 const timelineMilestones = [
-  { date: "Jan 2024", title: "Joined Dradix", desc: "Started tracking developer journey", color: "#00c9a7" },
+  { date: "Jan 2024", title: "Joined Dradix", desc: "Started tracking developer journey", color: "#005c58" },
   { date: "Feb 2024", title: "Connected GitHub", desc: "Synced 52 repositories", color: "#3b82f6" },
   { date: "Mar 2024", title: "Completed First Project", desc: "Launched dradix beta publicly", color: "#f59e0b" },
-  { date: "Apr 2024", title: "Solved 100 Problems", desc: "Hit the milestone on LeetCode", color: "#00c9a7" }
+  { date: "Apr 2024", title: "Solved 100 Problems", desc: "Hit the milestone on LeetCode", color: "#005c58" }
 ];
 
 const careerRings = [
-  { label: "Resume Score", value: 82, color: "#00c9a7" },
+  { label: "Resume Score", value: 82, color: "#005c58" },
   { label: "Portfolio Score", value: 75, color: "#3b82f6" },
   { label: "Dev Score", value: 92, color: "#f59e0b" },
   { label: "Placement Readiness", value: 72, color: "#f43f5e" },
   { label: "Interview Readiness", value: 68, color: "#3b82f6" },
-  { label: "System Design Level", value: 58, color: "#00c9a7" }
+  { label: "System Design Level", value: 58, color: "#005c58" }
 ];
 
 const initialRecruiterChecklist = [
@@ -328,7 +328,7 @@ export default function DashboardPage() {
                 <p className="text-[10px] text-zinc-400">Top Developer</p>
               </div>
             </div>
-            <div className="bg-[#00c9a7]/10 text-[#00c9a7] text-[10px] font-black px-2 py-1 rounded-md">
+            <div className="bg-[#003c3a]/15 text-[#005c58] text-[10px] font-black px-2 py-1 rounded-md">
               9.2 Rating
             </div>
           </div>
@@ -356,7 +356,7 @@ export default function DashboardPage() {
                 className="bg-white rounded-xl p-3 flex items-center gap-2.5 cursor-pointer hover:bg-zinc-50 transition-colors"
               >
                 {item.done ? (
-                  <CheckCircledIcon className="w-4 h-4 text-[#00c9a7]" />
+                  <CheckCircledIcon className="w-4 h-4 text-[#005c58]" />
                 ) : (
                   <CrossCircledIcon className="w-4 h-4 text-[#ef4444]" />
                 )}
@@ -373,12 +373,12 @@ export default function DashboardPage() {
                   <span key={idx} className="text-[9px] font-bold text-zinc-600 bg-zinc-100 rounded px-2 py-0.5">{m}</span>
                 ))
               ) : (
-                <span className="text-[9px] font-bold text-[#00c9a7]">All Green! Ready to Hire</span>
+                <span className="text-[9px] font-bold text-[#005c58]">All Green! Ready to Hire</span>
               )}
             </div>
             <div className="flex items-center justify-between pt-2.5 border-t border-zinc-100">
               <span className="text-[10px] text-zinc-400 font-bold uppercase">Completion</span>
-              <span className="text-[12px] font-black text-[#00c9a7]">{recruiterPct}% Ready</span>
+              <span className="text-[12px] font-black text-[#005c58]">{recruiterPct}% Ready</span>
             </div>
             <button className="w-full mt-2 py-2 bg-black hover:bg-zinc-900 text-white rounded-lg text-[11px] font-bold transition-all">
               Improve Profile
@@ -537,7 +537,7 @@ export default function DashboardPage() {
                     {fulfillmentData.map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
-                        fill={entry.month === "May" || (hoveredBar && hoveredBar.month === entry.month) ? "#00c9a7" : "#27272a"} 
+                        fill={entry.month === "May" || (hoveredBar && hoveredBar.month === entry.month) ? "#005c58" : "#27272a"} 
                       />
                     ))}
                   </Bar>
@@ -574,7 +574,7 @@ export default function DashboardPage() {
 
             <div className="flex items-baseline gap-2">
               <p className="text-3xl font-black text-white">716,084</p>
-              <span className="text-[10px] text-[#00c9a7] bg-[#00c9a7]/10 rounded-md px-1.5 py-0.5">32.2% ↑ Views</span>
+              <span className="text-[10px] text-[#005c58] bg-[#003c3a]/15 rounded-md px-1.5 py-0.5">32.2% ↑ Views</span>
             </div>
 
             {/* Speedometer/Semi-circular Dial Chart */}
@@ -665,7 +665,7 @@ export default function DashboardPage() {
                         return (
                           <div className="bg-white text-zinc-950 p-2.5 rounded-xl shadow-md border border-zinc-100 text-[11px] font-bold">
                             <p className="text-zinc-500 mb-1">{payload[0].payload.day}</p>
-                            {showHours && <p className="text-[#00c9a7]">{payload[0].value} Coding Hours</p>}
+                            {showHours && <p className="text-[#005c58]">{payload[0].value} Coding Hours</p>}
                             {showCommits && payload[1] && <p className="text-[#3b82f6]">{payload[1].value} Commits</p>}
                           </div>
                         );
@@ -673,7 +673,7 @@ export default function DashboardPage() {
                       return null;
                     }}
                   />
-                  {showHours && <Line type="monotone" dataKey="hours" stroke="#00c9a7" strokeWidth={2.5} dot={false} activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 1.5 }} />}
+                  {showHours && <Line type="monotone" dataKey="hours" stroke="#005c58" strokeWidth={2.5} dot={false} activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 1.5 }} />}
                   {showCommits && <Line type="monotone" dataKey="commits" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 1.5 }} />}
                 </LineChart>
               </ResponsiveContainer>
@@ -683,10 +683,10 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-200 text-center">
               <button 
                 onClick={() => setShowHours(!showHours)}
-                className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showHours ? "bg-[#00c9a7]/10" : "opacity-40"}`}
+                className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showHours ? "bg-[#003c3a]/15" : "opacity-40"}`}
               >
-                <p className="text-[15px] font-black text-[#005451]">34</p>
-                <p className="text-[9px] text-[#005451] uppercase font-bold">Hours</p>
+                <p className="text-[15px] font-black text-[#003c3a]">34</p>
+                <p className="text-[9px] text-[#003c3a] uppercase font-bold">Hours</p>
               </button>
               <button 
                 onClick={() => setShowCommits(!showCommits)}
@@ -719,7 +719,7 @@ export default function DashboardPage() {
                   onClick={() => toggleGoal(index)}
                   className="bg-white rounded-lg p-2.5 flex items-center gap-2 cursor-pointer hover:bg-zinc-50 transition-colors"
                 >
-                  <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 border ${goal.done ? "bg-[#00c9a7] border-[#00c9a7]" : "border-zinc-300"}`}>
+                  <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 border ${goal.done ? "bg-[#003c3a] border-[#003c3a]" : "border-zinc-300"}`}>
                     {goal.done && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
                   </div>
                   <span className={`text-[11px] font-semibold truncate ${goal.done ? "line-through text-zinc-400" : "text-zinc-800"}`}>{goal.l}</span>
@@ -733,7 +733,7 @@ export default function DashboardPage() {
               </div>
               <div className="w-full h-1.5 bg-white rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-[#00c9a7] rounded-full transition-all duration-500" 
+                  className="h-full bg-[#003c3a] rounded-full transition-all duration-500" 
                   style={{ width: `${goalsPct}%` }} 
                 />
               </div>
@@ -942,7 +942,7 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl p-4 space-y-2 text-[11px] font-semibold text-zinc-600">
               <div className="flex justify-between"><span>Coding Hours:</span><span className="text-black font-bold">1,248</span></div>
               <div className="flex justify-between"><span>Most Used Language:</span><span className="text-[#3b82f6] font-bold">TypeScript</span></div>
-              <div className="flex justify-between"><span>Top Repository:</span><span className="text-[#00c9a7] font-bold">dradix</span></div>
+              <div className="flex justify-between"><span>Top Repository:</span><span className="text-[#005c58] font-bold">dradix</span></div>
               <div className="flex justify-between"><span>Longest Streak:</span><span className="text-black font-bold">47 days</span></div>
               <div className="flex justify-between"><span>Favorite Tech:</span><span className="text-[#f43f5e] font-bold">Next.js</span></div>
             </div>
@@ -984,7 +984,7 @@ export default function DashboardPage() {
             <h3 className="text-[15px] font-bold text-black tracking-tight">Leaderboard Rankings</h3>
             <div className="space-y-2">
               {leaderboardRankings.map((user) => (
-                <div key={user.rank} className={`bg-white rounded-xl p-3 flex items-center justify-between border ${user.isYou ? "border-[#00c9a7]" : "border-transparent"}`}>
+                <div key={user.rank} className={`bg-white rounded-xl p-3 flex items-center justify-between border ${user.isYou ? "border-[#003c3a]" : "border-transparent"}`}>
                   <div className="flex items-center gap-3">
                     <span className="text-[12px] font-black text-zinc-400">#{user.rank}</span>
                     <span className="text-[12px] font-bold text-zinc-800">{user.name}</span>

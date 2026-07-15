@@ -1,10 +1,10 @@
 "use client";
 
 const events = [
-  { date: "Jan 2024", title: "Joined Dradix", desc: "Started tracking developer journey", color: "#00c9a7", done: true },
+  { date: "Jan 2024", title: "Joined Dradix", desc: "Started tracking developer journey", color: "#005c58", done: true },
   { date: "Feb 2024", title: "Connected GitHub", desc: "Synced 52 repositories", color: "#3b82f6", done: true },
   { date: "Mar 2024", title: "Completed First Project", desc: "Launched dradix beta publicly", color: "#f59e0b", done: true },
-  { date: "Apr 2024", title: "Solved 100 Problems", desc: "Hit the milestone on LeetCode", color: "#00c9a7", done: true },
+  { date: "Apr 2024", title: "Solved 100 Problems", desc: "Hit the milestone on LeetCode", color: "#005c58", done: true },
   { date: "Jun 2024", title: "Reached 500 Commits", desc: "Consistent coding all year", color: "#3b82f6", done: true },
   { date: "Oct 2024", title: "Won Hackathon", desc: "DevFest — Runner-up", color: "#f59e0b", done: true },
   { date: "Dec 2024", title: "Published Blog", desc: "First dev article on hashnode", color: "#f43f5e", done: true },

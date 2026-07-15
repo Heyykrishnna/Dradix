@@ -7,7 +7,7 @@ const languages = [
   { name: "TypeScript", value: 42, color: "#3b82f6" },
   { name: "Python", value: 28, color: "#f59e0b" },
   { name: "Rust", value: 14, color: "#f43f5e" },
-  { name: "Go", value: 10, color: "#00c9a7" },
+  { name: "Go", value: 10, color: "#005c58" },
   { name: "Other", value: 6, color: "#444" },
 ];
 
@@ -25,11 +25,11 @@ const topRepos = [
 ];
 
 const recentFeed = [
-  { action: "Committed to", target: "dradix", time: "2h ago", color: "#00c9a7" },
+  { action: "Committed to", target: "dradix", time: "2h ago", color: "#005c58" },
   { action: "Merged PR #47 in", target: "algo-vault", time: "5h ago", color: "#3b82f6" },
   { action: "Opened Issue in", target: "rustify", time: "1d ago", color: "#f59e0b" },
   { action: "Created repo", target: "ml-playground", time: "2d ago", color: "#f43f5e" },
-  { action: "Released v1.2 of", target: "dradix", time: "3d ago", color: "#00c9a7" },
+  { action: "Released v1.2 of", target: "dradix", time: "3d ago", color: "#005c58" },
 ];
 
 const ContribHeatmap = () => {
@@ -44,7 +44,7 @@ const ContribHeatmap = () => {
           <div key={wi} className="flex flex-col gap-0.5">
             {week.map((level, di) => (
               <div key={di} className="w-3 h-3 rounded-[2px]"
-                style={{ backgroundColor: "#00c9a7", opacity: opacities[level] }} />
+                style={{ backgroundColor: "#005c58", opacity: opacities[level] }} />
             ))}
           </div>
         ))}
@@ -52,7 +52,7 @@ const ContribHeatmap = () => {
       <div className="flex items-center gap-1.5 mt-2 justify-end">
         <span className="text-[10px] text-[#444]">Less</span>
         {opacities.map((o, i) => (
-          <div key={i} className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: "#00c9a7", opacity: o }} />
+          <div key={i} className="w-2.5 h-2.5 rounded-[2px]" style={{ backgroundColor: "#005c58", opacity: o }} />
         ))}
         <span className="text-[10px] text-[#444]">More</span>
       </div>
@@ -97,7 +97,7 @@ export default function GitHubAnalytics() {
                   <XAxis dataKey="month" tick={{ fill: "#444", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: "#444", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ backgroundColor: "#1c1c1c", border: "none", borderRadius: "12px", fontSize: 12 }} labelStyle={{ color: "#888" }} />
-                  <Bar dataKey="commits" fill="#00c9a7" radius={[4, 4, 0, 0]} fillOpacity={0.8} />
+                  <Bar dataKey="commits" fill="#005c58" radius={[4, 4, 0, 0]} fillOpacity={0.8} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

@@ -31,8 +31,8 @@ export default function TopNav() {
       </button>
 
       <div className="flex items-center gap-2.5 pl-3">
-        <div className="w-9 h-9 rounded-full bg-[#00c9a7] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-          <span className="text-[11px] font-black text-black">YK</span>
+        <div className="w-9 h-9 rounded-full bg-[#003c3a] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+          <span className="text-[11px] font-black text-white">YK</span>
         </div>
         <div className="hidden sm:block">
           <p className="text-[12px] font-semibold text-white leading-none">Yatharth</p>

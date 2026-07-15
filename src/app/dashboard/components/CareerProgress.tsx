@@ -26,17 +26,17 @@ function Ring({ value, size = 80, stroke = 7, color, label }: { value: number; s
 }
 
 const rings = [
-  { label: "Resume Score", value: 82, color: "#00c9a7" },
+  { label: "Resume Score", value: 82, color: "#005c58" },
   { label: "Portfolio Score", value: 75, color: "#3b82f6" },
   { label: "Dev Score", value: 92, color: "#f59e0b" },
   { label: "Interview Ready", value: 68, color: "#f43f5e" },
-  { label: "Placement Ready", value: 72, color: "#00c9a7" },
+  { label: "Placement Ready", value: 72, color: "#005c58" },
   { label: "System Design", value: 58, color: "#3b82f6" },
 ];
 
 const domains = [
   { label: "Frontend", value: 88, color: "#3b82f6" },
-  { label: "Backend", value: 74, color: "#00c9a7" },
+  { label: "Backend", value: 74, color: "#005c58" },
   { label: "AI / ML", value: 52, color: "#f59e0b" },
   { label: "DevOps", value: 60, color: "#f43f5e" },
 ];
@@ -77,7 +77,7 @@ export default function CareerProgress() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {[{ label: "Overall Dev Score", value: "92", color: "#00c9a7" }, { label: "Placement Readiness", value: "72%", color: "#3b82f6" }].map(s => (
+            {[{ label: "Overall Dev Score", value: "92", color: "#005c58" }, { label: "Placement Readiness", value: "72%", color: "#3b82f6" }].map(s => (
               <div key={s.label} className="bg-[#1c1c1c] rounded-xl p-4 text-center hover:bg-[#222] transition-colors">
                 <p className="text-3xl font-black" style={{ color: s.color }}>{s.value}</p>
                 <p className="text-[10px] text-[#555] mt-1">{s.label}</p>
