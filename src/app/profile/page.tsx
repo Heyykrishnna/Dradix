@@ -2,16 +2,11 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect, useRef } from "react";
 import { 
-  FaGithub, 
-  FaLinkedin, 
-  FaGlobe, 
-  FaFileLines, 
   FaPlus, 
   FaTrashCan, 
   FaCheck, 
   FaXmark, 
   FaCamera, 
-  FaEllipsis, 
   FaBookOpen, 
   FaArrowUpRightFromSquare,
   FaLock,
@@ -22,12 +17,10 @@ import {
   FaLink,
   FaImage,
   FaCircleCheck,
-  FaGear,
   FaBookmark,
   FaBriefcase,
   FaShield,
   FaUserPlus,
-  FaGift
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -131,6 +124,7 @@ const getSocialLogoUrl = (name: string, url: string) => {
     const domain = new URL(url).hostname;
     return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
   } catch (e) {
+    console.error(e);
     return "/globe.svg";
   }
 };

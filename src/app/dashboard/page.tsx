@@ -554,9 +554,11 @@ export default function DashboardPage() {
                         <div className="h-32 relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart
-                  onMouseMove={(e: any) => {
-                    if (e && e.chartX !== undefined && e.chartY !== undefined) {
-                      setTrafficTooltipPos({ x: e.chartX + 15, y: e.chartY + 15 });
+                  onMouseMove={(e: Record<string, unknown>) => {
+                    const chartX = e?.chartX;
+                    const chartY = e?.chartY;
+                    if (typeof chartX === "number" && typeof chartY === "number") {
+                      setTrafficTooltipPos({ x: chartX + 15, y: chartY + 15 });
                     }
                   }}
                   onMouseLeave={() => setTrafficTooltipPos(null)}
