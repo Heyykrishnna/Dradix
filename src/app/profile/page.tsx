@@ -26,7 +26,11 @@ import {
   FaLock,
   FaLockOpen,
   FaArrowUp,
-  FaArrowDown
+  FaArrowDown,
+  FaUpload,
+  FaLink,
+  FaImage,
+  FaCircleCheck
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -73,6 +77,9 @@ interface ProfileState {
   location: string;
   avatarUrl: string;
   coverUrl: string;
+  coverPositionX: number;
+  coverPositionY: number;
+  coverZoom: number;
   github: string;
   linkedin: string;
   portfolio: string;
@@ -87,6 +94,21 @@ interface ProfileState {
   responseTime: string;
 }
 
+// Preset Images for the Modal
+const COVER_PRESETS = [
+  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop"
+];
+
+const AVATAR_PRESETS = [
+  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=256&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=256&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop"
+];
+
 // Initial Profile Mock Data
 const initialProfile: ProfileState = {
   name: "Yatharth K.",
@@ -99,6 +121,9 @@ const initialProfile: ProfileState = {
   location: "Bengaluru, Karnataka, India",
   avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop",
   coverUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1600&auto=format&fit=crop",
+  coverPositionX: 50,
+  coverPositionY: 50,
+  coverZoom: 100,
   github: "https://github.com/yatharthk",
   linkedin: "https://linkedin.com/in/yatharthk",
   portfolio: "https://yatharthk.dev",
@@ -152,15 +177,20 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [formState, setFormState] = useState<ProfileState>(initialProfile);
   const [hasChanges, setHasChanges] = useState(false);
-
-  // Edit fields overlays toggles
-  const [showBannerInput, setShowBannerInput] = useState(false);
-  const [showAvatarInput, setShowAvatarInput] = useState(false);
   const [newTechTag, setNewTechTag] = useState("");
 
-  // Refs for hidden file inputs
-  const bannerFileRef = useRef<HTMLInputElement>(null);
-  const avatarFileRef = useRef<HTMLInputElement>(null);
+  // Image Upload Modal States
+  const [imageModalType, setImageModalType] = useState<"cover" | "avatar" | null>(null);
+  const [modalInputUrl, setModalInputUrl] = useState("");
+  const [modalPreview, setModalPreview] = useState("");
+  const [modalActiveTab, setModalActiveTab] = useState<"upload" | "url" | "presets">("upload");
+
+  // Cover image crop / reposition parameters
+  const [modalZoom, setModalZoom] = useState(100);
+  const [modalPositionX, setModalPositionX] = useState(50);
+  const [modalPositionY, setModalPositionY] = useState(50);
+
+  const modalFileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync formState with profile when editing toggles
   useEffect(() => {
@@ -179,44 +209,74 @@ export default function ProfilePage() {
     setHasChanges(changed);
   }, [formState, profile, isEditing]);
 
+  // Prevent background scrolling when image modal is open
+  useEffect(() => {
+    if (imageModalType !== null) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [imageModalType]);
+
   const handleSave = () => {
     setProfile(formState);
     setIsEditing(false);
-    setShowBannerInput(false);
-    setShowAvatarInput(false);
   };
 
   const handleCancel = () => {
     setFormState({ ...profile });
     setIsEditing(false);
-    setShowBannerInput(false);
-    setShowAvatarInput(false);
   };
 
-  // Image Upload handler (as Base64 Data URL)
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Image modal triggers
+  const openImageModal = (type: "cover" | "avatar") => {
+    setImageModalType(type);
+    const currentUrl = type === "cover" ? formState.coverUrl : formState.avatarUrl;
+    setModalInputUrl(currentUrl.startsWith("data:") ? "" : currentUrl);
+    setModalPreview(currentUrl);
+    setModalActiveTab(currentUrl.startsWith("data:") ? "upload" : "url");
+    if (type === "cover") {
+      setModalZoom(formState.coverZoom || 100);
+      setModalPositionX(formState.coverPositionX || 50);
+      setModalPositionY(formState.coverPositionY || 50);
+    }
+  };
+
+  const handleImageModalSave = () => {
+    if (!modalPreview) return;
+    if (imageModalType === "cover") {
+      setFormState(prev => ({ 
+        ...prev, 
+        coverUrl: modalPreview,
+        coverZoom: modalZoom,
+        coverPositionX: modalPositionX,
+        coverPositionY: modalPositionY
+      }));
+    } else {
+      setFormState(prev => ({ ...prev, avatarUrl: modalPreview }));
+    }
+    setImageModalType(null);
+  };
+
+  const handleModalFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (typeof reader.result === "string") {
-          setFormState(prev => ({ ...prev, coverUrl: reader.result as string }));
+          setModalPreview(reader.result);
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          setFormState(prev => ({ ...prev, avatarUrl: reader.result as string }));
-        }
-      };
-      reader.readAsDataURL(file);
+  const handleModalUrlApply = () => {
+    if (modalInputUrl.trim()) {
+      setModalPreview(modalInputUrl.trim());
     }
   };
 
@@ -345,65 +405,35 @@ export default function ProfilePage() {
   return (
     <div className="relative pb-24 space-y-8 animate-fade-in text-left">
       
-      {/* Hidden File Inputs for Banner & Avatar Uploads */}
-      <input 
-        type="file" 
-        ref={bannerFileRef} 
-        onChange={handleBannerUpload} 
-        className="hidden" 
-        accept="image/*" 
-      />
-      <input 
-        type="file" 
-        ref={avatarFileRef} 
-        onChange={handleAvatarUpload} 
-        className="hidden" 
-        accept="image/*" 
-      />
-      
       {/* 1. Header Banner & Profile Details Overlay Container */}
       <div className="relative bg-white rounded-3xl overflow-hidden border border-dashed border-zinc-200 shadow-sm group/banner">
         
         {/* Cover Banner Image */}
-        <div className="h-48 md:h-64 w-full relative overflow-hidden bg-zinc-200">
+        <div className="h-48 md:h-84 w-full relative overflow-hidden bg-zinc-200">
           <img 
             src={isEditing ? formState.coverUrl : profile.coverUrl} 
             alt="Cover Banner" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover origin-center transition-all duration-150"
+            style={{
+              objectPosition: `${isEditing ? formState.coverPositionX : profile.coverPositionX}% ${isEditing ? formState.coverPositionY : profile.coverPositionY}%`,
+              transform: `scale(${isEditing ? formState.coverZoom / 100 : profile.coverZoom / 100})`
+            }}
           />
           <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
           
-          {/* Cover Edit Overlay */}
+          {/* Smooth Fade/Blur Overlay at the bottom edge */}
+          <div className="absolute bottom-0 left-0 right-0 h-15 bg-linear-to-b from-transparent via-white/50 to-white backdrop-blur-[2px] pointer-events-none" />
+          
+          {/* Cover Edit Centered Hover Overlay */}
           {isEditing && (
-            <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => bannerFileRef.current?.click()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-black/80 hover:bg-black text-white rounded-xl text-[10px] font-bold transition-all shadow-md backdrop-blur-sm cursor-pointer"
-                >
-                  <FaCamera className="w-3.5 h-3.5" />
-                  <span>Upload Cover Image</span>
-                </button>
-                <button
-                  onClick={() => setShowBannerInput(!showBannerInput)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800/80 hover:bg-zinc-800 text-white rounded-xl text-[10px] font-bold transition-all shadow-md backdrop-blur-sm cursor-pointer"
-                >
-                  <span>Edit URL</span>
-                </button>
-              </div>
-              
-              {showBannerInput && (
-                <div className="w-64 bg-white rounded-xl p-3 shadow-xl border border-zinc-100 text-left animate-slide-down">
-                  <label className="block text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1.5">Cover Image URL</label>
-                  <input
-                    type="url"
-                    value={formState.coverUrl}
-                    onChange={(e) => setFormState({ ...formState, coverUrl: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full rounded-lg border border-zinc-200 p-2 text-[11px] text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-medium"
-                  />
-                </div>
-              )}
+            <div className="absolute inset-0 bg-black/45 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center z-10 duration-200">
+              <button
+                onClick={() => openImageModal("cover")}
+                className="flex items-center gap-2 px-3 py-2.5 bg-white text-black hover:bg-zinc-50 rounded-xl text-[10px] font-light transition-all shadow-lg cursor-pointer"
+              >
+                <FaCamera className="w-3 h-3" />
+                <span>Update Banner Image</span>
+              </button>
             </div>
           )}
         </div>
@@ -412,51 +442,35 @@ export default function ProfilePage() {
         <div className="px-6 md:px-8 pb-8 pt-16 md:pt-20 flex flex-col md:flex-row md:items-end justify-between gap-6 relative">
           
           {/* Overlapping Profile Photo */}
-          <div className="absolute -top-16 left-6 md:left-8 w-28 h-28 md:w-32 md:h-32 rounded-3xl border-4 border-white bg-white overflow-hidden shadow-md flex items-center justify-center shrink-0 group/avatar">
+          <div className="absolute -top-16 left-6 md:left-8 w-28 h-28 md:w-32 md:h-32 rounded-3xl border-4 border-white bg-white overflow-hidden shadow-md flex items-center justify-center shrink-0 group/avatar z-20">
             <img 
               src={isEditing ? formState.avatarUrl : profile.avatarUrl} 
               alt={isEditing ? formState.name : profile.name}
               className="w-full h-full object-cover rounded-2xl" 
             />
-            {/* Status Dot */}
-            <span className="absolute bottom-2 right-2 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full" />
             
-            {/* Avatar Edit Camera Overlay */}
+            {/* Avatar Edit Camera Hover Overlay */}
             {isEditing && (
-              <div className="absolute inset-0 bg-black/60 text-white flex flex-col items-center justify-center gap-2 opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 cursor-pointer">
                 <button
-                  onClick={() => avatarFileRef.current?.click()}
-                  className="flex items-center gap-1.5 bg-black/90 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-black transition-colors cursor-pointer"
+                  onClick={() => openImageModal("avatar")}
+                  className="flex items-center gap-1.5 bg-white text-black px-2 py-1.5 rounded-xl text-[9px] font-light hover:bg-zinc-50 transition-colors shadow-md cursor-pointer"
                 >
-                  <FaCamera className="w-3 h-3" />
-                  <span>Upload File</span>
-                </button>
-                <button
-                  onClick={() => setShowAvatarInput(!showAvatarInput)}
-                  className="flex items-center gap-1.5 bg-zinc-800/90 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-zinc-700 transition-colors cursor-pointer"
-                >
-                  <span>Enter URL</span>
+                  <FaCamera className="w-2.5 h-2.5" />
+                  <span>Update Photo</span>
                 </button>
               </div>
             )}
           </div>
 
-          {/* Inline Avatar URL Edit Input Box */}
-          {isEditing && showAvatarInput && (
-            <div className="absolute top-16 left-6 md:left-8 z-10 w-64 bg-white rounded-xl p-3 shadow-xl border border-zinc-100 text-left animate-slide-down">
-              <label className="block text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1.5">Avatar Image URL</label>
-              <input
-                type="url"
-                value={formState.avatarUrl}
-                onChange={(e) => setFormState({ ...formState, avatarUrl: e.target.value })}
-                placeholder="https://images.unsplash.com/..."
-                className="w-full rounded-lg border border-zinc-200 p-2 text-[11px] text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-medium"
-              />
-            </div>
-          )}
-
           {/* Name & Basic Info Text */}
           <div className="flex-1 md:pl-36 text-left">
+            <div className="group/verified relative flex items-center gap-1.5 mb-2 w-fit">
+              <FaCircleCheck className="w-4 h-4 text-[#003c3a] cursor-pointer" />
+              <span className="absolute bottom-full left-0 mb-1.5 hidden group-hover/verified:block bg-zinc-950 text-white text-[9px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-30 transition-all">
+                Verified Developer
+              </span>
+            </div>
             {isEditing ? (
               <div className="space-y-2">
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -466,7 +480,7 @@ export default function ProfilePage() {
                       type="text"
                       value={formState.name}
                       onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-                      className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[14px] text-zinc-900 font-bold bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
+                      className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[12px] text-zinc-900 font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
                     />
                   </div>
                   <div className="w-full sm:w-44">
@@ -475,7 +489,7 @@ export default function ProfilePage() {
                       type="text"
                       value={formState.username}
                       onChange={(e) => setFormState({ ...formState, username: e.target.value })}
-                      className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[14px] text-zinc-900 font-bold bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
+                      className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[12px] text-zinc-900 font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
                     />
                   </div>
                 </div>
@@ -1024,7 +1038,7 @@ export default function ProfilePage() {
                 {(isEditing ? formState.techStack : profile.techStack).map((tech, idx) => (
                   <span 
                     key={idx}
-                    className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-700 bg-zinc-100 px-3 py-1.5 rounded-xl border border-zinc-200/40"
+                    className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-700 bg-zinc-100 px-3 py-1.5 rounded-xl border border-dashed border-zinc-200"
                   >
                     <span>{tech}</span>
                     {isEditing && (
@@ -1048,7 +1062,7 @@ export default function ProfilePage() {
                     value={newTechTag}
                     onChange={(e) => setNewTechTag(e.target.value)}
                     placeholder="Add technology tag..."
-                    className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-800 bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
+                    className="w-full rounded-lg border border-dashed border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-800 bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
                   />
                   <button
                     type="submit"
@@ -1236,7 +1250,7 @@ export default function ProfilePage() {
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">Institution</label>
+                          <label className="block text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">School / Institution</label>
                           <input
                             type="text"
                             value={edu.school}
@@ -1280,7 +1294,7 @@ export default function ProfilePage() {
                       <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">{edu.duration}</span>
                       <h4 className="text-[13px] font-extrabold text-zinc-900 mt-0.5">{edu.school}</h4>
                       <p className="text-[12px] font-semibold text-indigo-600 mt-0.5">{edu.degree}</p>
-                      <p className="text-[11px] text-zinc-500 mt-1.5 leading-relaxed">{edu.details}</p>
+                      <p className="text-[11px] text-zinc-550 mt-1.5 leading-relaxed">{edu.details}</p>
                     </div>
                   )}
                 </div>
@@ -1319,6 +1333,256 @@ export default function ProfilePage() {
                 <span>Save Changes</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Smooth Image Upload & Edit Modal */}
+      {imageModalType !== null && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in text-left">
+            
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-zinc-50 border border-dashed border-zinc-200 flex items-center justify-center text-zinc-800">
+                  <FaCamera className="w-4 h-4" />
+                </div>
+                <h3 className="text-[16px] font-extrabold text-zinc-900 font-heading">
+                  {imageModalType === "cover" ? "Update Cover Banner" : "Update Profile Photo"}
+                </h3>
+              </div>
+              <button 
+                onClick={() => setImageModalType(null)}
+                className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 rounded-xl transition-all cursor-pointer"
+              >
+                <FaXmark className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="px-6 pt-4">
+              <div className="flex bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1">
+                <button
+                  onClick={() => setModalActiveTab("upload")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-bold transition-all cursor-pointer ${
+                    modalActiveTab === "upload" ? "bg-black text-white" : "text-zinc-500 hover:text-zinc-900"
+                  }`}
+                >
+                  <FaUpload className="w-3.5 h-3.5" />
+                  <span>Upload File</span>
+                </button>
+                <button
+                  onClick={() => setModalActiveTab("url")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-bold transition-all cursor-pointer ${
+                    modalActiveTab === "url" ? "bg-black text-white" : "text-zinc-500 hover:text-zinc-900"
+                  }`}
+                >
+                  <FaLink className="w-3.5 h-3.5" />
+                  <span>Image URL</span>
+                </button>
+                <button
+                  onClick={() => setModalActiveTab("presets")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-bold transition-all cursor-pointer ${
+                    modalActiveTab === "presets" ? "bg-black text-white" : "text-zinc-500 hover:text-zinc-900"
+                  }`}
+                >
+                  <FaImage className="w-3.5 h-3.5" />
+                  <span>Presets</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
+              
+              {/* TAB: Upload File */}
+              {modalActiveTab === "upload" && (
+                <div className="space-y-4">
+                  <input
+                    type="file"
+                    ref={modalFileInputRef}
+                    onChange={handleModalFileUpload}
+                    className="hidden"
+                    accept="image/*"
+                  />
+                  <div 
+                    onClick={() => modalFileInputRef.current?.click()}
+                    className="border-2 border-dashed border-zinc-200 bg-zinc-50 hover:bg-zinc-100/50 hover:border-zinc-300 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-all duration-200"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-white border border-dashed border-zinc-200 flex items-center justify-center text-zinc-500 shadow-sm">
+                      <FaUpload className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-zinc-800">Select Image File</p>
+                      <p className="text-[10px] text-zinc-400 mt-1">Supports PNG, JPG, GIF or WEBP up to 5MB</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: Enter URL */}
+              {modalActiveTab === "url" && (
+                <div className="space-y-3">
+                  <label className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">Image Destination URL</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={modalInputUrl}
+                      onChange={(e) => setModalInputUrl(e.target.value)}
+                      placeholder="https://images.unsplash.com/photo-..."
+                      className="flex-1 rounded-xl border border-dashed border-zinc-200 px-3 py-2 text-[12px] text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-medium"
+                    />
+                    <button
+                      onClick={handleModalUrlApply}
+                      className="px-4 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[11px] font-bold cursor-pointer transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: Presets */}
+              {modalActiveTab === "presets" && (
+                <div className="space-y-3">
+                  <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">Choose Template</p>
+                  <div className="grid grid-cols-4 gap-3">
+                    {(imageModalType === "cover" ? COVER_PRESETS : AVATAR_PRESETS).map((presetUrl, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setModalPreview(presetUrl)}
+                        className={`aspect-video md:aspect-square rounded-xl overflow-hidden border-2 transition-all relative cursor-pointer ${
+                          modalPreview === presetUrl ? "border-black scale-95 shadow-md" : "border-transparent opacity-80 hover:opacity-100"
+                        }`}
+                      >
+                        <img src={presetUrl} alt={`Preset ${idx + 1}`} className="w-full h-full object-cover" />
+                        {modalPreview === presetUrl && (
+                          <span className="absolute top-1 right-1 w-4 h-4 bg-black text-white flex items-center justify-center rounded-full text-[9px]">
+                            <FaCheck className="w-2.5 h-2.5" />
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* LIVE PREVIEW & CROP BOX */}
+              {modalPreview && (
+                <div className="pt-4 border-t border-zinc-100 flex flex-col items-center">
+                  <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-3 self-start">Live Preview & Reposition</span>
+                  
+                  {imageModalType === "cover" ? (
+                    <div className="w-full h-36 rounded-xl overflow-hidden bg-zinc-100 border border-dashed border-zinc-200 relative group/preview">
+                      <img 
+                        src={modalPreview} 
+                        alt="Cover Preview" 
+                        className="w-full h-full object-cover origin-center transition-all duration-150"
+                        style={{
+                          objectPosition: `${modalPositionX}% ${modalPositionY}%`,
+                          transform: `scale(${modalZoom / 100})`
+                        }}
+                      />
+                      
+                      {/* Professional Rule-Of-Thirds 3x3 Crop Grid */}
+                      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-40">
+                        <div className="border-r border-b border-dashed border-white/50" />
+                        <div className="border-r border-b border-dashed border-white/50" />
+                        <div className="border-b border-dashed border-white/50" />
+                        <div className="border-r border-b border-dashed border-white/50" />
+                        <div className="border-r border-b border-dashed border-white/50" />
+                        <div className="border-b border-dashed border-white/50" />
+                        <div className="border-r border-dashed border-white/50" />
+                        <div className="border-r border-dashed border-white/50" />
+                        <div className="border-transparent" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-100 border border-dashed border-zinc-200">
+                      <img src={modalPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+
+                  {/* Crop Reposition Controls for Cover Banner */}
+                  {imageModalType === "cover" && (
+                    <div className="w-full mt-4 space-y-4 bg-zinc-50 rounded-2xl p-4 border border-dashed border-zinc-200">
+                      <p className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest mb-1">Reposition Controls</p>
+                      
+                      {/* Zoom Scale Slider */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold">
+                          <span>Scale (Zoom)</span>
+                          <span>{modalZoom}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="100"
+                          max="300"
+                          value={modalZoom}
+                          onChange={(e) => setModalZoom(Number(e.target.value))}
+                          className="w-full h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-black"
+                        />
+                      </div>
+
+                      {/* Vertical Shift Slider */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold">
+                          <span>Vertical Shift (Y-Axis)</span>
+                          <span>{modalPositionY}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={modalPositionY}
+                          onChange={(e) => setModalPositionY(Number(e.target.value))}
+                          className="w-full h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-black"
+                        />
+                      </div>
+
+                      {/* Horizontal Shift Slider */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold">
+                          <span>Horizontal Shift (X-Axis)</span>
+                          <span>{modalPositionX}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={modalPositionX}
+                          onChange={(e) => setModalPositionX(Number(e.target.value))}
+                          className="w-full h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-black"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+
+            {/* Modal Action Buttons */}
+            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setImageModalType(null)}
+                className="px-4 py-2 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleImageModalSave}
+                disabled={!modalPreview}
+                className="flex items-center gap-1.5 px-5 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[12px] font-bold shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                <FaCheck className="w-3.5 h-3.5" />
+                <span>Apply Image</span>
+              </button>
+            </div>
+
           </div>
         </div>
       )}
