@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { BellIcon, HomeIcon, LayersIcon, CodeIcon, RocketIcon, GearIcon, ChevronDownIcon } from "@radix-ui/react-icons";
+import { BellIcon, HomeIcon, LayersIcon, CodeIcon, RocketIcon, GearIcon, ChevronDownIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 
 type SubItem = { label: string; href: string; desc: string };
 type NavCategory = {
@@ -52,6 +52,16 @@ const navigationConfig: NavCategory[] = [
       { label: "Recruiter Readiness", href: "/dashboard#recruiter", desc: "Checklist to optimize your profile" },
       { label: "Career Progress", href: "/dashboard#career-progress", desc: "Resume, portfolio & readiness scores" },
       { label: "Developer Timeline", href: "/dashboard#timeline", desc: "Milestones & upcoming events" },
+      { label: "Skills Discovery", href: "/explore?tab=skills", desc: "Browse trending skills & learning resources" },
+    ]
+  },
+  {
+    label: "Explore",
+    icon: MagnifyingGlassIcon,
+    href: "/explore",
+    subItems: [
+      { label: "Feed", href: "/explore", desc: "Discover posts from the developer community" },
+      { label: "Jobs", href: "/explore?tab=jobs", desc: "Browse developer job openings" },
     ]
   }
 ];
@@ -101,7 +111,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           <div className="relative">
             <nav className="flex bg-[#f4f4f5] rounded-xl p-1 gap-1 relative">
               {navigationConfig.map((cat, index) => {
-                const isActive = pathname === cat.href || (cat.href !== "/dashboard" && pathname.startsWith(cat.href));
+                const isActive = pathname === cat.href || (cat.href !== "/dashboard" && cat.href !== "/explore" && pathname.startsWith(cat.href)) || (cat.href === "/explore" && pathname.startsWith("/explore"));
                 const isHovered = activeHover === cat.label;
                 return (
                   <div
