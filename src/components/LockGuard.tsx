@@ -12,6 +12,9 @@ export default function LockGuard({ children }: { children: React.ReactNode }) {
     const unlocked = localStorage.getItem("dradix_unlocked") === "true";
 
     if (!unlocked && pathname !== "/coming-soon") {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("dradix_redirected", "true");
+      }
       router.replace("/coming-soon");
     } else if (unlocked && pathname === "/coming-soon") {
       router.replace("/dashboard");

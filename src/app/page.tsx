@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import CandyButton from "@/components/ui/candy-button";
 import Noise from "@/components/Noise";
 
@@ -9,10 +10,18 @@ import Noise from "@/components/Noise";
 export default function Home() {
 
   return (
-    <div
-      className="relative min-h-screen flex flex-col justify-between text-white overflow-x-hidden font-sans bg-[url('/assets/images/HERO-BG.png')] bg-cover bg-center bg-no-repeat"
-    >
-      <div className="absolute inset-0 backdrop-blur-[3px] pointer-events-none" />
+    <div className="relative min-h-screen flex flex-col justify-between text-white overflow-x-hidden font-sans bg-zinc-950">
+      <div className="absolute inset-0 -z-10 select-none pointer-events-none">
+        <Image
+          src="/assets/images/HERO-BG.png"
+          alt="Hero Background"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 backdrop-blur-[3px]" />
+      </div>
       <Noise />
 
       <header className="w-full max-w-7xl mx-auto px-6 h-24 flex items-center justify-between z-10">
