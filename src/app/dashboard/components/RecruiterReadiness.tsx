@@ -27,7 +27,7 @@ export default function RecruiterReadiness() {
 
         <div className="flex items-center gap-6 mb-6">
           <div className="relative w-24 h-24 shrink-0">
-            <svg width={96} height={96} className="rotate-[-90deg]">
+            <svg width={96} height={96} className="-rotate-90">
               <circle cx={48} cy={48} r={38} stroke="#27272a" strokeWidth={7} fill="none" />
               <circle
                 cx={48} cy={48} r={38}

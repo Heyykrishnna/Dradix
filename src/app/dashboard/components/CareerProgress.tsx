@@ -11,7 +11,7 @@ function Ring({ value, size = 80, stroke = 7, color, label }: { value: number; s
   return (
     <div className="flex flex-col items-center gap-2 cursor-default">
       <div className="relative">
-        <svg width={size} height={size} className="rotate-[-90deg]">
+        <svg width={size} height={size} className="-rotate-90">
           <circle cx={size / 2} cy={size / 2} r={r} stroke="#222" strokeWidth={stroke} fill="none" />
           <circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none"
             strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"

@@ -22,7 +22,7 @@ export default function WrappedAndLeaderboard() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="relative overflow-hidden rounded-2xl border border-zinc-800/60 hover:border-zinc-700/80 transition-all group">
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 via-zinc-900 to-[#0a0a0a]" />
+        <div className="absolute inset-0 bg-linear-to-br from-zinc-800 via-zinc-900 to-[#0a0a0a]" />
         <div
           className="absolute inset-0 opacity-[0.08]"
           style={{
@@ -82,7 +82,7 @@ export default function WrappedAndLeaderboard() {
               <span className={`text-[12px] font-bold w-5 text-center ${u.rank <= 3 ? "text-zinc-300" : "text-zinc-600"}`}>
                 {u.rank === 1 ? "🥇" : u.rank === 2 ? "🥈" : u.rank === 3 ? "🥉" : u.rank}
               </span>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-zinc-500 to-zinc-700 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-zinc-500 to-zinc-700 flex items-center justify-center shrink-0">
                 <span className="text-[10px] font-bold text-white">{u.avatar}</span>
               </div>
               <div className="flex-1 min-w-0">

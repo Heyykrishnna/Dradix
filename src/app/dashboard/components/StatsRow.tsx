@@ -10,7 +10,7 @@ function CircularProgress({ value, size = 52, stroke = 4, color }: { value: numb
   const offset = circ - (anim / 100) * circ;
   useEffect(() => { const t = setTimeout(() => setAnim(value), 300); return () => clearTimeout(t); }, [value]);
   return (
-    <svg width={size} height={size} className="rotate-[-90deg]">
+    <svg width={size} height={size} className="-rotate-90">
       <circle cx={size / 2} cy={size / 2} r={r} stroke="#222" strokeWidth={stroke} fill="none" />
       <circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none"
         strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"

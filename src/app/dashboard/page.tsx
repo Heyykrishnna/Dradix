@@ -483,7 +483,7 @@ export default function DashboardPage() {
                   <CalendarIcon className="w-4 h-4 text-zinc-300" />
                 </button>
                 <button className="w-8 h-8 rounded-lg bg-[#27272a] flex items-center justify-center">
-                  <ArrowRightIcon className="w-4 h-4 text-zinc-300 rotate-[-45deg]" />
+                  <ArrowRightIcon className="w-4 h-4 text-zinc-300 -rotate-45" />
                 </button>
               </div>
             </div>
@@ -920,7 +920,7 @@ export default function DashboardPage() {
               {careerRings.map((r) => (
                 <div key={r.label} className="bg-white rounded-xl p-3 flex flex-col items-center justify-between gap-2">
                   <div className="relative w-12 h-12 flex items-center justify-center">
-                    <svg className="w-full h-full rotate-[-90deg]">
+                    <svg className="w-full h-full -rotate-90">
                       <circle cx="24" cy="24" r="18" fill="none" stroke="#f4f4f5" strokeWidth="3" />
                       <circle cx="24" cy="24" r="18" fill="none" stroke={r.color} strokeWidth="3" strokeDasharray={2 * Math.PI * 18} strokeDashoffset={2 * Math.PI * 18 * (1 - r.value / 100)} strokeLinecap="round" />
                     </svg>
