@@ -680,7 +680,7 @@ export default function DashboardPage() {
             </div>
             
             {/* Interactive Filters below line graph */}
-            <div className="flex items-center justify-between pt-2 border-t border-zinc-200 text-center">
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-200 text-center">
               <button 
                 onClick={() => setShowHours(!showHours)}
                 className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showHours ? "bg-[#00c9a7]/10" : "opacity-40"}`}

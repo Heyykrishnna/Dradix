@@ -56,7 +56,7 @@ const navigationConfig: NavCategory[] = [
   }
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function ProfileLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -142,7 +142,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
             </nav>
 
-            {/* Hover Expand Dropdown Panel with sliding offset & height transition */}
+            {/* Hover Expand Dropdown Panel */}
             <div 
               className={`absolute top-full mt-2 w-[280px] bg-white rounded-2xl shadow-xl border border-zinc-100 p-0 py-4 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] origin-top z-50 overflow-hidden ${
                 activeHover 
@@ -190,8 +190,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#f43f5e] rounded-full" />
             </button>
 
-            <Link href="/profile" className="flex items-center gap-2.5 pl-3 border-l border-zinc-200 hover:opacity-80 transition-opacity cursor-pointer">
-              <div className="w-9 h-9 rounded-xl bg-[#e2e8f0] flex items-center justify-center overflow-hidden shrink-0">
+            <Link href="/profile" className="flex items-center gap-2.5 pl-3 border-l border-zinc-200 hover:opacity-85 transition-opacity cursor-pointer">
+              <div className="w-9 h-9 rounded-xl bg-[#e2e8f0] flex items-center justify-center overflow-hidden shrink-0 ring-2 ring-black/10">
                 <span className="text-[11px] font-black text-zinc-700">YK</span>
               </div>
               <div className="hidden sm:block text-left">
