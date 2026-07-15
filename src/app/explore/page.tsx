@@ -26,8 +26,6 @@ import {
 } from "react-icons/fa6";
 import { seedPosts, jobsList, avatarColors, trendingTopics, Post, Job } from "./data";
 
-// ─── Inline Composer ──────────────────────────────────────────────────────────
-
 function InlineComposer({ onPost }: { onPost: (post: Post) => void }) {
   const [expanded, setExpanded] = useState(false);
   const [text, setText] = useState("");
@@ -38,7 +36,6 @@ function InlineComposer({ onPost }: { onPost: (post: Post) => void }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const composerRef = useRef<HTMLDivElement>(null);
 
-  // Collapse when clicking outside the composer component
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (composerRef.current && !composerRef.current.contains(event.target as Node)) {
@@ -107,13 +104,10 @@ function InlineComposer({ onPost }: { onPost: (post: Post) => void }) {
       className={`border-b border-zinc-100 transition-all duration-200 ${expanded ? "bg-white" : ""}`}
     >
       <div className="px-5 py-4 flex gap-3">
-        {/* Avatar */}
-        <div className="w-10 h-10 rounded-xl bg-[#0891b2] flex items-center justify-center text-white text-[11px] font-black shrink-0 mt-0.5">YK</div>
+        <div className="w-10 h-10 rounded-xl bg-[#0891b2] flex items-center justify-center text-white text-[11px] font-black shrink-0 mt-0.5 font-sans">YK</div>
 
-        {/* Composer body */}
         <div className="flex-1 min-w-0">
           {!expanded ? (
-            /* Collapsed: single-line prompt */
             <button
               onClick={handleFocus}
               className="w-full text-left text-[15px] text-zinc-300 hover:text-zinc-400 py-2 transition-colors cursor-text"
@@ -121,7 +115,6 @@ function InlineComposer({ onPost }: { onPost: (post: Post) => void }) {
               What are you working on?
             </button>
           ) : (
-            /* Expanded state */
             <div className="space-y-3">
               <textarea
                 ref={textareaRef}
@@ -133,7 +126,6 @@ function InlineComposer({ onPost }: { onPost: (post: Post) => void }) {
                 className="w-full text-[14px] text-zinc-800 placeholder-zinc-300 resize-none focus:outline-none leading-relaxed"
               />
 
-              {/* Image preview */}
               {imagePreview ? (
                 <div className="relative rounded-xl overflow-hidden border border-zinc-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -146,26 +138,25 @@ function InlineComposer({ onPost }: { onPost: (post: Post) => void }) {
                   </button>
                 </div>
               ) : (
-                /* Drop zone */
-                <div
+                <button
+                  type="button"
                   onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
                   onDragLeave={() => setIsDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
+                  className={`w-full border-2 border-dashed rounded-xl p-4 flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
                     isDragOver ? "border-blue-400 bg-blue-50" : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
                   }`}
                 >
-                  <ImageIcon className="w-5 h-5 text-zinc-300" />
-                  <p className="text-[11px] text-zinc-400 font-semibold">Drop image or <span className="text-blue-600">browse</span></p>
-                  <p className="text-[10px] text-zinc-300">PNG, JPG, GIF up to 10MB</p>
-                </div>
+                  <ImageIcon className="w-5 h-5 text-zinc-300 mx-auto" />
+                  <p className="text-[11px] text-zinc-400 font-semibold text-center">Drop image or <span className="text-blue-600">browse</span></p>
+                  <p className="text-[10px] text-zinc-350 text-center">PNG, JPG, GIF up to 10MB</p>
+                </button>
               )}
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
             </div>
           )}
 
-          {/* Toolbar */}
           <div className={`flex items-center gap-1 ${expanded ? "pt-3 mt-1 border-t border-zinc-100" : "pt-3"}`}>
             <button onClick={() => { handleFocus(); fileInputRef.current?.click(); }} className="p-2 rounded-lg text-zinc-400 hover:text-blue-500 hover:bg-blue-50 transition-colors cursor-pointer" title="Image">
               <ImageIcon className="w-4 h-4" />
@@ -201,8 +192,6 @@ function InlineComposer({ onPost }: { onPost: (post: Post) => void }) {
   );
 }
 
-// ─── Post Card ────────────────────────────────────────────────────────────────
-
 function PostCard({
   post,
   onUpvote,
@@ -221,7 +210,6 @@ function PostCard({
   return (
     <article className="border-b border-zinc-100 px-5 py-4 hover:bg-zinc-50/60 transition-colors">
       <div className="flex gap-3">
-        {/* Avatar */}
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-[12px] font-black shrink-0 mt-0.5"
           style={{ backgroundColor: avatarColors[post.avatar] || "#374151" }}
@@ -230,7 +218,6 @@ function PostCard({
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Header */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[13px] font-bold text-zinc-900">{post.author}</span>
             {post.verified && (
@@ -246,7 +233,6 @@ function PostCard({
           </div>
           <p className="text-[11px] text-zinc-400 mt-0.5 mb-2.5">{post.role}</p>
 
-          {/* Clickable body redirects to page */}
           <button className="text-left w-full cursor-pointer" onClick={() => onOpen(post.id)}>
             <p className="text-[13px] text-zinc-700 leading-relaxed whitespace-pre-line hover:text-zinc-900 transition-colors">
               {preview}
@@ -265,18 +251,16 @@ function PostCard({
             )}
           </button>
 
-          {/* Tags */}
           {post.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {post.tags.map((tag) => (
-                <span key={tag} className="text-[10px] font-semibold text-blue-600 bg-blue-50 rounded-full px-2.5 py-0.5 hover:bg-blue-100 transition-colors">
+                <span key={tag} className="text-[10px] font-semibold text-blue-600 bg-blue-50 rounded-full px-2.5 py-0.5 hover:bg-blue-100 cursor-pointer transition-colors">
                   #{tag}
                 </span>
               ))}
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex items-center gap-0 mt-3 -ml-2">
             <button
               onClick={() => onUpvote(post.id)}
@@ -312,8 +296,6 @@ function PostCard({
     </article>
   );
 }
-
-// ─── Job Card ─────────────────────────────────────────────────────────────────
 
 function JobCard({ job }: { job: Job }) {
   return (
@@ -357,8 +339,6 @@ function JobCard({ job }: { job: Job }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
 type FeedTab = "foryou" | "following" | "jobs";
 
 export default function ExplorePage() {
@@ -367,7 +347,6 @@ export default function ExplorePage() {
   const [posts, setPosts] = useState<Post[]>(seedPosts);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Sync state from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("dradix_posts");
     if (saved) {
@@ -421,9 +400,7 @@ export default function ExplorePage() {
 
   return (
     <div className="flex gap-0 items-start max-w-[1200px] mx-auto">
-      {/* ── Main Feed Column ── */}
       <div className="flex-1 min-w-0 border-x border-zinc-100">
-        {/* Sticky tab bar */}
         <div className="sticky top-[73px] z-40 bg-white/95 backdrop-blur-md border-b border-zinc-100">
           <div className="flex">
             {tabs.map((tab) => (
@@ -443,7 +420,6 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {/* FOR YOU / FOLLOWING */}
         {(activeTab === "foryou" || activeTab === "following") && (
           <>
             <InlineComposer onPost={handleNewPost} />
@@ -468,7 +444,6 @@ export default function ExplorePage() {
           </>
         )}
 
-        {/* JOBS */}
         {activeTab === "jobs" && (
           <>
             <div className="border-b border-zinc-100 px-5 py-4">
@@ -480,9 +455,7 @@ export default function ExplorePage() {
         )}
       </div>
 
-      {/* ── Right Sidebar ── */}
       <div className="hidden lg:block w-80 xl:w-[340px] shrink-0 pl-6 space-y-4">
-        {/* Search */}
         <div className="relative">
           <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
@@ -494,7 +467,6 @@ export default function ExplorePage() {
           />
         </div>
 
-        {/* Trending */}
         <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-zinc-100 flex items-center gap-2">
             <FaFire className="w-3.5 h-3.5 text-amber-500" />
@@ -515,7 +487,6 @@ export default function ExplorePage() {
           </button>
         </div>
 
-        {/* Who to follow */}
         <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-zinc-100">
             <p className="text-[13px] font-extrabold text-zinc-900">Who to follow</p>
@@ -541,7 +512,6 @@ export default function ExplorePage() {
           </button>
         </div>
 
-        {/* Active Discussions */}
         <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
             <p className="text-[13px] font-extrabold text-zinc-900">Active Discussions</p>
@@ -563,7 +533,6 @@ export default function ExplorePage() {
           ))}
         </div>
 
-        {/* Trending tags */}
         <div className="bg-white border border-zinc-100 rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <FaHashtag className="w-3 h-3 text-zinc-500" />
