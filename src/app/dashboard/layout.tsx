@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { BellIcon, HomeIcon, LayersIcon, CodeIcon, RocketIcon, GearIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 
 type SubItem = { label: string; href: string; desc: string };
@@ -59,6 +59,30 @@ const navigationConfig: NavCategory[] = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [activeHover, setActiveHover] = useState<string | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [dropdownLeft, setDropdownLeft] = useState(0);
+
+  useEffect(() => {
+    if (hoveredIndex !== null) {
+      const tabEl = tabRefs.current[hoveredIndex];
+      if (tabEl) {
+        const center = tabEl.offsetLeft + tabEl.offsetWidth / 2;
+        setDropdownLeft(center);
+      }
+    }
+  }, [hoveredIndex]);
+
+  const handleMouseEnter = (label: string, index: number) => {
+    setActiveHover(label);
+    setHoveredIndex(index);
+  };
+
+  const handleMouseLeave = () => {
+    setActiveHover(null);
+    setHoveredIndex(null);
+  };
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col selection:bg-zinc-200">
@@ -66,7 +90,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Top Header Navigation */}
       <header 
         className="w-full bg-[#fdfdfd] border-b border-[#f4f4f5] px-6 py-4 flex flex-col sticky top-0 z-50 transition-all duration-300"
-        onMouseLeave={() => setActiveHover(null)}
+        onMouseLeave={handleMouseLeave}
       >
         <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between">
           {/* Logo */}
@@ -79,14 +103,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Navigation Pill (Center with Hover Dropdown) */}
           <div className="relative">
-            <nav className="flex bg-[#f4f4f5] rounded-xl p-1 gap-1">
-              {navigationConfig.map((cat) => {
+            <nav className="flex bg-[#f4f4f5] rounded-xl p-1 gap-1 relative">
+              {navigationConfig.map((cat, index) => {
                 const isActive = pathname === cat.href || (cat.href !== "/dashboard" && pathname.startsWith(cat.href));
                 const isHovered = activeHover === cat.label;
                 return (
                   <div
                     key={cat.label}
-                    onMouseEnter={() => setActiveHover(cat.label)}
+                    ref={(el) => { tabRefs.current[index] = el; }}
+                    onMouseEnter={() => handleMouseEnter(cat.label, index)}
                     className="relative"
                   >
                     <Link
@@ -107,6 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               
               <Link
                 href="/dashboard/settings"
+                onMouseEnter={handleMouseLeave}
                 className={`flex items-center justify-center p-2 rounded-lg transition-all ${
                   pathname === "/dashboard/settings" ? "bg-black text-white" : "text-zinc-500 hover:text-zinc-900"
                 }`}
@@ -116,25 +142,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
             </nav>
 
-            {/* Hover Expand Dropdown Panel */}
+            {/* Hover Expand Dropdown Panel with sliding offset & height transition */}
             <div 
-              className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[420px] bg-white rounded-2xl shadow-xl border border-zinc-100 p-4 transition-all duration-200 origin-top z-50 ${
+              className={`absolute top-full mt-2 w-[280px] bg-white rounded-2xl shadow-xl border border-zinc-100 p-0 py-4 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] origin-top z-50 overflow-hidden ${
                 activeHover 
                   ? "opacity-100 scale-100 pointer-events-auto" 
                   : "opacity-0 scale-95 pointer-events-none"
               }`}
+              style={{
+                left: `${dropdownLeft}px`,
+                transform: `translateX(-50%) ${activeHover ? "scale(1)" : "scale(0.95)"}`
+              }}
             >
-              {navigationConfig.map((cat) => {
-                if (activeHover !== cat.label) return null;
-                return (
-                  <div key={cat.label} className="space-y-2">
+              <div 
+                className="flex transition-transform duration-300 ease-out"
+                style={{
+                  width: `${navigationConfig.length * 280}px`,
+                  transform: `translateX(-${(hoveredIndex ?? 0) * 280}px)`
+                }}
+              >
+                {navigationConfig.map((cat) => (
+                  <div key={cat.label} className="w-[280px] px-4 space-y-2 shrink-0">
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-2 mb-1">{cat.label} Submenu</p>
                     <div className="grid grid-cols-1 gap-1">
                       {cat.subItems.map((sub) => (
                         <Link
                           key={sub.label}
                           href={sub.href}
-                          onClick={() => setActiveHover(null)}
+                          onClick={handleMouseLeave}
                           className="flex flex-col p-2.5 rounded-xl hover:bg-zinc-50 transition-colors text-left"
                         >
                           <span className="text-[13px] font-bold text-zinc-900">{sub.label}</span>
@@ -143,8 +178,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       ))}
                     </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
           </div>
 

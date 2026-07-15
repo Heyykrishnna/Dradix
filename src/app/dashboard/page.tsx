@@ -34,8 +34,8 @@ import {
   Tooltip
 } from "recharts";
 
-// 1. Core Dev Stats
-const devStats = {
+// Mock Data
+const initialDevStats = {
   score: 92,
   contributions: 1487,
   problemsSolved: 1250,
@@ -53,7 +53,6 @@ const devStats = {
   certificates: 12
 };
 
-// 2. Coding Platforms
 const codingPlatforms = [
   { name: "LeetCode", rating: 2156, rank: "Guardian", solved: 847, color: "#f59e0b", streak: 42, history: [1, 2, 1, 3, 2] },
   { name: "Codeforces", rating: 1742, rank: "Specialist", solved: 312, color: "#3b82f6", streak: 18, history: [2, 3, 1, 2, 1] },
@@ -63,15 +62,13 @@ const codingPlatforms = [
   { name: "GeeksforGeeks", rating: 1850, rank: "Expert", solved: 120, color: "#10b981", streak: 5, history: [1, 2, 1, 1, 2] }
 ];
 
-// 3. Projects Catalog
-const projectsList = [
+const initialProjectsList = [
   { id: "#875412903", name: "dradix", creator: "Yatharth K.", stack: "Next.js, TS", platform: "GitHub", date: "05 Oct, 2025", status: "Live", statusColor: "#00c9a7", views: 4821, likes: 89, stars: 127 },
   { id: "#458729654", name: "algo-vault", creator: "Yatharth K.", stack: "Python, React", platform: "Vercel", date: "05 Oct, 2025", status: "In Progress", statusColor: "#f59e0b", views: 2100, likes: 62, stars: 89 },
   { id: "#913562478", name: "rustify", creator: "Yatharth K.", stack: "Rust, Wasm", platform: "GitHub", date: "05 Oct, 2025", status: "Archived", statusColor: "#ef4444", views: 890, likes: 41, stars: 54 },
   { id: "#324561327", name: "dradix-cli", creator: "Yatharth K.", stack: "Go, Cobra", platform: "npm", date: "15 Sep, 2025", status: "Live", statusColor: "#00c9a7", views: 1200, likes: 32, stars: 15 }
 ];
 
-// 4. Fulfillment Chart Data
 const fulfillmentData = [
   { month: "Feb", commits: 45 },
   { month: "Mar", commits: 60 },
@@ -85,7 +82,6 @@ const fulfillmentData = [
   { month: "Nov", commits: 90 }
 ];
 
-// 5. Language Donut Data
 const languageData = [
   { name: "TypeScript", value: 42, color: "#3b82f6" },
   { name: "Python", value: 27, color: "#f59e0b" },
@@ -93,7 +89,6 @@ const languageData = [
   { name: "Go", value: 9, color: "#00c9a7" }
 ];
 
-// 6. Skills Grid
 const skillsList = [
   { name: "TypeScript", level: "Advanced", pct: 90, projects: 12, color: "#3b82f6" },
   { name: "React", level: "Advanced", pct: 88, projects: 10, color: "#00c9a7" },
@@ -103,7 +98,6 @@ const skillsList = [
   { name: "Rust", level: "Intermediate", pct: 55, projects: 2, color: "#f43f5e" }
 ];
 
-// 7. Activity History (Line chart)
 const weeklyActivityData = [
   { day: "Mon", hours: 4.5, commits: 12, problems: 6 },
   { day: "Tue", hours: 6.2, commits: 18, problems: 8 },
@@ -114,14 +108,12 @@ const weeklyActivityData = [
   { day: "Sun", hours: 2.9, commits: 6, problems: 2 }
 ];
 
-// 8. Learning tracker current courses
 const learningCourses = [
   { title: "Full Stack Open", provider: "University of Helsinki", pct: 78, color: "#00c9a7" },
   { title: "Advanced Rust Programming", provider: "Udemy", pct: 45, color: "#f43f5e" },
   { title: "System Design Masterclass", provider: "Educative", pct: 92, color: "#3b82f6" }
 ];
 
-// 9. Achievement badges
 const achievementBadges = [
   { label: "100 Commits", icon: "C", unlocked: true, color: "#00c9a7" },
   { label: "500 Problems", icon: "P", unlocked: true, color: "#f59e0b" },
@@ -132,7 +124,6 @@ const achievementBadges = [
   { label: "Top 5%", icon: "T", unlocked: false, color: "#f43f5e" }
 ];
 
-// 10. Developer Timeline milestones
 const timelineMilestones = [
   { date: "Jan 2024", title: "Joined Dradix", desc: "Started tracking developer journey", color: "#00c9a7" },
   { date: "Feb 2024", title: "Connected GitHub", desc: "Synced 52 repositories", color: "#3b82f6" },
@@ -140,7 +131,6 @@ const timelineMilestones = [
   { date: "Apr 2024", title: "Solved 100 Problems", desc: "Hit the milestone on LeetCode", color: "#00c9a7" }
 ];
 
-// 11. Career progress indicators
 const careerRings = [
   { label: "Resume Score", value: 82, color: "#00c9a7" },
   { label: "Portfolio Score", value: 75, color: "#3b82f6" },
@@ -150,8 +140,7 @@ const careerRings = [
   { label: "System Design Level", value: 58, color: "#00c9a7" }
 ];
 
-// 12. Recruiter Checklist
-const recruiterChecklist = [
+const initialRecruiterChecklist = [
   { label: "Resume Uploaded", done: false },
   { label: "GitHub Active", done: true },
   { label: "Projects Added", done: true },
@@ -161,15 +150,13 @@ const recruiterChecklist = [
   { label: "Open Source Contributions", done: true }
 ];
 
-// 13. Recent Notifications
-const recentNotifications = [
+const initialNotifications = [
   { text: "GitHub synced successfully", time: "2 min ago", type: "sync" },
   { text: "Resume analyzed by AI coach", time: "1h ago", type: "analyze" },
   { text: "New badge unlocked: 42-day streak", time: "4h ago", type: "badge" },
   { text: "Weekly activity report is ready", time: "1d ago", type: "report" }
 ];
 
-// 14. Leaderboard rankings
 const leaderboardRankings = [
   { rank: 1, name: "Arjun Mehta", score: 98, xp: "12.4k" },
   { rank: 2, name: "Priya Singh", score: 95, xp: "11.8k" },
@@ -177,7 +164,6 @@ const leaderboardRankings = [
   { rank: 4, name: "Rohan Gupta", score: 89, xp: "9.7k" }
 ];
 
-// 15. Activity Feed
 const recentActivityFeed = [
   { text: "Committed to Dradix main", time: "2h ago", color: "#3b82f6" },
   { text: "Added nextjs-portfolio project", time: "5h ago", color: "#00c9a7" },
@@ -185,25 +171,124 @@ const recentActivityFeed = [
   { text: "Earned 500 Problems badge", time: "2d ago", color: "#f43f5e" }
 ];
 
+const upcomingEvents = [
+  { title: "LeetCode Weekly Contest", time: "Tomorrow, 8 AM", type: "contest" },
+  { title: "HackIndia Registration", time: "3 days left", type: "hackathon" },
+  { title: "System Design Module 4 Due", time: "Friday", type: "course" }
+];
+
 export default function DashboardPage() {
+  // Tabs & Toggles
   const [activeTab, setActiveTab] = useState("All");
   const [hoveredBar, setHoveredBar] = useState<{ month: string; commits: number } | null>(null);
   const [activeActivityToggle, setActiveActivityToggle] = useState<"Daily" | "Weekly" | "Monthly" | "Yearly">("Weekly");
+  const [showHours, setShowHours] = useState(true);
+  const [showCommits, setShowCommits] = useState(true);
+
+  // Sorting
+  const [sortField, setSortField] = useState<"name" | "views" | "likes" | "stars" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  // Interactive Goals Checklist State
+  const [todayGoals, setTodayGoals] = useState([
+    { l: "Complete 2 Problems", done: true },
+    { l: "Push 3 Commits", done: true },
+    { l: "Study Docker", done: false },
+    { l: "Finish Resume Update", done: false }
+  ]);
+
+  // Recruiter Checklist State
+  const [checklist, setChecklist] = useState(initialRecruiterChecklist);
+
+  // Chat/Coach State
   const [chatInput, setChatInput] = useState("");
-  const [coachResponse, setCoachResponse] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Array<{ sender: "user" | "coach"; text: string }>>([
+    { sender: "coach", text: "Welcome Yatharth. Ask me anything about your resume, portfolio matching, or target companies like Google!" }
+  ]);
 
-  const filteredProjects = projectsList.filter(p => activeTab === "All" || p.status === activeTab);
+  // Notifications State
+  const [notifications, setNotifications] = useState(initialNotifications);
 
-  const handleAskCoach = (query: string) => {
-    setChatInput(query);
-    if (query.includes("resume")) {
-      setCoachResponse("Based on my analysis of your GitHub profile and skills, you should highlight your TypeScript and Next.js projects on your resume. Your resume score is currently 82%. Try adding more system design details to hit 90%.");
-    } else if (query.includes("project")) {
-      setCoachResponse("I recommend building a backend system using Go or Rust (e.g., a Redis-like caching server or Docker container agent) to balance your heavy frontend portfolio.");
+  // Sync state (simulated sync feedback)
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Handle Sort
+  const handleSort = (field: "name" | "views" | "likes" | "stars") => {
+    if (sortField === field) {
+      setSortDirection(prev => (prev === "asc" ? "desc" : "asc"));
     } else {
-      setCoachResponse("To prepare for Google, focus on your DSA (specifically Graph algorithms on LeetCode) and practice scaling system designs (caching layer using Redis, database partitioning).");
+      setSortField(field);
+      setSortDirection("desc");
     }
   };
+
+  // Toggle Goal
+  const toggleGoal = (index: number) => {
+    setTodayGoals(prev => prev.map((g, idx) => idx === index ? { ...g, done: !g.done } : g));
+  };
+
+  // Toggle Recruiter Checklist Item
+  const toggleChecklistItem = (index: number) => {
+    setChecklist(prev => prev.map((c, idx) => idx === index ? { ...c, done: !c.done } : c));
+  };
+
+  // Handle Coach Input
+  const handleAskCoach = (query: string) => {
+    if (!query.trim()) return;
+    const userMessage = { sender: "user" as const, text: query };
+    setMessages(prev => [...prev, userMessage]);
+    setChatInput("");
+
+    setTimeout(() => {
+      let reply = "";
+      if (query.toLowerCase().includes("resume")) {
+        reply = "Based on my analysis of your GitHub profile, you should highlight Next.js and TypeScript on your resume. Your resume score is currently 82%. Adding System Design details will help hit 90%.";
+      } else if (query.toLowerCase().includes("project")) {
+        reply = "I recommend building a backend caching utility in Rust or Go (e.g., a Redis-like storage client) to strengthen your full-stack balance.";
+      } else {
+        reply = "To prepare for Google, focus on Graph algorithms on LeetCode and practice scaling system architectures (sharding & caching pipelines).";
+      }
+      setMessages(prev => [...prev, { sender: "coach", text: reply }]);
+    }, 600);
+  };
+
+  // Handle Sync Action
+  const handleSyncAll = () => {
+    setIsSyncing(true);
+    setTimeout(() => {
+      setIsSyncing(false);
+      setNotifications(prev => [
+        { text: "Dynamic sync check completed: All systems normal", time: "Just now", type: "sync" },
+        ...prev
+      ]);
+    }, 1500);
+  };
+
+  // Clear Notifications
+  const handleClearNotifications = () => {
+    setNotifications([]);
+  };
+
+  // Calculate stats dynamically
+  const goalsDone = todayGoals.filter(g => g.done).length;
+  const goalsPct = Math.round((goalsDone / todayGoals.length) * 100);
+
+  const recruiterDone = checklist.filter(c => c.done).length;
+  const recruiterPct = Math.round((recruiterDone / checklist.length) * 100);
+  const missingItems = checklist.filter(c => !c.done).map(c => `No ${c.label.split(" ")[0]}`);
+
+  // Sort and Filter Projects list
+  const sortedProjects = [...initialProjectsList]
+    .filter(p => activeTab === "All" || p.status === activeTab)
+    .sort((a, b) => {
+      if (!sortField) return 0;
+      const fieldA = a[sortField];
+      const fieldB = b[sortField];
+      if (typeof fieldA === "string" && typeof fieldB === "string") {
+        return sortDirection === "asc" ? fieldA.localeCompare(fieldB) : fieldB.localeCompare(fieldA);
+      }
+      return sortDirection === "asc" ? (fieldA as number) - (fieldB as number) : (fieldB as number) - (a[sortField] as number);
+    });
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
@@ -217,19 +302,19 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white rounded-xl p-3">
               <p className="text-[10px] text-zinc-400 font-semibold uppercase">Dev Score</p>
-              <p className="text-[18px] font-black text-black mt-1">{devStats.score}</p>
+              <p className="text-[18px] font-black text-black mt-1">{initialDevStats.score}</p>
             </div>
             <div className="bg-white rounded-xl p-3">
               <p className="text-[10px] text-zinc-400 font-semibold uppercase">Contributions</p>
-              <p className="text-[18px] font-black text-black mt-1">{devStats.contributions}</p>
+              <p className="text-[18px] font-black text-black mt-1">{initialDevStats.contributions}</p>
             </div>
             <div className="bg-white rounded-xl p-3">
               <p className="text-[10px] text-zinc-400 font-semibold uppercase">Problems</p>
-              <p className="text-[18px] font-black text-black mt-1">{devStats.problemsSolved}</p>
+              <p className="text-[18px] font-black text-black mt-1">{initialDevStats.problemsSolved}</p>
             </div>
             <div className="bg-white rounded-xl p-3">
               <p className="text-[10px] text-zinc-400 font-semibold uppercase">Streak</p>
-              <p className="text-[18px] font-black text-black mt-1">{devStats.streak} Days</p>
+              <p className="text-[18px] font-black text-black mt-1">{initialDevStats.streak} Days</p>
             </div>
           </div>
 
@@ -250,22 +335,26 @@ export default function DashboardPage() {
 
           <div className="space-y-2">
             <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
-              <span className="text-[12px] font-semibold text-zinc-700">{devStats.projects} Projects ({devStats.liveProjects} Live)</span>
+              <span className="text-[12px] font-semibold text-zinc-700">{initialDevStats.projects} Projects ({initialDevStats.liveProjects} Live)</span>
               <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
             </button>
             <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
-              <span className="text-[12px] font-semibold text-zinc-700">{devStats.repositories} Repos ({devStats.publicRepos} Public)</span>
+              <span className="text-[12px] font-semibold text-zinc-700">{initialDevStats.repositories} Repos ({initialDevStats.publicRepos} Public)</span>
               <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
             </button>
           </div>
         </div>
 
-        {/* Card 2: Recruiter Checklist */}
+        {/* Card 2: Recruiter Checklist (Interactive Toggles) */}
         <div id="recruiter" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h2 className="text-[16px] font-bold text-black tracking-tight">Recruiter Readiness</h2>
           <div className="space-y-2">
-            {recruiterChecklist.map((item) => (
-              <div key={item.label} className="bg-white rounded-xl p-3 flex items-center gap-2.5">
+            {checklist.map((item, idx) => (
+              <div 
+                key={item.label} 
+                onClick={() => toggleChecklistItem(idx)}
+                className="bg-white rounded-xl p-3 flex items-center gap-2.5 cursor-pointer hover:bg-zinc-50 transition-colors"
+              >
                 {item.done ? (
                   <CheckCircledIcon className="w-4 h-4 text-[#00c9a7]" />
                 ) : (
@@ -279,9 +368,17 @@ export default function DashboardPage() {
           <div className="bg-white rounded-xl p-3.5 space-y-2 text-left">
             <p className="text-[10px] text-zinc-400 font-bold uppercase">Missing Items</p>
             <div className="flex flex-wrap gap-1.5">
-              <span className="text-[9px] font-bold text-zinc-600 bg-zinc-100 rounded px-2 py-0.5">No Resume</span>
-              <span className="text-[9px] font-bold text-zinc-600 bg-zinc-100 rounded px-2 py-0.5">No Portfolio Banner</span>
-              <span className="text-[9px] font-bold text-zinc-600 bg-zinc-100 rounded px-2 py-0.5">No Bio</span>
+              {missingItems.length > 0 ? (
+                missingItems.map((m, idx) => (
+                  <span key={idx} className="text-[9px] font-bold text-zinc-600 bg-zinc-100 rounded px-2 py-0.5">{m}</span>
+                ))
+              ) : (
+                <span className="text-[9px] font-bold text-[#00c9a7]">All Green! Ready to Hire</span>
+              )}
+            </div>
+            <div className="flex items-center justify-between pt-2.5 border-t border-zinc-100">
+              <span className="text-[10px] text-zinc-400 font-bold uppercase">Completion</span>
+              <span className="text-[12px] font-black text-[#00c9a7]">{recruiterPct}% Ready</span>
             </div>
             <button className="w-full mt-2 py-2 bg-black hover:bg-zinc-900 text-white rounded-lg text-[11px] font-bold transition-all">
               Improve Profile
@@ -289,18 +386,28 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 3: AI Career Coach Widget */}
+        {/* Card 3: AI Career Coach Widget (Interactive Chat History) */}
         <div id="ai-coach" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h2 className="text-[16px] font-bold text-black tracking-tight">AI Career Coach</h2>
+          
+          {/* Chat Messages */}
+          <div className="bg-white rounded-xl p-3 h-48 overflow-y-auto space-y-2.5 scrollbar-thin text-[11px]">
+            {messages.map((m, idx) => (
+              <div key={idx} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
+                <span className="text-[9px] text-zinc-400 font-bold mb-0.5">{m.sender === "user" ? "You" : "Coach"}</span>
+                <p className={`p-2.5 rounded-xl max-w-[85%] leading-relaxed ${m.sender === "user" ? "bg-black text-white rounded-tr-none" : "bg-zinc-100 text-zinc-800 rounded-tl-none"}`}>
+                  {m.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
           <div className="space-y-1.5">
-            <button onClick={() => handleAskCoach("How can I improve my resume?")} className="w-full text-left bg-white rounded-lg p-2.5 text-[11px] text-zinc-600 hover:text-zinc-900 transition-colors">
+            <button onClick={() => handleAskCoach("How can I improve my resume?")} className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors">
               How can I improve my resume?
             </button>
-            <button onClick={() => handleAskCoach("What project should I build next?")} className="w-full text-left bg-white rounded-lg p-2.5 text-[11px] text-zinc-600 hover:text-zinc-900 transition-colors">
+            <button onClick={() => handleAskCoach("What project should I build next?")} className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors">
               What project should I build next?
-            </button>
-            <button onClick={() => handleAskCoach("Prepare me for Google.")} className="w-full text-left bg-white rounded-lg p-2.5 text-[11px] text-zinc-600 hover:text-zinc-900 transition-colors">
-              Prepare me for Google.
             </button>
           </div>
 
@@ -310,18 +417,13 @@ export default function DashboardPage() {
               placeholder="Ask anything..." 
               value={chatInput} 
               onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAskCoach(chatInput)}
               className="bg-transparent text-[12px] text-zinc-800 placeholder:text-zinc-400 outline-none w-full pr-2" 
             />
-            <button onClick={() => handleAskCoach(chatInput || "What project should I build next?")} className="w-6 h-6 rounded-lg bg-black text-white flex items-center justify-center hover:bg-zinc-800 shrink-0">
+            <button onClick={() => handleAskCoach(chatInput)} className="w-6 h-6 rounded-lg bg-black text-white flex items-center justify-center hover:bg-zinc-800 shrink-0">
               <ArrowRightIcon className="w-3.5 h-3.5" />
             </button>
           </div>
-
-          {coachResponse && (
-            <div className="bg-[#00c9a7]/10 text-[#005451] text-[12px] rounded-xl p-3 leading-relaxed">
-              {coachResponse}
-            </div>
-          )}
         </div>
 
         {/* Card 4: Tall Green Illustration Card */}
@@ -337,8 +439,13 @@ export default function DashboardPage() {
               Expedite your development workflow with AI-powered analytics.
             </p>
           </div>
-          <button className="w-full py-3 bg-black hover:bg-zinc-900 text-white rounded-xl text-[12px] font-bold transition-colors">
-            Sync all accounts
+          <button 
+            onClick={handleSyncAll}
+            disabled={isSyncing}
+            className="w-full py-3 bg-black hover:bg-zinc-900 text-white rounded-xl text-[12px] font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isSyncing && <UpdateIcon className="w-3.5 h-3.5 animate-spin" />}
+            <span>{isSyncing ? "Syncing Workspace..." : "Sync all accounts"}</span>
           </button>
         </div>
 
@@ -413,7 +520,7 @@ export default function DashboardPage() {
                       if (active && payload && payload.length && payload[0].payload) {
                         const cellData = payload[0].payload;
                         return (
-                          <div className="bg-zinc-900 border border-zinc-800 text-white p-2.5 rounded-xl shadow-lg text-[11px] font-bold">
+                          <div className="bg-[#18181b] border border-zinc-800 text-white p-2.5 rounded-xl shadow-lg text-[11px] font-bold">
                             <p className="text-zinc-500">{cellData.month}</p>
                             <p className="text-white text-[13px] font-black">{cellData.commits} commits</p>
                           </div>
@@ -490,11 +597,11 @@ export default function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip 
-                    content={({ active, payload }: { active?: boolean; payload?: readonly { payload?: { name: string; value: number } }[] }) => {
+                    content={({ active, payload }) => {
                       if (active && payload && payload.length && payload[0].payload) {
                         const cellData = payload[0].payload;
                         return (
-                          <div className="bg-zinc-900 border border-zinc-800 text-white p-2.5 rounded-xl shadow-lg text-[11px] font-bold">
+                          <div className="bg-[#18181b] border border-zinc-800 text-white p-2.5 rounded-xl shadow-lg text-[11px] font-bold">
                             <p className="text-white">{cellData.name}: {cellData.value}%</p>
                           </div>
                         );
@@ -558,54 +665,60 @@ export default function DashboardPage() {
                         return (
                           <div className="bg-white text-zinc-950 p-2.5 rounded-xl shadow-md border border-zinc-100 text-[11px] font-bold">
                             <p className="text-zinc-500 mb-1">{payload[0].payload.day}</p>
-                            <p className="text-[#00c9a7]">{payload[0].value} Coding Hours</p>
-                            {payload[1] && <p className="text-[#3b82f6]">{payload[1].value} Commits</p>}
+                            {showHours && <p className="text-[#00c9a7]">{payload[0].value} Coding Hours</p>}
+                            {showCommits && payload[1] && <p className="text-[#3b82f6]">{payload[1].value} Commits</p>}
                           </div>
                         );
                       }
                       return null;
                     }}
                   />
-                  <Line type="monotone" dataKey="hours" stroke="#00c9a7" strokeWidth={2.5} dot={false} activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 1.5 }} />
-                  <Line type="monotone" dataKey="commits" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 1.5 }} />
+                  {showHours && <Line type="monotone" dataKey="hours" stroke="#00c9a7" strokeWidth={2.5} dot={false} activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 1.5 }} />}
+                  {showCommits && <Line type="monotone" dataKey="commits" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 5, stroke: "#ffffff", strokeWidth: 1.5 }} />}
                 </LineChart>
               </ResponsiveContainer>
             </div>
             
-            <div className="grid grid-cols-4 gap-2 pt-2 text-center">
-              <div>
-                <p className="text-[15px] font-black text-black">34</p>
-                <p className="text-[9px] text-zinc-400 uppercase">Hours</p>
-              </div>
-              <div>
-                <p className="text-[15px] font-black text-black">87</p>
-                <p className="text-[9px] text-zinc-400 uppercase">Commits</p>
-              </div>
-              <div>
+            {/* Interactive Filters below line graph */}
+            <div className="flex items-center justify-between pt-2 border-t border-zinc-200 text-center">
+              <button 
+                onClick={() => setShowHours(!showHours)}
+                className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showHours ? "bg-[#00c9a7]/10" : "opacity-40"}`}
+              >
+                <p className="text-[15px] font-black text-[#005451]">34</p>
+                <p className="text-[9px] text-[#005451] uppercase font-bold">Hours</p>
+              </button>
+              <button 
+                onClick={() => setShowCommits(!showCommits)}
+                className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showCommits ? "bg-[#3b82f6]/10" : "opacity-40"}`}
+              >
+                <p className="text-[15px] font-black text-[#1d4ed8]">87</p>
+                <p className="text-[9px] text-[#1d4ed8] uppercase font-bold">Commits</p>
+              </button>
+              <div className="flex-1 flex flex-col items-center py-1">
                 <p className="text-[15px] font-black text-black">42</p>
-                <p className="text-[9px] text-zinc-400 uppercase">Problems</p>
+                <p className="text-[9px] text-zinc-400 uppercase font-bold">Problems</p>
               </div>
-              <div>
+              <div className="flex-1 flex flex-col items-center py-1">
                 <p className="text-[15px] font-black text-black">2</p>
-                <p className="text-[9px] text-zinc-400 uppercase">New Repos</p>
+                <p className="text-[9px] text-zinc-400 uppercase font-bold">New Repos</p>
               </div>
             </div>
           </div>
 
-          {/* Productivity Goals Widget */}
+          {/* Productivity Goals Widget (Interactive checkboxes) */}
           <div className="md:col-span-1 bg-[#f4f4f5] rounded-[24px] p-5 flex flex-col justify-between">
             <div>
               <h3 className="text-[15px] font-bold text-black tracking-tight">Today&apos;s Goals</h3>
-              <p className="text-[10px] text-zinc-400 mt-0.5">Tasks & productivity</p>
+              <p className="text-[10px] text-zinc-400 mt-0.5">Click tasks to update daily goals</p>
             </div>
             <div className="space-y-2 mt-3">
-              {[
-                { l: "Complete 2 Problems", done: true },
-                { l: "Push 3 Commits", done: true },
-                { l: "Study Docker", done: false },
-                { l: "Finish Resume Update", done: false }
-              ].map((goal, idx) => (
-                <div key={idx} className="bg-white rounded-lg p-2 flex items-center gap-2">
+              {todayGoals.map((goal, index) => (
+                <div 
+                  key={index} 
+                  onClick={() => toggleGoal(index)}
+                  className="bg-white rounded-lg p-2.5 flex items-center gap-2 cursor-pointer hover:bg-zinc-50 transition-colors"
+                >
                   <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 border ${goal.done ? "bg-[#00c9a7] border-[#00c9a7]" : "border-zinc-300"}`}>
                     {goal.done && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
                   </div>
@@ -615,17 +728,20 @@ export default function DashboardPage() {
             </div>
             <div className="mt-3 pt-2">
               <div className="flex justify-between text-[10px] font-semibold text-zinc-500 mb-1">
-                <span>Progress Bar</span>
-                <span>50%</span>
+                <span>Goals Completed</span>
+                <span>{goalsPct}%</span>
               </div>
               <div className="w-full h-1.5 bg-white rounded-full overflow-hidden">
-                <div className="h-full bg-[#00c9a7] rounded-full" style={{ width: "50%" }} />
+                <div 
+                  className="h-full bg-[#00c9a7] rounded-full transition-all duration-500" 
+                  style={{ width: `${goalsPct}%` }} 
+                />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Row 3: Projects Table */}
+        {/* Row 3: Projects Table (Interactive Sorting Headers) */}
         <div id="projects" className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -652,18 +768,24 @@ export default function DashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#f4f4f5] text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                  <th className="py-3 px-2">Project Name</th>
+                <tr className="border-b border-[#f4f4f5] text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none cursor-pointer">
+                  <th onClick={() => handleSort("name")} className="py-3 px-2 hover:text-black transition-colors">
+                    Project Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
+                  </th>
                   <th className="py-3 px-2">Tech Stack</th>
                   <th className="py-3 px-2">Platform</th>
-                  <th className="py-3 px-2">Views / Likes</th>
-                  <th className="py-3 px-2">Stars</th>
+                  <th onClick={() => handleSort("views")} className="py-3 px-2 hover:text-black transition-colors">
+                    Views / Likes {sortField === "views" && (sortDirection === "asc" ? "▲" : "▼")}
+                  </th>
+                  <th onClick={() => handleSort("stars")} className="py-3 px-2 hover:text-black transition-colors">
+                    Stars {sortField === "stars" && (sortDirection === "asc" ? "▲" : "▼")}
+                  </th>
                   <th className="py-3 px-2">Status</th>
                   <th className="py-3 px-2"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f4f4f5] text-[13px]">
-                {filteredProjects.map((proj) => (
+                {sortedProjects.map((proj) => (
                   <tr key={proj.id} className="hover:bg-zinc-50/50 transition-colors">
                     <td className="py-3.5 px-2">
                       <div className="flex items-center gap-2">
@@ -733,8 +855,13 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <button className="w-full py-1.5 bg-[#f4f4f5] hover:bg-[#eef2f6] text-[10px] font-bold text-zinc-600 rounded-lg flex items-center justify-center gap-1">
-                  <UpdateIcon className="w-3 h-3" /> Sync Platform
+                <button 
+                  onClick={handleSyncAll}
+                  disabled={isSyncing}
+                  className="w-full py-1.5 bg-[#f4f4f5] hover:bg-[#eef2f6] text-[10px] font-bold text-zinc-600 rounded-lg flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+                >
+                  <UpdateIcon className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`} />
+                  <span>Sync Platform</span>
                 </button>
               </div>
             ))}
@@ -894,7 +1021,14 @@ export default function DashboardPage() {
 
           {/* Notifications & Activity Feed */}
           <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
-            <h3 className="text-[15px] font-bold text-black tracking-tight">Activity & Notifications</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-[15px] font-bold text-black tracking-tight">Activity & Notifications</h3>
+              {notifications.length > 0 && (
+                <button onClick={handleClearNotifications} className="text-[10px] font-bold text-zinc-400 hover:text-zinc-600 transition-colors">
+                  Clear
+                </button>
+              )}
+            </div>
             <div className="space-y-4">
               <div>
                 <p className="text-[10px] text-zinc-400 font-bold uppercase mb-2">Live Feed</p>
@@ -913,19 +1047,42 @@ export default function DashboardPage() {
               <div className="pt-2 border-t border-zinc-200">
                 <p className="text-[10px] text-zinc-400 font-bold uppercase mb-2">Notifications</p>
                 <div className="space-y-2">
-                  {recentNotifications.map((notif, idx) => (
-                    <div key={idx} className="bg-white rounded-xl p-3 flex justify-between items-center text-[12px]">
-                      <span className="font-semibold text-zinc-700">{notif.text}</span>
-                      <span className="text-[10px] text-zinc-400">{notif.time}</span>
-                    </div>
-                  ))}
+                  {notifications.length > 0 ? (
+                    notifications.map((notif, idx) => (
+                      <div key={idx} className="bg-white rounded-xl p-3 flex justify-between items-center text-[12px]">
+                        <span className="font-semibold text-zinc-700">{notif.text}</span>
+                        <span className="text-[10px] text-zinc-400">{notif.time}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-[11px] text-zinc-400 italic py-2">No new notifications</p>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Row 9: Quick Actions Panel */}
+        {/* Row 9: Upcoming Events Calendar Preview */}
+        <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+          <h3 className="text-[15px] font-bold text-black tracking-tight">Upcoming Events</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {upcomingEvents.map((evt, idx) => (
+              <div key={idx} className="bg-white rounded-xl p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[12px] font-bold text-black">{evt.title}</span>
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase">{evt.type}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 font-semibold">
+                  <CalendarIcon className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>{evt.time}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Row 10: Quick Actions Panel */}
         <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h3 className="text-[15px] font-bold text-black tracking-tight">Quick Actions Panel</h3>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -941,7 +1098,11 @@ export default function DashboardPage() {
               { label: "Download Resume", icon: DownloadIcon },
               { label: "Sync All Accounts", icon: LightningBoltIcon }
             ].map((action) => (
-              <button key={action.label} className="bg-white hover:bg-zinc-50 transition-all rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-center border border-zinc-100 group">
+              <button 
+                key={action.label} 
+                onClick={action.label === "Sync All Accounts" ? handleSyncAll : undefined}
+                className="bg-white hover:bg-zinc-50 transition-all rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-center border border-zinc-100 group"
+              >
                 <action.icon className="w-5 h-5 text-zinc-700 group-hover:scale-110 transition-transform" />
                 <span className="text-[10px] font-bold text-zinc-600 leading-tight">{action.label}</span>
               </button>
@@ -954,8 +1115,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <span>Storage Used: 2.4 MB / 100 MB</span>
             <span>Last Sync: 2 min ago</span>
-            <span>API Status: Normal</span>
-            <span>v0.1.2-beta</span>
+            <span>v0.1.3-beta</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-zinc-600 transition-colors">Privacy Policy</a>
