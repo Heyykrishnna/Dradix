@@ -384,7 +384,7 @@ export default function MainLayout({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="relative group/leaderboard">
+            {/*<div className="relative group/leaderboard">
               <Link
                 href="/dashboard#leaderboard"
                 onClick={(e) =>
@@ -452,7 +452,7 @@ export default function MainLayout({
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="relative group/bell">
               <button className="relative w-9 h-9 rounded-xl bg-[#f4f4f5] flex items-center justify-center hover:bg-[#eef2f6] transition-colors">
@@ -496,7 +496,7 @@ export default function MainLayout({
                         return (
                           <div
                             key={idx}
-                            className="bg-zinc-50 hover:bg-zinc-100/80 hover:shadow-sm hover:scale-[1.01] transition-all duration-200 rounded-xl p-3 flex justify-between items-center text-[11px] border-l-2 text-left"
+                            className="bg-zinc-50 hover:bg-zinc-100/80 hover:shadow-sm transition-all duration-200 rounded-xl p-3 flex justify-between items-center text-[11px] text-left"
                             style={{
                               borderLeftColor:
                                 notifColors[notif.type] || "#9ca3af",
