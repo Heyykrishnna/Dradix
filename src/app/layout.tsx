@@ -67,6 +67,7 @@ export const metadata: Metadata = {
 
 import LockGuard from "@/components/LockGuard";
 import { SkillsProvider } from "@/context/SkillsContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function RootLayout({
   children,
@@ -88,9 +89,11 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <SkillsProvider>
-          <LockGuard>{children}</LockGuard>
-        </SkillsProvider>
+        <AuthProvider>
+          <SkillsProvider>
+            <LockGuard>{children}</LockGuard>
+          </SkillsProvider>
+        </AuthProvider>
       </body>
     </html>
   );
