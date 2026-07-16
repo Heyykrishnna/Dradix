@@ -3,7 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ChevronLeftIcon, EyeClosedIcon, EyeOpenIcon, Cross1Icon } from "@radix-ui/react-icons";
+import {
+  ChevronLeftIcon,
+  EyeClosedIcon,
+  EyeOpenIcon,
+  Cross1Icon,
+} from "@radix-ui/react-icons";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 
@@ -20,11 +25,7 @@ export default function AuthPage() {
 
   return (
     <div className="relative min-h-screen w-full bg-[#101010] text-white font-sans overflow-hidden selection:bg-zinc-800">
-      <div
-        className={`absolute top-0 left-0 w-full lg:w-1/2 h-full flex flex-col transition-transform duration-700 ease-in-out z-10 bg-[#101010] shadow-[0_0_50px_rgba(0,0,0,0.5)] ${
-          isLogin ? "lg:translate-x-full" : "translate-x-0"
-        }`}
-      >
+      <div className="absolute top-0 left-0 w-full lg:w-1/2 h-full flex flex-col z-10 bg-[#101010] shadow-[0_0_50px_rgba(0,0,0,0.5)]">
         <div className="absolute top-8 left-8 sm:left-12 lg:left-16 z-20">
           <Link
             href="/"
@@ -37,21 +38,31 @@ export default function AuthPage() {
         <div className="relative flex-1 w-full h-full flex items-center justify-center">
           <div
             className={`absolute inset-0 flex flex-col justify-center max-w-[420px] w-full mx-auto px-8 sm:px-0 transition-all duration-700 ${
-              isLogin 
-                ? "opacity-0 invisible translate-y-8 lg:translate-y-0 lg:-translate-x-12 scale-95" 
-                : "opacity-100 visible translate-y-0 translate-x-0 scale-100 delay-150"
+              isLogin
+                ? "opacity-0 invisible translate-y-8 lg:translate-y-0 scale-95"
+                : "opacity-100 visible translate-y-0 scale-100 delay-150"
             }`}
           >
             <div className="text-center mb-10">
               <h1 className="text-white text-3xl sm:text-4xl font-bold mb-4 tracking-tight">
-                <span className="font-serif italic font-normal block sm:inline">Sign up Account.</span>
+                <span className="font-serif italic font-normal block sm:inline">
+                  Sign up Account.
+                </span>
               </h1>
-              <p className="text-zinc-400 text-[15px]">Enter your personal data to create your account</p>
+              <p className="text-zinc-400 text-[15px]">
+                Enter your personal data to create your account
+              </p>
             </div>
 
-            <button type="button" onClick={() => handleAuthAction()} className="flex items-center justify-center gap-3 w-full py-3.5 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-8">
+            <button
+              type="button"
+              onClick={() => handleAuthAction()}
+              className="flex items-center justify-center gap-3 w-full py-3.5 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-8"
+            >
               <FcGoogle className="w-5 h-5" />
-              <span className="text-[15px] font-medium text-zinc-200">Google</span>
+              <span className="text-[15px] font-medium text-zinc-200">
+                Google
+              </span>
             </button>
 
             <div className="flex items-center gap-4 mb-8">
@@ -63,7 +74,9 @@ export default function AuthPage() {
             <form className="space-y-5" onSubmit={handleAuthAction}>
               <div className="flex gap-5">
                 <div className="flex-1 space-y-2">
-                  <label className="text-[14px] font-medium text-zinc-200">First Name</label>
+                  <label className="text-[14px] font-medium text-zinc-200">
+                    First Name
+                  </label>
                   <input
                     type="text"
                     placeholder="Yatharth"
@@ -71,7 +84,9 @@ export default function AuthPage() {
                   />
                 </div>
                 <div className="flex-1 space-y-2">
-                  <label className="text-[14px] font-medium text-zinc-200">Last Name</label>
+                  <label className="text-[14px] font-medium text-zinc-200">
+                    Last Name
+                  </label>
                   <input
                     type="text"
                     placeholder="Khandelwal"
@@ -81,7 +96,9 @@ export default function AuthPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[14px] font-medium text-zinc-200">Email</label>
+                <label className="text-[14px] font-medium text-zinc-200">
+                  Email
+                </label>
                 <input
                   type="email"
                   placeholder="yatharthkhandelwal@gmail.com"
@@ -90,7 +107,9 @@ export default function AuthPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[14px] font-medium text-zinc-200">Password</label>
+                <label className="text-[14px] font-medium text-zinc-200">
+                  Password
+                </label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -102,10 +121,16 @@ export default function AuthPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
                   >
-                    {showPassword ? <EyeOpenIcon className="w-[18px] h-[18px]" /> : <EyeClosedIcon className="w-[18px] h-[18px]" />}
+                    {showPassword ? (
+                      <EyeOpenIcon className="w-[18px] h-[18px]" />
+                    ) : (
+                      <EyeClosedIcon className="w-[18px] h-[18px]" />
+                    )}
                   </button>
                 </div>
-                <p className="text-[13px] text-zinc-500 pt-1">Must be atleast 8 characters</p>
+                <p className="text-[13px] text-zinc-500 pt-1">
+                  Must be atleast 8 characters
+                </p>
               </div>
 
               <button
@@ -130,21 +155,31 @@ export default function AuthPage() {
 
           <div
             className={`absolute inset-0 flex flex-col justify-center max-w-[420px] w-full mx-auto px-8 sm:px-0 transition-all duration-700 ${
-              isLogin 
-                ? "opacity-100 visible translate-y-0 translate-x-0 scale-100 delay-150" 
-                : "opacity-0 invisible -translate-y-8 lg:translate-y-0 lg:translate-x-12 scale-95"
+              isLogin
+                ? "opacity-100 visible translate-y-0 scale-100 delay-150"
+                : "opacity-0 invisible -translate-y-8 lg:translate-y-0 scale-95"
             }`}
           >
             <div className="text-center mb-10">
               <h1 className="text-white text-3xl sm:text-4xl font-bold mb-4 tracking-tight">
-                <span className="font-serif italic font-normal block sm:inline">Welcome Back.</span>
+                <span className="font-serif italic font-normal block sm:inline">
+                  Welcome Back.
+                </span>
               </h1>
-              <p className="text-zinc-400 text-[15px]">Enter your credentials to access your account</p>
+              <p className="text-zinc-400 text-[15px]">
+                Enter your credentials to access your account
+              </p>
             </div>
 
-            <button type="button" onClick={() => handleAuthAction()} className="flex items-center justify-center gap-3 w-full py-3.5 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-8">
+            <button
+              type="button"
+              onClick={() => handleAuthAction()}
+              className="flex items-center justify-center gap-3 w-full py-3.5 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-8"
+            >
               <FcGoogle className="w-5 h-5" />
-              <span className="text-[15px] font-medium text-zinc-200">Google</span>
+              <span className="text-[15px] font-medium text-zinc-200">
+                Google
+              </span>
             </button>
 
             <div className="flex items-center gap-4 mb-8">
@@ -155,7 +190,9 @@ export default function AuthPage() {
 
             <form className="space-y-5" onSubmit={handleAuthAction}>
               <div className="space-y-2">
-                <label className="text-[14px] font-medium text-zinc-200">Email</label>
+                <label className="text-[14px] font-medium text-zinc-200">
+                  Email
+                </label>
                 <input
                   type="email"
                   placeholder="yatharthkhandelwal@gmail.com"
@@ -165,8 +202,14 @@ export default function AuthPage() {
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="text-[14px] font-medium text-zinc-200">Password</label>
-                  <button type="button" onClick={() => setShowForgotModal(true)} className="text-[13px] text-zinc-400 hover:text-white transition-colors">
+                  <label className="text-[14px] font-medium text-zinc-200">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(true)}
+                    className="text-[13px] text-zinc-400 hover:text-white transition-colors"
+                  >
                     Forgot password?
                   </button>
                 </div>
@@ -181,7 +224,11 @@ export default function AuthPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
                   >
-                    {showPassword ? <EyeOpenIcon className="w-[18px] h-[18px]" /> : <EyeClosedIcon className="w-[18px] h-[18px]" />}
+                    {showPassword ? (
+                      <EyeOpenIcon className="w-[18px] h-[18px]" />
+                    ) : (
+                      <EyeClosedIcon className="w-[18px] h-[18px]" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -208,57 +255,54 @@ export default function AuthPage() {
         </div>
       </div>
 
-      <div
-        className={`hidden lg:block absolute top-0 left-1/2 w-1/2 h-full transition-transform duration-700 ease-in-out z-0 bg-[#181818] ${
-          isLogin ? "-translate-x-full" : "translate-x-0"
-        }`}
-      >
+      <div className="hidden lg:block absolute top-0 left-1/2 w-1/2 h-full z-0 bg-[#181818]">
         <div className="relative w-full h-full overflow-hidden">
-            <div 
-              className={`absolute inset-y-0 left-0 w-16 bg-linear-to-r from-[#101010]/70 to-transparent z-10 transition-opacity duration-700 ease-in-out ${
-                isLogin ? 'opacity-0' : 'opacity-100'
-              }`} 
-            />
-            
-            <div 
-              className={`absolute inset-y-0 right-0 w-16 bg-linear-to-l from-[#101010]/70 to-transparent z-10 transition-opacity duration-700 ease-in-out ${
-                isLogin ? 'opacity-100' : 'opacity-0'
-              }`} 
-            />
+          <div className="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-[#101010]/70 to-transparent z-10" />
 
-            <Image 
-              src="/assets/images/AUTH-IMG.png" 
-              alt="Auth background" 
-              fill
-              priority
-              className="object-cover"
-            />
+          <Image
+            src="/assets/images/AUTH-IMG.png"
+            alt="Auth background"
+            fill
+            priority
+            className="object-cover"
+          />
         </div>
       </div>
 
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
+          <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowForgotModal(false)}
             aria-hidden="true"
           />
           <div className="relative w-full max-w-md bg-[#101010] border border-zinc-800/80 rounded-2xl shadow-2xl p-8 transform transition-all">
-            <button 
+            <button
               onClick={() => setShowForgotModal(false)}
               className="absolute top-4 right-4 p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-full transition-colors"
             >
               <Cross1Icon className="w-5 h-5" />
             </button>
 
-            <h2 className="text-2xl font-serif mb-2 tracking-tight">Reset Password</h2>
+            <h2 className="text-2xl font-serif mb-2 tracking-tight">
+              Reset Password
+            </h2>
             <p className="text-zinc-400 text-[14px] mb-8">
-              Enter your email address and we&apos;ll send you a link to reset your password.
+              Enter your email address and we&apos;ll send you a link to reset
+              your password.
             </p>
 
-            <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setShowForgotModal(false); }}>
+            <form
+              className="space-y-6"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setShowForgotModal(false);
+              }}
+            >
               <div className="space-y-2">
-                <label className="text-[14px] font-medium text-zinc-200">Email Address</label>
+                <label className="text-[14px] font-medium text-zinc-200">
+                  Email Address
+                </label>
                 <input
                   type="email"
                   placeholder="name@example.com"
@@ -277,7 +321,6 @@ export default function AuthPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

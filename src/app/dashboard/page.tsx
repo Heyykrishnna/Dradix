@@ -24,6 +24,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+import { useSkills } from "@/context/SkillsContext";
 
 import {
   MessageScrollerProvider,
@@ -190,72 +191,7 @@ const languageData = [
   { name: "Go", value: 9, color: "#005c58" },
 ];
 
-const skillsList = [
-  {
-    name: "TypeScript",
-    level: "Advanced",
-    pct: 90,
-    color: "#3b82f6",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg",
-    relatedProjects: ["dradix", "dradix-cli"],
-  },
-  {
-    name: "React",
-    level: "Advanced",
-    pct: 88,
-    color: "#61dafb",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg",
-    relatedProjects: ["dradix", "algo-vault"],
-  },
-  {
-    name: "Next.js",
-    level: "Advanced",
-    pct: 85,
-    color: "#18181b",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original.svg",
-    relatedProjects: ["dradix"],
-  },
-  {
-    name: "Node.js",
-    level: "Advanced",
-    pct: 80,
-    color: "#5fa04e",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg",
-    relatedProjects: ["dradix", "algo-vault"],
-  },
-  {
-    name: "Python",
-    level: "Intermediate",
-    pct: 72,
-    color: "#f59e0b",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg",
-    relatedProjects: ["algo-vault"],
-  },
-  {
-    name: "Rust",
-    level: "Intermediate",
-    pct: 55,
-    color: "#f43f5e",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg",
-    relatedProjects: ["rustify"],
-  },
-  {
-    name: "Go",
-    level: "Beginner",
-    pct: 40,
-    color: "#00add8",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/go/go-original.svg",
-    relatedProjects: ["dradix-cli"],
-  },
-  {
-    name: "Docker",
-    level: "Intermediate",
-    pct: 65,
-    color: "#2496ed",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg",
-    relatedProjects: ["dradix", "rustify"],
-  },
-];
+// skillsList has been moved to SkillsContext
 
 const weeklyActivityData = [
   { day: "Mon", hours: 4.5, commits: 12, problems: 6 },
@@ -393,6 +329,7 @@ const levelConfig: Record<string, { label: string; bg: string; text: string }> =
   };
 
 function SkillsSection() {
+  const { userSkills } = useSkills();
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
   const activeSkill = hoveredSkill;
   const [renderedSkill, setRenderedSkill] = useState<string | null>(null);
@@ -406,7 +343,7 @@ function SkillsSection() {
       </div>
 
       <div className="flex items-stretch gap-3 overflow-x-auto py-3 px-5 -mx-5 scrollbar-thin">
-        {skillsList.map((skill) => {
+        {userSkills.map((skill) => {
           const isHovered = hoveredSkill === skill.name;
           const cfg = levelConfig[skill.level] ?? levelConfig.Beginner;
           const circumference = 2 * Math.PI * 18;
@@ -512,8 +449,9 @@ function SkillsSection() {
 }
 
 function SkillProjectPanel({ activeSkill }: { activeSkill: string | null }) {
+  const { userSkills } = useSkills();
   if (!activeSkill) return null;
-  const skill = skillsList.find((s) => s.name === activeSkill);
+  const skill = userSkills.find((s) => s.name === activeSkill);
   if (!skill) return null;
   const projects = initialProjectsList.filter((p) =>
     skill.relatedProjects.includes(p.name),

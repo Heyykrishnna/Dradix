@@ -4,7 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const cabinetGrotesk = localFont({
   src: [
@@ -66,6 +66,7 @@ export const metadata: Metadata = {
 };
 
 import LockGuard from "@/components/LockGuard";
+import { SkillsProvider } from "@/context/SkillsContext";
 
 export default function RootLayout({
   children,
@@ -75,10 +76,21 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", cabinetGrotesk.variable, poppins.variable, geistMono.variable, instrumentSerif.variable, "font-sans", geist.variable)}
+      className={cn(
+        "h-full",
+        "antialiased",
+        cabinetGrotesk.variable,
+        poppins.variable,
+        geistMono.variable,
+        instrumentSerif.variable,
+        "font-sans",
+        geist.variable,
+      )}
     >
       <body className="min-h-full flex flex-col">
-        <LockGuard>{children}</LockGuard>
+        <SkillsProvider>
+          <LockGuard>{children}</LockGuard>
+        </SkillsProvider>
       </body>
     </html>
   );
