@@ -12,7 +12,7 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { useState, Suspense } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, cleanUrl } from "@/lib/api";
 
 function AuthFormContent() {
   const [isLogin, setIsLogin] = useState(false);
@@ -92,9 +92,10 @@ function AuthFormContent() {
   };
 
   const handleGoogleAuth = () => {
-    const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "") ||
-      "http://localhost:5001";
+    const rawApiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1";
+    const cleanedApiUrl = cleanUrl(rawApiUrl);
+    const backendUrl = cleanedApiUrl.replace(/\/api\/v1\/?$/, "");
     window.location.href = `${backendUrl}/api/v1/auth/google`;
   };
 

@@ -1,4 +1,15 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api/v1';
+export const cleanUrl = (url: string): string => {
+  let cleaned = url.trim();
+  cleaned = cleaned.replace(/^(https?:?\/\/+)+/i, '');
+  cleaned = cleaned.replace(/^(https?\/+)+/i, '');
+  
+  const isLocal = cleaned.includes('localhost') || cleaned.includes('127.0.0.1');
+  const protocol = isLocal ? 'http://' : 'https://';
+  
+  return protocol + cleaned;
+};
+
+export const API_URL = cleanUrl(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api/v1');
 
 let accessTokenInMemory: string | null = null;
 
