@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   ArrowRightIcon,
   ChevronRightIcon,
@@ -194,37 +195,65 @@ const skillsList = [
     name: "TypeScript",
     level: "Advanced",
     pct: 90,
-    projects: 12,
     color: "#3b82f6",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg",
+    relatedProjects: ["dradix", "dradix-cli"],
   },
-  { name: "React", level: "Advanced", pct: 88, projects: 10, color: "#005c58" },
+  {
+    name: "React",
+    level: "Advanced",
+    pct: 88,
+    color: "#61dafb",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg",
+    relatedProjects: ["dradix", "algo-vault"],
+  },
   {
     name: "Next.js",
     level: "Advanced",
     pct: 85,
-    projects: 8,
-    color: "#f5f5f5",
+    color: "#18181b",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original.svg",
+    relatedProjects: ["dradix"],
   },
   {
     name: "Node.js",
     level: "Advanced",
     pct: 80,
-    projects: 7,
-    color: "#005c58",
+    color: "#5fa04e",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg",
+    relatedProjects: ["dradix", "algo-vault"],
   },
   {
     name: "Python",
     level: "Intermediate",
     pct: 72,
-    projects: 5,
     color: "#f59e0b",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg",
+    relatedProjects: ["algo-vault"],
   },
   {
     name: "Rust",
     level: "Intermediate",
     pct: 55,
-    projects: 2,
     color: "#f43f5e",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg",
+    relatedProjects: ["rustify"],
+  },
+  {
+    name: "Go",
+    level: "Beginner",
+    pct: 40,
+    color: "#00add8",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/go/go-original.svg",
+    relatedProjects: ["dradix-cli"],
+  },
+  {
+    name: "Docker",
+    level: "Intermediate",
+    pct: 65,
+    color: "#2496ed",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg",
+    relatedProjects: ["dradix", "rustify"],
   },
 ];
 
@@ -344,6 +373,231 @@ const upcomingEvents = [
   { title: "System Design Module 4 Due", time: "Friday", type: "course" },
 ];
 
+const levelConfig: Record<string, { label: string; bg: string; text: string }> =
+  {
+    Advanced: {
+      label: "Advanced",
+      bg: "bg-[#005c58]/10",
+      text: "text-[#005c58]",
+    },
+    Intermediate: {
+      label: "Intermediate",
+      bg: "bg-[#f59e0b]/10",
+      text: "text-[#f59e0b]",
+    },
+    Beginner: {
+      label: "Beginner",
+      bg: "bg-[#f43f5e]/10",
+      text: "text-[#f43f5e]",
+    },
+  };
+
+function SkillsSection() {
+  const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
+  const activeSkill = hoveredSkill;
+  const [renderedSkill, setRenderedSkill] = useState<string | null>(null);
+
+  return (
+    <div id="skills" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[15px] font-bold text-black tracking-tight">
+          Tech Stack &amp; Skills
+        </h3>
+      </div>
+
+      <div className="flex items-stretch gap-3 overflow-x-auto py-3 px-5 -mx-5 scrollbar-thin">
+        {skillsList.map((skill) => {
+          const isHovered = hoveredSkill === skill.name;
+          const cfg = levelConfig[skill.level] ?? levelConfig.Beginner;
+          const circumference = 2 * Math.PI * 18;
+          const offset = circumference * (1 - skill.pct / 100);
+
+          return (
+            <button
+              key={skill.name}
+              type="button"
+              onMouseEnter={() => {
+                setHoveredSkill(skill.name);
+                setRenderedSkill(skill.name);
+              }}
+              onMouseLeave={() => setHoveredSkill(null)}
+              className={`relative shrink-0 flex flex-col items-center gap-2 rounded-2xl px-4 py-4 w-[110px] transition-all duration-300 cursor-pointer ${
+                isHovered ? "bg-zinc-100 shadow-sm" : "bg-white"
+              }`}
+            >
+              <div className="relative w-14 h-14 flex items-center justify-center">
+                <svg className="absolute inset-0 w-full h-full -rotate-90">
+                  <circle
+                    cx="28"
+                    cy="28"
+                    r="18"
+                    fill="none"
+                    stroke="#f4f4f5"
+                    strokeWidth="3"
+                  />
+                  <circle
+                    cx="28"
+                    cy="28"
+                    r="18"
+                    fill="none"
+                    stroke={skill.color}
+                    strokeWidth="3"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    strokeLinecap="round"
+                    className="transition-all duration-500"
+                  />
+                </svg>
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300"
+                  style={{ backgroundColor: `${skill.color}15` }}
+                >
+                  <Image
+                    src={skill.logo}
+                    alt={skill.name}
+                    width={20}
+                    height={20}
+                    className="w-5 h-5 object-contain"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
+                    }}
+                  />
+                </div>
+              </div>
+
+              <span className="text-[11px] font-bold text-zinc-800 leading-none">
+                {skill.name}
+              </span>
+
+              {/* Level badge */}
+              <span
+                className={`text-[8px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}
+              >
+                {skill.level}
+              </span>
+
+              <span
+                className="text-[10px] font-black"
+                style={{ color: skill.color }}
+              >
+                {skill.pct}%
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        className={`grid transition-[grid-template-rows,opacity] duration-500 ease-out ${
+          activeSkill
+            ? "grid-rows-[1fr] opacity-100 mt-2"
+            : "grid-rows-[0fr] opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div
+            className={`transition-all duration-500 transform ${
+              activeSkill
+                ? "translate-y-0 scale-100"
+                : "-translate-y-2 scale-95"
+            }`}
+          >
+            <SkillProjectPanel activeSkill={renderedSkill} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SkillProjectPanel({ activeSkill }: { activeSkill: string | null }) {
+  if (!activeSkill) return null;
+  const skill = skillsList.find((s) => s.name === activeSkill);
+  if (!skill) return null;
+  const projects = initialProjectsList.filter((p) =>
+    skill.relatedProjects.includes(p.name),
+  );
+  const cfg = levelConfig[skill.level] ?? levelConfig.Beginner;
+
+  return (
+    <div className="bg-white rounded-2xl p-5 space-y-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div
+          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: `${skill.color}20` }}
+        >
+          <Image
+            src={skill.logo}
+            alt={skill.name}
+            width={20}
+            height={20}
+            className="w-5 h-5 object-contain"
+          />
+        </div>
+        <div>
+          <p className="text-[14px] font-black text-black leading-none">
+            {skill.name}
+          </p>
+          <p className="text-[10px] text-zinc-400 mt-1">
+            {skill.pct}% proficiency &middot;{" "}
+            <span className={`font-bold ${cfg.text}`}>{skill.level}</span>
+          </p>
+        </div>
+        <div className="ml-auto w-full max-w-[160px] h-2 bg-zinc-100 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${skill.pct}%`, backgroundColor: skill.color }}
+          />
+        </div>
+      </div>
+
+      {projects.length > 0 ? (
+        <div className="space-y-2">
+          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
+            Projects using {skill.name}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {projects.map((proj) => (
+              <div
+                key={proj.id}
+                className="flex items-center justify-between bg-[#f4f4f5] rounded-xl p-3 hover:bg-zinc-100 hover:shadow-sm transition-all duration-200"
+              >
+                <div className="min-w-0">
+                  <p className="text-[12px] font-bold text-black truncate">
+                    {proj.name}
+                  </p>
+                  <p className="text-[9px] text-zinc-400 truncate mt-0.5">
+                    {proj.stack} &middot; {proj.platform}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-3">
+                  <span
+                    className="text-[8px] font-black px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: `${proj.statusColor}18`,
+                      color: proj.statusColor,
+                    }}
+                  >
+                    {proj.status}
+                  </span>
+                  <span className="text-[9px] text-zinc-500 font-semibold">
+                    ★ {proj.stars}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-[11px] text-zinc-400 italic">
+          No listed projects yet for {skill.name}.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [hoveredBar, setHoveredBar] = useState<{
@@ -400,7 +654,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!localStorage.getItem("dradix_notifications")) {
-      localStorage.setItem("dradix_notifications", JSON.stringify(initialNotifications));
+      localStorage.setItem(
+        "dradix_notifications",
+        JSON.stringify(initialNotifications),
+      );
     }
 
     const handleStorageChange = () => {
@@ -1469,71 +1726,34 @@ export default function DashboardPage() {
 
         {/* Category 3: Skills & Academic Roadmap */}
         <div className="space-y-6">
-          <div id="skills" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
-              <h3 className="text-[15px] font-bold text-black tracking-tight">
-                Skills Section
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {skillsList.map((skill) => (
-                  <div
-                    key={skill.name}
-                    className="bg-white rounded-xl p-3 space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-[12px] font-bold text-black">
-                        {skill.name}
-                      </span>
-                      <span className="text-[9px] font-bold text-zinc-400">
-                        {skill.level}
-                      </span>
-                    </div>
-                    <div className="w-full h-1 bg-zinc-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full"
-                        style={{
-                          width: `${skill.pct}%`,
-                          backgroundColor: skill.color,
-                        }}
-                      />
-                    </div>
-                    <p className="text-[9px] text-zinc-400">
-                      {skill.projects} active projects
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <SkillsSection />
 
-            <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
-              <h3 className="text-[15px] font-bold text-black tracking-tight">
-                Active Courses
-              </h3>
-              <div className="space-y-3">
-                {learningCourses.map((c) => (
-                  <div key={c.title} className="bg-white rounded-xl p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="text-[13px] font-bold text-black">
-                          {c.title}
-                        </p>
-                        <p className="text-[10px] text-zinc-400">
-                          {c.provider}
-                        </p>
-                      </div>
-                      <span className="text-[13px] font-black text-black">
-                        {c.pct}%
-                      </span>
+          <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+            <h3 className="text-[15px] font-bold text-black tracking-tight">
+              Active Courses
+            </h3>
+            <div className="space-y-3">
+              {learningCourses.map((c) => (
+                <div key={c.title} className="bg-white rounded-xl p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="text-[13px] font-bold text-black">
+                        {c.title}
+                      </p>
+                      <p className="text-[10px] text-zinc-400">{c.provider}</p>
                     </div>
-                    <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full"
-                        style={{ width: `${c.pct}%`, backgroundColor: c.color }}
-                      />
-                    </div>
+                    <span className="text-[13px] font-black text-black">
+                      {c.pct}%
+                    </span>
                   </div>
-                ))}
-              </div>
+                  <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full"
+                      style={{ width: `${c.pct}%`, backgroundColor: c.color }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
