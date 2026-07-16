@@ -34,6 +34,15 @@ import {
   Tooltip
 } from "recharts";
 
+import {
+  MessageScrollerProvider,
+  MessageScroller,
+  MessageScrollerViewport,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerButton,
+} from "@/components/ui/message-scroller";
+
 const initialDevStats = {
   score: 92,
   contributions: 1487,
@@ -175,6 +184,17 @@ const upcomingEvents = [
   { title: "HackIndia Registration", time: "3 days left", type: "hackathon" },
   { title: "System Design Module 4 Due", time: "Friday", type: "course" }
 ];
+
+function CategoryHeader({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3 pt-6 pb-2 first:pt-0 select-none">
+      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#005c58] bg-[#003c3a]/10 px-3 py-1.5 rounded-lg">
+        {title}
+      </span>
+      <div className="h-px bg-zinc-200 flex-1" />
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("All");
@@ -372,16 +392,28 @@ export default function DashboardPage() {
                 <div id="ai-coach" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h2 className="text-[16px] font-bold text-black tracking-tight">AI Career Coach</h2>
           
-                    <div className="bg-white rounded-xl p-3 h-48 overflow-y-auto space-y-2.5 scrollbar-thin text-[11px]">
-            {messages.map((m, idx) => (
-              <div key={idx} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
-                <span className="text-[9px] text-zinc-400 font-bold mb-0.5">{m.sender === "user" ? "You" : "Coach"}</span>
-                <p className={`p-2.5 rounded-xl max-w-[85%] leading-relaxed ${m.sender === "user" ? "bg-black text-white rounded-tr-none" : "bg-zinc-100 text-zinc-800 rounded-tl-none"}`}>
-                  {m.text}
-                </p>
-              </div>
-            ))}
-          </div>
+          <MessageScrollerProvider autoScroll={true} defaultScrollPosition="end">
+            <MessageScroller className="bg-white rounded-xl p-3 h-48 text-[11px] relative">
+              <MessageScrollerViewport className="scrollbar-thin">
+                <MessageScrollerContent className="gap-2.5">
+                  {messages.map((m, idx) => (
+                    <MessageScrollerItem
+                      key={idx}
+                      messageId={`msg-${idx}`}
+                      scrollAnchor={idx === messages.length - 1}
+                      className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
+                    >
+                      <span className="text-[9px] text-zinc-400 font-bold mb-0.5">{m.sender === "user" ? "You" : "Coach"}</span>
+                      <p className={`p-2.5 rounded-xl max-w-[85%] leading-relaxed ${m.sender === "user" ? "bg-black text-white rounded-tr-none" : "bg-zinc-100 text-zinc-800 rounded-tl-none"}`}>
+                        {m.text}
+                      </p>
+                    </MessageScrollerItem>
+                  ))}
+                </MessageScrollerContent>
+              </MessageScrollerViewport>
+              <MessageScrollerButton />
+            </MessageScroller>
+          </MessageScrollerProvider>
 
           <div className="space-y-1.5">
             <button onClick={() => handleAskCoach("How can I improve my resume?")} className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors">
@@ -447,10 +479,14 @@ export default function DashboardPage() {
 
       </div>
 
-            <div className="lg:col-span-3 space-y-6">
+            <div className="lg:col-span-3 space-y-8">
         
+              {/* Category 1: Development Velocity & Analytics */}
+              <div className="space-y-6">
+                <CategoryHeader title="Development Velocity & Analytics" />
+                
                 <div className="bg-[#18181b] text-white rounded-[28px] p-6 lg:p-8 grid grid-cols-1 md:grid-cols-5 gap-6">
-          
+                  
                     <div className="md:col-span-3 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-[16px] font-bold text-white tracking-tight">Coding Velocity</h3>
@@ -611,7 +647,7 @@ export default function DashboardPage() {
             </div>
 
           </div>
-        </div>
+                </div>
 
                 <div id="activity" className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-2 bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
@@ -718,12 +754,18 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
+                </div>
+
+              </div>
+
+              {/* Category 2: Projects & Tech Profiles */}
+              <div className="space-y-6">
+                <CategoryHeader title="Projects & Tech Profiles" />
 
                 <div id="projects" className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <h2 className="text-[18px] font-black text-black">Projects</h2>
+              <h2 className="text-[15px] font-bold text-black tracking-tight font-heading">Projects</h2>
               <span className="text-[11px] font-bold text-zinc-400 bg-[#f4f4f5] rounded-full px-2 py-0.5">19 Total</span>
             </div>
 
@@ -794,7 +836,7 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
-        </div>
+                </div>
 
                 <div id="platforms" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <div className="flex items-center justify-between">
@@ -842,7 +884,13 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        </div>
+                </div>
+
+              </div>
+
+              {/* Category 3: Skills & Academic Roadmap */}
+              <div className="space-y-6">
+                <CategoryHeader title="Skills & Academic Roadmap" />
 
                 <div id="skills" className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
@@ -882,7 +930,7 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-        </div>
+                </div>
 
                 <div id="career-progress" className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
@@ -921,7 +969,13 @@ export default function DashboardPage() {
               <span>Generate Developer Wrapped</span>
             </button>
           </div>
-        </div>
+                </div>
+
+              </div>
+
+              {/* Category 4: Achievements & Timeline */}
+              <div className="space-y-6">
+                <CategoryHeader title="Achievements & Timeline" />
 
                 <div id="achievements" className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
@@ -964,7 +1018,7 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-        </div>
+                </div>
 
                 <div id="timeline" className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
@@ -1025,7 +1079,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
+                </div>
 
                 <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h3 className="text-[15px] font-bold text-black tracking-tight">Upcoming Events</h3>
@@ -1043,7 +1097,13 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        </div>
+                </div>
+
+              </div>
+
+              {/* Category 5: Management & Actions */}
+              <div className="space-y-6">
+                <CategoryHeader title="Management & Actions" />
 
                 <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
           <h3 className="text-[15px] font-bold text-black tracking-tight">Quick Actions Panel</h3>
@@ -1070,7 +1130,9 @@ export default function DashboardPage() {
               </button>
             ))}
           </div>
-        </div>
+                </div>
+
+              </div>
 
                 <footer className="pt-4 border-t border-[#f4f4f5] flex flex-wrap items-center justify-between gap-4 text-[11px] text-zinc-400 font-semibold">
           <div className="flex items-center gap-4">
