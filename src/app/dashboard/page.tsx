@@ -358,7 +358,7 @@ function SkillsSection() {
                 setRenderedSkill(skill.name);
               }}
               onMouseLeave={() => setHoveredSkill(null)}
-              className={`relative shrink-0 flex flex-col items-center gap-2 rounded-2xl px-4 py-4 w-[110px] transition-all duration-300 cursor-pointer ${
+              className={`relative shrink-0 flex flex-col items-center gap-2 rounded-2xl px-4 py-4 w-[110px] transition-all duration-300 ${
                 isHovered ? "bg-zinc-100 shadow-sm" : "bg-white"
               }`}
             >

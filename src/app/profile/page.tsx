@@ -22,6 +22,9 @@ import {
   FaBriefcase,
   FaShield,
   FaUserPlus,
+  FaHashtag,
+  FaUserMinus,
+  FaUserCheck,
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,

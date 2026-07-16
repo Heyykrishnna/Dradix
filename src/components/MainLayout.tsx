@@ -13,6 +13,7 @@ import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
+import { Trophy } from "lucide-react";
 
 type SubItem = { label: string; href: string; desc: string };
 type NavCategory = {
@@ -144,6 +145,21 @@ const initialNavbarNotifications: NotificationItem[] = [
   { text: "Weekly activity report is ready", time: "1d ago", type: "report" },
 ];
 
+const leaderboardRankings = [
+  { rank: 1, name: "Arjun Mehta", score: 98, xp: "12.4k", avatar: "AM" },
+  { rank: 2, name: "Priya Singh", score: 95, xp: "11.8k", avatar: "PS" },
+  {
+    rank: 3,
+    name: "Yatharth K.",
+    score: 92,
+    xp: "10.9k",
+    avatar: "YK",
+    isYou: true,
+  },
+  { rank: 4, name: "Rohan Gupta", score: 89, xp: "9.7k", avatar: "RG" },
+  { rank: 5, name: "Neha Sharma", score: 87, xp: "8.9k", avatar: "NS" },
+];
+
 export default function MainLayout({
   children,
 }: {
@@ -221,12 +237,7 @@ export default function MainLayout({
       >
         <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center">
-              <span className="text-[11px] font-black text-white tracking-tighter">
-                DR
-              </span>
-            </div>
-            <span className="text-black font-extrabold text-[18px] tracking-tight">
+            <span className="text-black font-extrabold text-[14px] tracking-tight">
               dradix
             </span>
           </Link>
@@ -252,7 +263,7 @@ export default function MainLayout({
                   >
                     <Link
                       href={cat.href}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all ${
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all ${
                         isActive || isHovered
                           ? "bg-black text-white"
                           : "text-zinc-500 hover:text-zinc-900"
@@ -332,6 +343,73 @@ export default function MainLayout({
           </div>
 
           <div className="flex items-center gap-3">
+            <div className="relative group/leaderboard">
+              <Link
+                href="/dashboard#leaderboard"
+                className="relative w-9 h-9 rounded-xl bg-[#f4f4f5] flex items-center justify-center hover:bg-[#eef2f6] transition-colors"
+                title="Leaderboard"
+              >
+                <Trophy className="w-4 h-4 text-zinc-600" />
+              </Link>
+
+              <div className="absolute right-0 top-full pt-2 w-80 transition-all duration-300 ease-out origin-top-right opacity-0 scale-95 pointer-events-none group-hover/leaderboard:opacity-100 group-hover/leaderboard:scale-100 group-hover/leaderboard:pointer-events-auto z-60">
+                <div className="bg-white rounded-2xl shadow-xl border border-zinc-100 p-4 space-y-3">
+                  <div className="flex justify-between items-center pb-2 border-b border-zinc-100">
+                    <h4 className="text-[12px] font-bold text-black uppercase tracking-wider">
+                      Leaderboard
+                    </h4>
+                  </div>
+
+                  <div className="space-y-2 max-h-64 overflow-y-auto pr-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]">
+                    {leaderboardRankings.map((user) => (
+                      <div
+                        key={user.rank}
+                        className={`flex items-center gap-2.5 p-2 rounded-xl border transition-all duration-200 ${
+                          user.isYou
+                            ? "bg-zinc-50 border-zinc-200 shadow-sm"
+                            : "bg-white border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50/50"
+                        }`}
+                      >
+                        <span
+                          className={`text-[11px] font-black w-5 text-center ${
+                            user.rank <= 3 ? "text-zinc-800" : "text-zinc-400"
+                          }`}
+                        >
+                          {user.rank}
+                        </span>
+                        <div className="w-7 h-7 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0">
+                          <span className="text-[10px] font-bold text-zinc-600">
+                            {user.avatar}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-bold text-zinc-800 truncate">
+                            {user.name}
+                            {user.isYou && (
+                              <span className="text-[9px] font-medium text-zinc-400 ml-1">
+                                (you)
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-[10px] text-zinc-400 font-medium">
+                            {user.xp} XP
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-[12px] font-black text-zinc-800 leading-none">
+                            {user.score}
+                          </p>
+                          <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">
+                            score
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="relative group/bell">
               <button className="relative w-9 h-9 rounded-xl bg-[#f4f4f5] flex items-center justify-center hover:bg-[#eef2f6] transition-colors">
                 <BellIcon className="w-4 h-4 text-zinc-600" />
