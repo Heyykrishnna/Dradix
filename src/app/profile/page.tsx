@@ -1247,37 +1247,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="pt-2 text-left">
-              <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mb-2.5">
-                Contacts
-              </p>
-              <div className="flex items-center -space-x-2">
-                <img
-                  className="w-8 h-8 rounded-full border-2 border-white object-cover"
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=64&auto=format&fit=crop"
-                  alt="c1"
-                />
-                <img
-                  className="w-8 h-8 rounded-full border-2 border-white object-cover"
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=64&auto=format&fit=crop"
-                  alt="c2"
-                />
-                <img
-                  className="w-8 h-8 rounded-full border-2 border-white object-cover"
-                  src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=64&auto=format&fit=crop"
-                  alt="c3"
-                />
-                <img
-                  className="w-8 h-8 rounded-full border-2 border-white object-cover"
-                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=64&auto=format&fit=crop"
-                  alt="c4"
-                />
-                <div className="w-8 h-8 rounded-full border-2 border-white bg-zinc-100 flex items-center justify-center text-[10px] font-bold text-zinc-500">
-                  +75
-                </div>
-              </div>
-            </div>
-
             <div className="space-y-2 pt-2 text-left">
               <div className="flex items-center justify-between">
                 <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">
