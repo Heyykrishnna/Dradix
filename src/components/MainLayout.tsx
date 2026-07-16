@@ -117,23 +117,23 @@ const navigationConfig: NavCategory[] = [
       },
     ],
   },
-  {
-    label: "Explore",
-    icon: MagnifyingGlassIcon,
-    href: "/explore",
-    subItems: [
-      {
-        label: "Feed",
-        href: "/explore",
-        desc: "Discover posts from the developer community",
-      },
-      {
-        label: "Jobs",
-        href: "/explore?tab=jobs",
-        desc: "Browse developer job openings",
-      },
-    ],
-  },
+  // {
+  //   label: "Explore",
+  //   icon: MagnifyingGlassIcon,
+  //   href: "/explore",
+  //   subItems: [
+  //     {
+  //       label: "Feed",
+  //       href: "/coming-soon",
+  //       desc: "Discover posts from the developer community",
+  //     },
+  //     {
+  //       label: "Jobs",
+  //       href: "/coming-soon",
+  //       desc: "Browse developer job openings",
+  //     },
+  //   ],
+  // },
 ];
 
 type NotificationItem = { text: string; time: string; type: string };
