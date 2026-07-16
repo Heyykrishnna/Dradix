@@ -219,6 +219,43 @@ export default function MainLayout({
     }
   }, [hoveredIndex]);
 
+  const handleHashLinkClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (href.includes("#")) {
+      const parts = href.split("#");
+      const path = parts[0];
+      const hash = parts[1];
+      const currentPath = pathname;
+      if (path === "" || path === currentPath) {
+        e.preventDefault();
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+          window.history.pushState(null, "", `#${hash}`);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleHashScroll = () => {
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        setTimeout(() => {
+          const element = document.getElementById(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }, 100);
+      }
+    };
+    handleHashScroll();
+    window.addEventListener("hashchange", handleHashScroll);
+    return () => window.removeEventListener("hashchange", handleHashScroll);
+  }, [pathname]);
+
   const handleMouseEnter = (label: string, index: number) => {
     setActiveHover(label);
     setHoveredIndex(index);
@@ -263,6 +300,7 @@ export default function MainLayout({
                   >
                     <Link
                       href={cat.href}
+                      onClick={(e) => handleHashLinkClick(e, cat.href)}
                       className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all ${
                         isActive || isHovered
                           ? "bg-black text-white"
@@ -324,7 +362,10 @@ export default function MainLayout({
                         <Link
                           key={sub.label}
                           href={sub.href}
-                          onClick={handleMouseLeave}
+                          onClick={(e) => {
+                            handleMouseLeave();
+                            handleHashLinkClick(e, sub.href);
+                          }}
                           className="flex flex-col p-2.5 rounded-xl hover:bg-zinc-50 transition-colors text-left"
                         >
                           <span className="text-[13px] font-bold text-zinc-900">
@@ -346,6 +387,9 @@ export default function MainLayout({
             <div className="relative group/leaderboard">
               <Link
                 href="/dashboard#leaderboard"
+                onClick={(e) =>
+                  handleHashLinkClick(e, "/dashboard#leaderboard")
+                }
                 className="relative w-9 h-9 rounded-xl bg-[#f4f4f5] flex items-center justify-center hover:bg-[#eef2f6] transition-colors"
                 title="Leaderboard"
               >
