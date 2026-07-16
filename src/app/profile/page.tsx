@@ -180,10 +180,8 @@ const initialProfile: Omit<ProfileState, "skills"> = {
   email: "yatharth.k@dradix.dev",
   phone: "+91 98765 43210",
   location: "Bengaluru, Karnataka, India",
-  avatarUrl:
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop",
-  coverUrl:
-    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1600&auto=format&fit=crop",
+  avatarUrl: "/assets/images/Avatar.jpg",
+  coverUrl: "/assets/images/BANNER-A.png",
   coverPositionX: 50,
   coverPositionY: 50,
   coverZoom: 100,
@@ -625,7 +623,7 @@ export default function ProfilePage() {
   return (
     <div className="relative pb-24 space-y-8 animate-fade-in text-left">
       <div className="relative bg-white rounded-3xl overflow-hidden border border-dashed border-zinc-200 shadow-sm group/banner">
-        <div className="h-48 md:h-84 w-full relative overflow-hidden bg-zinc-200">
+        <div className="h-48 md:h-100 w-full relative overflow-hidden bg-zinc-200">
           <img
             src={isEditing ? formState.coverUrl : profile.coverUrl}
             alt="Cover Banner"
@@ -637,7 +635,7 @@ export default function ProfilePage() {
           />
           <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
 
-          <div className="absolute bottom-0 left-0 right-0 h-15 bg-linear-to-b from-transparent via-white/50 to-white backdrop-blur-[2px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-10 bg-linear-to-b from-transparent via-white/50 to-white backdrop-blur-[2px] pointer-events-none" />
 
           {isEditing && (
             <div className="absolute inset-0 bg-black/45 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center z-10 duration-200">

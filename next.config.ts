@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "cdn.jsdelivr.net/gh",
+        hostname: "cdn.jsdelivr.net",
       }
     ],
   },
