@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowRightIcon,
   ChevronRightIcon,
@@ -315,7 +315,9 @@ const initialRecruiterChecklist = [
   { label: "Open Source Contributions", done: true },
 ];
 
-const initialNotifications = [
+type NotificationItem = { text: string; time: string; type: string };
+
+const initialNotifications: NotificationItem[] = [
   { text: "GitHub synced successfully", time: "2 min ago", type: "sync" },
   { text: "Resume analyzed by AI coach", time: "1h ago", type: "analyze" },
   { text: "New badge unlocked: 42-day streak", time: "4h ago", type: "badge" },
@@ -382,7 +384,39 @@ export default function DashboardPage() {
     },
   ]);
 
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("dradix_notifications");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return initialNotifications;
+  });
+
+  useEffect(() => {
+    if (!localStorage.getItem("dradix_notifications")) {
+      localStorage.setItem("dradix_notifications", JSON.stringify(initialNotifications));
+    }
+
+    const handleStorageChange = () => {
+      const savedNotifs = localStorage.getItem("dradix_notifications");
+      if (savedNotifs) {
+        try {
+          setNotifications(JSON.parse(savedNotifs));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -433,19 +467,26 @@ export default function DashboardPage() {
     setIsSyncing(true);
     setTimeout(() => {
       setIsSyncing(false);
-      setNotifications((prev) => [
-        {
-          text: "Dynamic sync check completed: All systems normal",
-          time: "Just now",
-          type: "sync",
-        },
-        ...prev,
-      ]);
+      setNotifications((prev) => {
+        const updated = [
+          {
+            text: "Dynamic sync check completed: All systems normal",
+            time: "Just now",
+            type: "sync",
+          },
+          ...prev,
+        ];
+        localStorage.setItem("dradix_notifications", JSON.stringify(updated));
+        window.dispatchEvent(new Event("storage"));
+        return updated;
+      });
     }, 1500);
   };
 
   const handleClearNotifications = () => {
     setNotifications([]);
+    localStorage.setItem("dradix_notifications", JSON.stringify([]));
+    window.dispatchEvent(new Event("storage"));
   };
 
   const goalsDone = todayGoals.filter((g) => g.done).length;
@@ -1679,8 +1720,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
-              <div className="flex justify-between items-center">
+            <div className="group/notif-card bg-[#f4f4f5] rounded-[24px] p-5 border border-transparent hover:border-zinc-200 hover:bg-white hover:shadow-xl transition-all duration-500 ease-in-out flex flex-col h-[300px] hover:h-[520px] overflow-hidden relative">
+              <div className="flex justify-between items-center shrink-0 mb-4">
                 <h3 className="text-[15px] font-bold text-black tracking-tight">
                   Activity & Notifications
                 </h3>
@@ -1693,7 +1734,8 @@ export default function DashboardPage() {
                   </button>
                 )}
               </div>
-              <div className="space-y-4">
+
+              <div className="flex-1 overflow-y-auto scrollbar-none group-hover/notif-card:scrollbar-thin pr-1 space-y-4 pb-8 transition-all duration-500">
                 <div>
                   <p className="text-[10px] text-zinc-400 font-bold uppercase mb-2">
                     Live Feed
@@ -1702,18 +1744,13 @@ export default function DashboardPage() {
                     {recentActivityFeed.map((act, idx) => (
                       <div
                         key={idx}
-                        className="bg-white rounded-xl p-3 flex justify-between items-center text-[12px]"
+                        className="bg-white group-hover/notif-card:bg-zinc-50 transition-all duration-200 rounded-xl p-3 flex justify-between items-center text-[12px] border-transparent"
+                        style={{ borderLeftColor: act.color }}
                       >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: act.color }}
-                          />
-                          <span className="font-semibold text-zinc-700">
-                            {act.text}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-zinc-400">
+                        <span className="font-semibold text-zinc-700 pl-1">
+                          {act.text}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 shrink-0 ml-3">
                           {act.time}
                         </span>
                       </div>
@@ -1726,19 +1763,31 @@ export default function DashboardPage() {
                   </p>
                   <div className="space-y-2">
                     {notifications.length > 0 ? (
-                      notifications.map((notif, idx) => (
-                        <div
-                          key={idx}
-                          className="bg-white rounded-xl p-3 flex justify-between items-center text-[12px]"
-                        >
-                          <span className="font-semibold text-zinc-700">
-                            {notif.text}
-                          </span>
-                          <span className="text-[10px] text-zinc-400">
-                            {notif.time}
-                          </span>
-                        </div>
-                      ))
+                      notifications.map((notif, idx) => {
+                        const notifColors: Record<string, string> = {
+                          sync: "#3b82f6",
+                          analyze: "#8b5cf6",
+                          badge: "#f59e0b",
+                          report: "#10b981",
+                        };
+                        return (
+                          <div
+                            key={idx}
+                            className="bg-white group-hover/notif-card:bg-zinc-50 transition-all duration-200 rounded-xl p-3 flex justify-between items-center text-[12px] border-transparent"
+                            style={{
+                              borderLeftColor:
+                                notifColors[notif.type] || "#9ca3af",
+                            }}
+                          >
+                            <span className="font-semibold text-zinc-700 pl-1">
+                              {notif.text}
+                            </span>
+                            <span className="text-[10px] text-zinc-400 shrink-0 ml-3">
+                              {notif.time}
+                            </span>
+                          </div>
+                        );
+                      })
                     ) : (
                       <p className="text-[11px] text-zinc-400 italic py-2">
                         No new notifications
@@ -1747,6 +1796,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Smooth bottom fade-out overlay when not hovered */}
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-linear-to-t from-[#f4f4f5] to-transparent pointer-events-none transition-all duration-500 ease-in-out group-hover/notif-card:opacity-0 group-hover/notif-card:pointer-events-none" />
             </div>
           </div>
 
