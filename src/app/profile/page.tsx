@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import {
   FaPlus,
   FaTrashCan,
@@ -1760,10 +1761,25 @@ export default function ProfilePage() {
 
                     <div className="flex items-center justify-between mb-2 pr-6">
                       <div className="flex items-center gap-2">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: s.color }}
-                        />
+                        {s.logo ? (
+                          <div
+                            className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: `${s.color}15` }}
+                          >
+                            <Image
+                              src={s.logo}
+                              alt={s.name}
+                              width={14}
+                              height={14}
+                              className="w-3.5 h-3.5 object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ backgroundColor: s.color }}
+                          />
+                        )}
                         <span className="text-[12px] font-bold text-zinc-800">
                           {s.name}
                         </span>
