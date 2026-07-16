@@ -25,19 +25,21 @@ function CallbackContent() {
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-zinc-400 font-sans">
       <div className="w-8 h-8 border-2 border-zinc-700 border-t-zinc-200 rounded-full animate-spin mb-4" />
-      <p className="text-sm tracking-wide">Completing authentication...</p>
+      <p className="text-sm tracking-wide">Completing authentication</p>
     </div>
   );
 }
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-zinc-400 font-sans">
-        <div className="w-8 h-8 border-2 border-zinc-700 border-t-zinc-200 rounded-full animate-spin mb-4" />
-        <p className="text-sm tracking-wide">Loading callback...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-zinc-400 font-sans">
+          <div className="w-8 h-8 border-2 border-zinc-700 border-t-zinc-200 rounded-full animate-spin mb-4" />
+          <p className="text-sm tracking-wide">Loading callback</p>
+        </div>
+      }
+    >
       <CallbackContent />
     </Suspense>
   );

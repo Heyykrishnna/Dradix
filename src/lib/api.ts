@@ -2,7 +2,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api/v1
 
 let accessTokenInMemory: string | null = null;
 
-// Get token from memory or fallback to localStorage (for persistence across tab reloads)
 export const getAccessToken = (): string | null => {
   if (accessTokenInMemory) return accessTokenInMemory;
   if (typeof window !== 'undefined') {
@@ -35,7 +34,6 @@ export async function apiFetch<T = unknown>(path: string, options: FetchOptions 
     requestHeaders.set('Content-Type', 'application/json');
   }
 
-  // Attach access token
   const token = getAccessToken();
   if (token && !skipAuth) {
     requestHeaders.set('Authorization', `Bearer ${token}`);
@@ -44,12 +42,11 @@ export async function apiFetch<T = unknown>(path: string, options: FetchOptions 
   const fetchOptions: RequestInit = {
     ...rest,
     headers: requestHeaders,
-    credentials: 'include', // Crucial for HttpOnly cookies
+    credentials: 'include',
   };
 
   let response = await fetch(url, fetchOptions);
 
-  // If 401 Unauthorized, try to refresh the token once
   if (response.status === 401 && !skipAuth && path !== '/auth/refresh') {
     try {
       const refreshResponse = await fetch(`${API_URL}/auth/refresh`, {
@@ -64,16 +61,13 @@ export async function apiFetch<T = unknown>(path: string, options: FetchOptions 
         
         if (newAccessToken) {
           setAccessToken(newAccessToken);
-          // Retry the request with the new access token
           requestHeaders.set('Authorization', `Bearer ${newAccessToken}`);
           response = await fetch(url, fetchOptions);
         }
       } else {
-        // Refresh token expired or invalid, log out
         setAccessToken(null);
       }
-    } catch (err) {
-      console.error('Failed to auto-refresh token:', err);
+    } catch {
       setAccessToken(null);
     }
   }

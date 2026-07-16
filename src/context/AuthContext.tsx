@@ -12,7 +12,6 @@ interface AuthContextType {
   register: (data: {
     email: string;
     username: string;
-    password_hash?: string; // mapping to password for server
     password?: string;
     first_name?: string;
     last_name?: string;
@@ -23,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const PUBLIC_ROUTES = ["/", "/auth", "/coming-soon", "/auth/callback"];
+const PUBLIC_ROUTES = ["/", "/auth", "/coming-soon", "/auth/callback", "/auth/verify"];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SafeUser | null>(null);
@@ -70,7 +69,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Route guarding based on auth status
   useEffect(() => {
     if (loading) return;
 
@@ -85,7 +83,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.replace("/auth");
       }
     } else {
-      // User is authenticated
       if (!isOnboarded && pathname !== "/onboarding" && !isPublicRoute) {
         router.replace("/onboarding");
       } else if (isOnboarded && (pathname === "/auth" || pathname === "/onboarding")) {
@@ -99,9 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const res = await apiFetch<
-        ApiResponse<{ user: SafeUser; accessToken: string }>
-      >("/auth/login", {
+      const res = await apiFetch<ApiResponse<{ user: SafeUser; accessToken: string }>>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
@@ -128,19 +123,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }) => {
     setLoading(true);
     try {
-      const res = await apiFetch<
-        ApiResponse<{ user: SafeUser; accessToken: string }>
-      >("/auth/register", {
+      await apiFetch<ApiResponse<{ email: string }>>("/auth/register", {
         method: "POST",
         body: JSON.stringify(data),
       });
-      if (res.data?.accessToken) {
-        setAccessToken(res.data.accessToken);
-      }
-      if (res.data?.user) {
-        setUser(res.data.user);
-      }
-      router.push("/onboarding");
     } catch (err) {
       throw err;
     } finally {
@@ -153,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await apiFetch<ApiResponse<null>>("/auth/logout", { method: "POST" });
     } catch (err) {
-      console.error("Logout error on server:", err);
+      console.error(err);
     } finally {
       setAccessToken(null);
       setUser(null);
