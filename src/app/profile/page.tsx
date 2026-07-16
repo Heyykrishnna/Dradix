@@ -24,7 +24,8 @@ import {
   FaUserPlus,
   FaHashtag,
   FaUserMinus,
-  FaUserCheck,
+  FaChevronDown,
+  FaList,
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -46,6 +47,123 @@ import {
   SkillLevel,
   Skill,
 } from "@/context/SkillsContext";
+
+export interface Follower {
+  id: string;
+  name: string;
+  username: string;
+  avatarText: string;
+  bio?: string;
+  color: string;
+}
+
+export interface FollowingItem {
+  id: string;
+  type: "person" | "topic";
+  name: string;
+  username?: string;
+  avatarText?: string;
+  color?: string;
+  bio?: string;
+  category?: string;
+}
+
+const initialFollowers: Follower[] = [
+  {
+    id: "f1",
+    name: "Priya Sharma",
+    username: "priya_codes",
+    avatarText: "PS",
+    bio: "Senior Frontend Engineer at Stripe",
+    color: "#6366f1",
+  },
+  {
+    id: "f2",
+    name: "Karan Dev",
+    username: "karandev",
+    avatarText: "KD",
+    bio: "Fullstack Developer · Building in Public",
+    color: "#059669",
+  },
+  {
+    id: "f3",
+    name: "Sanya Malhotra",
+    username: "sanya_ai",
+    avatarText: "SM",
+    bio: "ML Engineer · NLP Researcher",
+    color: "#7c3aed",
+  },
+];
+
+const initialFollowing: FollowingItem[] = [
+  {
+    id: "l1",
+    type: "person",
+    name: "Priya Sharma",
+    username: "priya_codes",
+    avatarText: "PS",
+    bio: "Senior Frontend Engineer at Stripe",
+    color: "#6366f1",
+  },
+  {
+    id: "l2",
+    type: "person",
+    name: "Karan Dev",
+    username: "karandev",
+    avatarText: "KD",
+    bio: "Fullstack Developer · Building in Public",
+    color: "#059669",
+  },
+  {
+    id: "l3",
+    type: "topic",
+    name: "Next.js",
+    category: "Framework",
+    color: "#000000",
+  },
+  {
+    id: "l4",
+    type: "topic",
+    name: "Rust",
+    category: "Language",
+    color: "#dea584",
+  },
+];
+
+const initialSuggestions = [
+  {
+    type: "person",
+    name: "Lee Robinson",
+    username: "leeerob",
+    avatarText: "LR",
+    color: "#3b82f6",
+    bio: "VP @ Vercel",
+  },
+  {
+    type: "person",
+    name: "Theo Browne",
+    username: "t3dotgg",
+    avatarText: "TB",
+    color: "#7c3aed",
+    bio: "Creator of T3 Stack",
+  },
+  {
+    type: "person",
+    name: "Anthony Fu",
+    username: "antfu7",
+    avatarText: "AF",
+    color: "#059669",
+    bio: "Open Source Dev",
+  },
+  { type: "topic", name: "TypeScript", category: "Language", color: "#3178c6" },
+  {
+    type: "topic",
+    name: "Tailwind CSS",
+    category: "Styling",
+    color: "#38bdf8",
+  },
+  { type: "topic", name: "Docker", category: "DevOps", color: "#2496ed" },
+];
 
 interface Experience {
   company: string;
@@ -287,6 +405,18 @@ export default function ProfilePage() {
   const hasChanges =
     isEditing && JSON.stringify(profile) !== JSON.stringify(formState);
   const [newTechTag, setNewTechTag] = useState("");
+
+  const [followers] = useState<Follower[]>(initialFollowers);
+  const [following, setFollowing] = useState<FollowingItem[]>(initialFollowing);
+  const [networkTab, setNetworkTab] = useState<"following" | "followers">(
+    "following",
+  );
+  const [followingFilter, setFollowingFilter] = useState<
+    "all" | "people" | "topic"
+  >("all");
+  const [followInput, setFollowInput] = useState("");
+  const [followType, setFollowType] = useState<"person" | "topic">("person");
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [activeModal, setActiveModal] = useState<
     | "settings"
     | "bookmarks"
@@ -294,6 +424,7 @@ export default function ProfilePage() {
     | "rewards"
     | "verification"
     | "domain"
+    | "network"
     | null
   >(null);
 
@@ -610,6 +741,136 @@ export default function ProfilePage() {
     }
   };
 
+  const handleFollowNew = () => {
+    if (!followInput.trim()) return;
+
+    if (followType === "person") {
+      const cleanName = followInput.replace(/^@/, "").trim();
+      const username = cleanName.toLowerCase().replace(/\s+/g, "");
+      if (
+        following.some((f) => f.type === "person" && f.username === username)
+      ) {
+        alert(`You are already following @${username}`);
+        return;
+      }
+
+      const initials =
+        cleanName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .substring(0, 2) || "U";
+
+      const newItem: FollowingItem = {
+        id: `person-${username}`,
+        type: "person",
+        name: cleanName,
+        username,
+        avatarText: initials,
+        color: "#0891b2",
+        bio: "Developer in Network",
+      };
+
+      setFollowing([...following, newItem]);
+    } else {
+      const cleanTopic = followInput.replace(/^#/, "").trim();
+      if (
+        following.some(
+          (f) =>
+            f.type === "topic" &&
+            f.name.toLowerCase() === cleanTopic.toLowerCase(),
+        )
+      ) {
+        alert(`You are already following topic #${cleanTopic}`);
+        return;
+      }
+
+      const newItem: FollowingItem = {
+        id: `topic-${cleanTopic.toLowerCase()}`,
+        type: "topic",
+        name: cleanTopic,
+        category: "Interest",
+        color: "#6b7280",
+      };
+
+      setFollowing([...following, newItem]);
+    }
+    setFollowInput("");
+  };
+
+  const handleUnfollow = (id: string) => {
+    setFollowing(following.filter((item) => item.id !== id));
+  };
+
+  const handleFollowBack = (follower: Follower) => {
+    if (
+      following.some(
+        (f) => f.type === "person" && f.username === follower.username,
+      )
+    ) {
+      return;
+    }
+    const newItem: FollowingItem = {
+      id: follower.id,
+      type: "person",
+      name: follower.name,
+      username: follower.username,
+      avatarText: follower.avatarText,
+      color: follower.color,
+      bio: follower.bio,
+    };
+    setFollowing([...following, newItem]);
+  };
+
+  interface SuggestionItem {
+    type: string;
+    name: string;
+    username?: string;
+    avatarText?: string;
+    color?: string;
+    bio?: string;
+    category?: string;
+  }
+
+  const handleQuickFollowSuggestion = (item: SuggestionItem) => {
+    if (item.type === "person") {
+      if (
+        following.some(
+          (f) => f.type === "person" && f.username === item.username,
+        )
+      )
+        return;
+      const newItem: FollowingItem = {
+        id: `person-${item.username || ""}`,
+        type: "person",
+        name: item.name,
+        username: item.username || "",
+        avatarText: item.avatarText || "",
+        color: item.color || "#0891b2",
+        bio: item.bio || "",
+      };
+      setFollowing([...following, newItem]);
+    } else {
+      if (
+        following.some(
+          (f) =>
+            f.type === "topic" &&
+            f.name.toLowerCase() === item.name.toLowerCase(),
+        )
+      )
+        return;
+      const newItem: FollowingItem = {
+        id: `topic-${item.name.toLowerCase()}`,
+        type: "topic",
+        name: item.name,
+        category: item.category,
+        color: item.color,
+      };
+      setFollowing([...following, newItem]);
+    }
+  };
+
   const radialData = [
     {
       name: "Activity",
@@ -753,9 +1014,38 @@ export default function ProfilePage() {
                 <p className="text-[13px] font-semibold text-zinc-400 mt-1">
                   {profile.subtitle}
                 </p>
-                <p className="text-[13px] text-zinc-600 mt-2 max-w-xl">
+                <p className="text-[13px] text-zinc-650 mt-2 max-w-xl">
                   {profile.bio}
                 </p>
+                <div className="flex items-center gap-3 mt-3.5 text-[12px] text-zinc-500 font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNetworkTab("followers");
+                      setActiveModal("network");
+                    }}
+                    className="hover:text-black hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <span className="font-black text-zinc-900">
+                      {followers.length}
+                    </span>
+                    <span className="text-zinc-500">followers</span>
+                  </button>
+                  <span className="text-zinc-300 font-light">•</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNetworkTab("following");
+                      setActiveModal("network");
+                    }}
+                    className="hover:text-black hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <span className="font-black text-zinc-900">
+                      {following.length}
+                    </span>
+                    <span className="text-zinc-500">following</span>
+                  </button>
+                </div>
               </>
             )}
           </div>
@@ -1070,7 +1360,7 @@ export default function ProfilePage() {
               </span>
             </div>
 
-            <div className="flex gap-8 border-b border-zinc-800 pb-3">
+            <div className="flex gap-6 border-b border-zinc-800 pb-3">
               <div>
                 <p className="text-[20px] font-extrabold text-white leading-none">
                   2{" "}
@@ -1084,13 +1374,18 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-[20px] font-extrabold text-white leading-none">
-                  2{" "}
-                  <span className="text-[11px] font-bold text-rose-500">
-                    ↓ 2
-                  </span>
+                  {followers.length}
                 </p>
                 <p className="text-[10px] font-bold text-zinc-400 mt-1.5">
                   Followers
+                </p>
+              </div>
+              <div>
+                <p className="text-[20px] font-extrabold text-white leading-none">
+                  {following.length}
+                </p>
+                <p className="text-[10px] font-bold text-zinc-400 mt-1.5">
+                  Following
                 </p>
               </div>
             </div>
@@ -1830,13 +2125,19 @@ export default function ProfilePage() {
                                        [&::-webkit-slider-thumb]:rounded-full 
                                        [&::-webkit-slider-thumb]:bg-black 
                                        [&::-webkit-slider-thumb]:shadow-sm
+                                       [&::-webkit-slider-thumb]:transition-all
+                                       [&::-webkit-slider-thumb]:duration-200
+                                       [&::-webkit-slider-thumb]:hover:scale-110
                                        [&::-moz-range-thumb]:appearance-none 
                                        [&::-moz-range-thumb]:w-5 
                                        [&::-moz-range-thumb]:h-5 
                                        [&::-moz-range-thumb]:rounded-full 
                                        [&::-moz-range-thumb]:bg-black 
                                        [&::-moz-range-thumb]:border-0 
-                                       [&::-moz-range-thumb]:shadow-sm"
+                                       [&::-moz-range-thumb]:shadow-sm
+                                       [&::-moz-range-thumb]:transition-all
+                                       [&::-moz-range-thumb]:duration-200
+                                       [&::-moz-range-thumb]:hover:scale-110"
                             style={{
                               background: `linear-gradient(to right, ${s.color} 0%, ${s.color} ${s.pct}%, #e4e4e7 ${s.pct}%, #e4e4e7 100%)`,
                             }}
@@ -2502,8 +2803,549 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {activeModal === "network" && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out text-left">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col animate-scale-in text-left max-h-[85vh]">
+            <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
+              <div className="relative grid grid-cols-2 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1 w-56 select-none shrink-0">
+                <div
+                  className={`absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-out shadow-xs w-[106px] ${
+                    networkTab === "following"
+                      ? "left-1 translate-x-0"
+                      : "left-1 translate-x-[110px]"
+                  }`}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setNetworkTab("following")}
+                  className={`relative z-10 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[12px] font-bold transition-colors duration-300 cursor-pointer ${
+                    networkTab === "following"
+                      ? "text-white"
+                      : "text-zinc-500 hover:text-zinc-900"
+                  }`}
+                >
+                  <span>Following</span>
+                  <span
+                    className={`px-1.5 py-0.5 text-[9px] rounded-md transition-all duration-300 ${
+                      networkTab === "following"
+                        ? "bg-zinc-800 text-white font-bold"
+                        : "bg-zinc-200 text-zinc-650"
+                    }`}
+                  >
+                    {following.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setNetworkTab("followers")}
+                  className={`relative z-10 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[12px] font-bold transition-colors duration-300 cursor-pointer ${
+                    networkTab === "followers"
+                      ? "text-white"
+                      : "text-zinc-500 hover:text-zinc-900"
+                  }`}
+                >
+                  <span>Followers</span>
+                  <span
+                    className={`px-1.5 py-0.5 text-[9px] rounded-md transition-all duration-300 ${
+                      networkTab === "followers"
+                        ? "bg-zinc-800 text-white font-bold"
+                        : "bg-zinc-200 text-zinc-650"
+                    }`}
+                  >
+                    {followers.length}
+                  </span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-50 rounded-xl transition-all duration-300 ease-in-out hover:scale-110 active:scale-90 cursor-pointer"
+              >
+                <FaXmark className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 overflow-y-auto h-[480px] shrink-0 scrollbar-thin transition-all duration-300">
+              {networkTab === "following" && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="space-y-4 pt-1">
+                    <div className="relative grid grid-cols-3 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1 w-64 select-none shrink-0">
+                      <div
+                        className={`absolute top-1 bottom-1 bg-zinc-900 rounded-lg transition-all duration-300 ease-out shadow-xs w-[80px] ${
+                          followingFilter === "all"
+                            ? "left-1 translate-x-0"
+                            : followingFilter === "people"
+                              ? "left-1 translate-x-[84px]"
+                              : "left-1 translate-x-[168px]"
+                        }`}
+                      />
+                      {(["all", "people", "topic"] as const).map((filter) => (
+                        <button
+                          key={filter}
+                          type="button"
+                          onClick={() => setFollowingFilter(filter)}
+                          className={`relative z-10 flex items-center justify-center py-1 rounded-lg text-[10px] font-bold transition-colors duration-300 cursor-pointer ${
+                            followingFilter === filter
+                              ? "text-white"
+                              : "text-zinc-500 hover:text-zinc-900"
+                          }`}
+                        >
+                          {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="p-4 bg-zinc-50 border border-dashed border-zinc-200 rounded-2xl space-y-3">
+                      <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest text-left">
+                        Follow a new Person or Topic
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="relative grid grid-cols-2 bg-white border border-zinc-200 rounded-xl p-1 gap-1 w-32 select-none shrink-0">
+                          <div
+                            className={`absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-out shadow-xs w-[58px] ${
+                              followType === "person"
+                                ? "left-1 translate-x-0"
+                                : "left-1 translate-x-[62px]"
+                            }`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFollowType("person")}
+                            className={`relative z-10 flex items-center justify-center py-1 rounded-lg text-[10px] font-bold transition-colors duration-300 cursor-pointer ${
+                              followType === "person"
+                                ? "text-white"
+                                : "text-zinc-500 hover:text-zinc-900"
+                            }`}
+                          >
+                            Person
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFollowType("topic")}
+                            className={`relative z-10 flex items-center justify-center py-1 rounded-lg text-[10px] font-bold transition-colors duration-300 cursor-pointer ${
+                              followType === "topic"
+                                ? "text-white"
+                                : "text-zinc-500 hover:text-zinc-900"
+                            }`}
+                          >
+                            Topic
+                          </button>
+                        </div>
+
+                        <div className="flex-1 relative">
+                          <input
+                            type="text"
+                            placeholder={
+                              followType === "person"
+                                ? "Enter name or @username..."
+                                : "Enter topic name (e.g. Next.js, Rust)..."
+                            }
+                            value={followInput}
+                            onChange={(e) => setFollowInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleFollowNew();
+                              }
+                            }}
+                            className="w-full rounded-xl border border-dashed border-zinc-200 px-3 py-2 text-[11px] text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-medium transition-all duration-305"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleFollowNew}
+                          className="px-4 py-2 bg-black text-white hover:bg-zinc-800 active:scale-[0.96] rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 shrink-0 transition-all duration-300 ease-in-out cursor-pointer"
+                        >
+                          <FaPlus className="w-3 h-3" />
+                          <span>Follow</span>
+                        </button>
+                      </div>
+
+                      {initialSuggestions.filter(
+                        (s) =>
+                          !following.some(
+                            (f) =>
+                              f.name.toLowerCase() === s.name.toLowerCase() ||
+                              (f.type === "person" &&
+                                s.type === "person" &&
+                                f.username === s.username),
+                          ),
+                      ).length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1 text-left">
+                          <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mr-1.5">
+                            Quick Suggestions:
+                          </span>
+                          {initialSuggestions
+                            .filter(
+                              (s) =>
+                                !following.some(
+                                  (f) =>
+                                    f.name.toLowerCase() ===
+                                      s.name.toLowerCase() ||
+                                    (f.type === "person" &&
+                                      s.type === "person" &&
+                                      f.username === s.username),
+                                ),
+                            )
+                            .slice(0, 3)
+                            .map((item, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() =>
+                                  handleQuickFollowSuggestion(item)
+                                }
+                                className="text-[10px] font-bold text-zinc-655 bg-white hover:bg-zinc-100 border border-zinc-200 px-2.5 py-1 rounded-lg transition-all duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1 cursor-pointer"
+                              >
+                                {item.type === "topic" ? (
+                                  <FaHashtag className="w-2.5 h-2.5 text-zinc-400" />
+                                ) : (
+                                  <span className="text-zinc-400 font-normal">
+                                    @
+                                  </span>
+                                )}
+                                <span>{item.name}</span>
+                                <FaPlus className="w-2 h-2 text-zinc-400" />
+                              </button>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {following.filter((f) => {
+                    if (followingFilter === "people")
+                      return f.type === "person";
+                    if (followingFilter === "topic") return f.type === "topic";
+                    return true;
+                  }).length === 0 ? (
+                    <div className="py-8 text-center border border-dashed border-zinc-200 rounded-2xl animate-fade-in">
+                      <p className="text-[12px] font-semibold text-zinc-400">
+                        No connections or interests found
+                      </p>
+                      <p className="text-[10px] text-zinc-400 mt-1">
+                        Use the panel above to follow topics or people!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 animate-fade-in">
+                      {following
+                        .filter((f) => {
+                          if (followingFilter === "people")
+                            return f.type === "person";
+                          if (followingFilter === "topic")
+                            return f.type === "topic";
+                          return true;
+                        })
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-4 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 flex flex-col justify-between text-left transition-all duration-300 hover:bg-zinc-100/50 hover:shadow-xs min-h-[145px]"
+                          >
+                            <div className="flex items-start justify-between w-full gap-2">
+                              <div className="relative">
+                                {item.type === "person" ? (
+                                  <div
+                                    className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[12px] font-black shrink-0 shadow-xs"
+                                    style={{
+                                      backgroundColor: item.color || "#0891b2",
+                                    }}
+                                  >
+                                    {item.avatarText}
+                                  </div>
+                                ) : (
+                                  <div
+                                    className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-750 bg-zinc-100 border border-dashed border-zinc-200 shrink-0"
+                                    style={{
+                                      borderColor: item.color || "#e4e4e7",
+                                    }}
+                                  >
+                                    <FaHashtag className="w-3.5 h-3.5" />
+                                  </div>
+                                )}
+                                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border border-white flex items-center justify-center text-[7px] text-white select-none">
+                                  ✓
+                                </span>
+                              </div>
+
+                              <div className="relative">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveDropdownId(
+                                      activeDropdownId === item.id
+                                        ? null
+                                        : item.id,
+                                    );
+                                  }}
+                                  className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-200 rounded-xl transition-all duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
+                                >
+                                  <span>Following</span>
+                                  <FaChevronDown className="w-2.5 h-2.5 text-zinc-500" />
+                                </button>
+
+                                {activeDropdownId === item.id && (
+                                  <>
+                                    <div
+                                      className="fixed inset-0 z-10"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setActiveDropdownId(null);
+                                      }}
+                                    />
+                                    <div className="absolute right-0 mt-1.5 w-44 bg-white border border-zinc-200 shadow-xl rounded-xl p-1 z-20 animate-scale-in text-left">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          alert(
+                                            "List management feature coming soon!",
+                                          );
+                                          setActiveDropdownId(null);
+                                        }}
+                                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[10px] font-bold text-zinc-700 hover:bg-zinc-50 rounded-lg transition-colors cursor-pointer"
+                                      >
+                                        <FaList className="w-3.5 h-3.5 text-zinc-500" />
+                                        <span>Add/Remove from list</span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          navigator.clipboard.writeText(
+                                            `https://dradix.dev/${item.type === "person" ? item.username : item.name.toLowerCase()}`,
+                                          );
+                                          alert(
+                                            "Profile URL copied to clipboard!",
+                                          );
+                                          setActiveDropdownId(null);
+                                        }}
+                                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[10px] font-bold text-zinc-700 hover:bg-zinc-50 rounded-lg transition-colors cursor-pointer"
+                                      >
+                                        <FaLink className="w-3.5 h-3.5 text-zinc-500" />
+                                        <span>Copy profile URL</span>
+                                      </button>
+
+                                      <div className="h-px bg-zinc-100 my-1" />
+
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleUnfollow(item.id);
+                                          setActiveDropdownId(null);
+                                        }}
+                                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[10px] font-bold text-red-655 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                      >
+                                        <FaUserMinus className="w-3.5 h-3.5 text-red-500" />
+                                        <span>Unfollow</span>
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="mt-3.5 flex-1 flex flex-col justify-end">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-[12.5px] font-extrabold text-zinc-900 truncate font-heading leading-tight">
+                                  {item.name}
+                                </span>
+                                {item.type === "topic" && (
+                                  <span className="text-[8px] font-bold text-[#005c58] bg-[#005c58]/10 px-1.5 py-0.5 rounded shrink-0">
+                                    {item.category || "Topic"}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10.5px] text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                                {item.type === "person"
+                                  ? `@${item.username} · ${item.bio}`
+                                  : "Interested topic"}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {networkTab === "followers" && (
+                <div className="space-y-4 animate-fade-in">
+                  {followers.length === 0 ? (
+                    <div className="py-8 text-center border border-dashed border-zinc-200 rounded-2xl animate-fade-in">
+                      <p className="text-[12px] font-semibold text-zinc-400">
+                        No followers yet
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 animate-fade-in">
+                      {followers.map((follower) => {
+                        const isFollowing = following.some(
+                          (f) =>
+                            f.type === "person" &&
+                            f.username === follower.username,
+                        );
+
+                        return (
+                          <div
+                            key={follower.id}
+                            className="p-4 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 flex flex-col justify-between text-left transition-all duration-300 hover:bg-zinc-100/50 hover:shadow-xs min-h-[145px]"
+                          >
+                            <div className="flex items-start justify-between w-full gap-2">
+                              <div className="relative">
+                                <div
+                                  className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[12px] font-black shrink-0 shadow-xs"
+                                  style={{ backgroundColor: follower.color }}
+                                >
+                                  {follower.avatarText}
+                                </div>
+                                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border border-white flex items-center justify-center text-[7px] text-white select-none">
+                                  ✓
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {isFollowing ? (
+                                  <div className="relative">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setActiveDropdownId(
+                                          activeDropdownId === follower.id
+                                            ? null
+                                            : follower.id,
+                                        );
+                                      }}
+                                      className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-200 rounded-xl transition-all duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
+                                    >
+                                      <span>Following</span>
+                                      <FaChevronDown className="w-2.5 h-2.5 text-zinc-500" />
+                                    </button>
+
+                                    {activeDropdownId === follower.id && (
+                                      <>
+                                        <div
+                                          className="fixed inset-0 z-10"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setActiveDropdownId(null);
+                                          }}
+                                        />
+                                        <div className="absolute right-0 mt-1.5 w-44 bg-white border border-zinc-200 shadow-xl rounded-xl p-1 z-20 animate-scale-in text-left">
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              alert(
+                                                "List management feature coming soon!",
+                                              );
+                                              setActiveDropdownId(null);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[10px] font-bold text-zinc-700 hover:bg-zinc-50 rounded-lg transition-colors cursor-pointer"
+                                          >
+                                            <FaList className="w-3.5 h-3.5 text-zinc-500" />
+                                            <span>Add/Remove from list</span>
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              navigator.clipboard.writeText(
+                                                `https://dradix.dev/${follower.username}`,
+                                              );
+                                              alert(
+                                                "Profile URL copied to clipboard!",
+                                              );
+                                              setActiveDropdownId(null);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[10px] font-bold text-zinc-700 hover:bg-zinc-50 rounded-lg transition-colors cursor-pointer"
+                                          >
+                                            <FaLink className="w-3.5 h-3.5 text-zinc-500" />
+                                            <span>Copy profile URL</span>
+                                          </button>
+
+                                          <div className="h-px bg-zinc-100 my-1" />
+
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              const followingItem =
+                                                following.find(
+                                                  (f) =>
+                                                    f.type === "person" &&
+                                                    f.username ===
+                                                      follower.username,
+                                                );
+                                              if (followingItem) {
+                                                handleUnfollow(
+                                                  followingItem.id,
+                                                );
+                                              }
+                                              setActiveDropdownId(null);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[10px] font-bold text-red-655 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                          >
+                                            <FaUserMinus className="w-3.5 h-3.5 text-red-500" />
+                                            <span>Unfollow</span>
+                                          </button>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleFollowBack(follower)}
+                                    className="px-3 py-1 text-[10px] font-bold bg-black text-white hover:bg-zinc-805 active:scale-[0.96] rounded-xl transition-all duration-300 ease-in-out cursor-pointer"
+                                  >
+                                    Follow back
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="mt-3.5 flex-1 flex flex-col justify-end">
+                              <span className="text-[12.5px] font-extrabold text-zinc-900 truncate font-heading leading-tight">
+                                {follower.name}
+                              </span>
+                              <p className="text-[10.5px] text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                                @{follower.username} · {follower.bio}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className="px-4 py-2 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-all duration-300 ease-in-out hover:scale-[1.02] active:scale-[0.98] border border-zinc-200 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Dynamic Modals Overlay */}
-      {activeModal && (
+      {activeModal && activeModal !== "network" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all">
           <div className="bg-[#161616] border border-zinc-800 text-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative space-y-4 text-left">
             {/* Modal Header */}
