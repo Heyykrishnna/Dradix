@@ -148,6 +148,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#101010] flex items-center justify-center text-zinc-500 font-sans text-sm tracking-wider">
+        Loading
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider
       value={{ user, loading, login, register, logout, checkAuth }}
