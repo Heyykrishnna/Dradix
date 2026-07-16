@@ -3091,8 +3091,9 @@ export default function ProfilePage() {
 
                                 {activeDropdownId === item.id && (
                                   <>
-                                    <div
-                                      className="fixed inset-0 z-10"
+                                    <button
+                                      type="button"
+                                      className="fixed inset-0 z-10 w-full h-full cursor-default bg-transparent"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setActiveDropdownId(null);
@@ -3232,8 +3233,9 @@ export default function ProfilePage() {
 
                                     {activeDropdownId === follower.id && (
                                       <>
-                                        <div
-                                          className="fixed inset-0 z-10"
+                                        <button
+                                          type="button"
+                                          className="fixed inset-0 z-10 w-full h-full cursor-default bg-transparent"
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             setActiveDropdownId(null);
