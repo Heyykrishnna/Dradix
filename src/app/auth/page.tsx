@@ -53,7 +53,9 @@ function AuthFormContent() {
         await login(email, password);
       } else {
         const baseUsername = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "");
-        const randomNum = Math.floor(100 + Math.random() * 900);
+        const array = new Uint32Array(1);
+        window.crypto.getRandomValues(array);
+        const randomNum = 100 + (array[0] % 900);
         const username = `${baseUsername}${randomNum}`;
 
         await register({
