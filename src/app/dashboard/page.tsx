@@ -629,8 +629,11 @@ export default function DashboardPage() {
     };
 
     if (projectModalType === "add") {
+      const randomArray = new Uint32Array(1);
+      window.crypto.getRandomValues(randomArray);
+      const secureIdNum = 100000000 + (randomArray[0] % 900000000);
       const newProj = {
-        id: `#${Math.floor(100000000 + Math.random() * 900000000)}`,
+        id: `#${secureIdNum}`,
         name: projectFormState.name,
         creator: "Yatharth K.",
         stack: projectFormState.stack || "HTML, CSS",
