@@ -39,6 +39,7 @@ import {
   Cell,
   LineChart,
   Line,
+  LabelList,
 } from "recharts";
 
 import {
@@ -388,12 +389,162 @@ const initialProfile: Omit<ProfileState, "skills"> = {
 };
 
 const weeklyActivityData = [
-  { day: "09. Mo.", commits: 800, problems: 1450 },
-  { day: "10. Tue.", commits: 550, problems: 920 },
-  { day: "11. Wed.", commits: 600, problems: 1200 },
-  { day: "12. Thu.", commits: 450, problems: 880 },
-  { day: "13. Fri.", commits: 620, problems: 1280 },
+  { day: "Mon", commits: 800, problems: 1450, total: 2250, percentage: 14.5 },
+  { day: "Tue", commits: 1200, problems: 2800, total: 4000, percentage: 28.0 },
+  { day: "Wed", commits: 900, problems: 2100, total: 3000, percentage: 22.0 },
+  { day: "Thu", commits: 700, problems: 1600, total: 2300, percentage: 16.2 },
+  { day: "Fri", commits: 500, problems: 1100, total: 1600, percentage: 11.7 },
+  { day: "Sat", commits: 200, problems: 450, total: 650, percentage: 4.6 },
+  { day: "Sun", commits: 150, problems: 250, total: 400, percentage: 3.0 },
 ];
+
+const CustomTick = (props: any) => {
+  const { x, y, payload, index, activeIndex } = props;
+  const isActive = index === activeIndex;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      {isActive ? (
+        <rect x={-22} y={6} width={44} height={18} rx={9} fill="#18181b" />
+      ) : null}
+      <text
+        x={0}
+        y={isActive ? 18 : 19}
+        textAnchor="middle"
+        fill={isActive ? "#ffffff" : "#a1a1aa"}
+        fontSize={10}
+        fontWeight={isActive ? 700 : 500}
+      >
+        {payload.value}
+      </text>
+    </g>
+  );
+};
+
+const CustomLabel = (props: any) => {
+  const { x, y, width, value, index, activeIndex } = props;
+  const isActive = index === activeIndex;
+  return (
+    <text
+      x={x + width / 2}
+      y={y - 8}
+      fill={isActive ? "#18181b" : "#a1a1aa"}
+      fontSize={10}
+      fontWeight={isActive ? 700 : 500}
+      textAnchor="middle"
+    >
+      {value}%
+    </text>
+  );
+};
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white/95 backdrop-blur-md border border-zinc-200/80 shadow-lg rounded-2xl p-3.5 text-[11px] text-zinc-700 min-w-[160px] transition-all duration-200">
+        <p className="font-bold text-zinc-900 text-[12px] mb-2 border-b border-zinc-100 pb-1.5 flex items-center justify-between">
+          <span>{data.day} Stats</span>
+          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#005c58]/10 text-[#005c58]">
+            {data.percentage}%
+          </span>
+        </p>
+        <div className="space-y-1.5">
+          <div className="flex justify-between items-center font-medium">
+            <span className="text-zinc-500 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#005c58]" />
+              Commits
+            </span>
+            <span className="font-bold text-zinc-900">{data.commits}</span>
+          </div>
+          <div className="flex justify-between items-center font-medium">
+            <span className="text-zinc-500 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00c9a7]" />
+              PRs & Issues
+            </span>
+            <span className="font-bold text-zinc-900">{data.problems}</span>
+          </div>
+          <div className="flex justify-between items-center font-semibold pt-1.5 border-t border-zinc-100 mt-1.5">
+            <span className="text-zinc-800">Total</span>
+            <span className="font-extrabold text-zinc-950">{data.total}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const ActivityStatsChart = () => {
+  const [activeDayIndex, setActiveDayIndex] = useState<number>(1);
+
+  return (
+    <div className="h-56 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={weeklyActivityData}
+          margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
+          onMouseMove={(state) => {
+            if (
+              state &&
+              typeof state.activeTooltipIndex === "number" &&
+              state.activeTooltipIndex !== activeDayIndex
+            ) {
+              setActiveDayIndex(state.activeTooltipIndex);
+            }
+          }}
+        >
+          <defs>
+            <linearGradient id="activeActivityGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#00c9a7" />
+              <stop offset="100%" stopColor="#005c58" />
+            </linearGradient>
+            <linearGradient
+              id="inactiveActivityGrad"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+            >
+              <stop offset="0%" stopColor="#00c9a7" stopOpacity={0.12} />
+              <stop offset="100%" stopColor="#005c58" stopOpacity={0.12} />
+            </linearGradient>
+          </defs>
+          <XAxis
+            dataKey="day"
+            tickLine={false}
+            axisLine={false}
+            tick={<CustomTick activeIndex={activeDayIndex} />}
+          />
+          <YAxis hide />
+          <Tooltip cursor={false} content={<CustomTooltip />} />
+          <Bar dataKey="percentage" radius={[5, 5, 5, 5]} maxBarSize={60}>
+            {weeklyActivityData.map((entry, index) => {
+              console.log(entry);
+              const isActive = index === activeDayIndex;
+              return (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={
+                    isActive
+                      ? "url(#activeActivityGrad)"
+                      : "url(#inactiveActivityGrad)"
+                  }
+                  style={{
+                    transition: "fill 0.25s ease, opacity 0.25s ease",
+                  }}
+                />
+              );
+            })}
+            <LabelList
+              dataKey="percentage"
+              content={<CustomLabel activeIndex={activeDayIndex} />}
+            />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
 export default function ProfilePage() {
   const { userSkills, addSkill, removeSkill, updateSkillPct } = useSkills();
@@ -405,6 +556,7 @@ export default function ProfilePage() {
   const hasChanges =
     isEditing && JSON.stringify(profile) !== JSON.stringify(formState);
   const [newTechTag, setNewTechTag] = useState("");
+  const [copiedInvite, setCopiedInvite] = useState(false);
 
   const [followers] = useState<Follower[]>(initialFollowers);
   const [following, setFollowing] = useState<FollowingItem[]>(initialFollowing);
@@ -714,8 +866,6 @@ export default function ProfilePage() {
   ) => {
     if (field === "level") {
       const level = value as SkillLevel;
-      // You can implement change level in context or keep it simple
-      // For now, if we change level, we re-add the skill with new level
       removeSkill(skillName);
       addSkill(skillName, level);
     } else if (field === "pct") {
@@ -1082,9 +1232,7 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-8">
-          {/* 1. Sidebar Navigation Menu Card */}
           <div className="bg-[#161616] rounded-3xl border border-zinc-800 shadow-xl p-5 space-y-4 text-white">
-            {/* Profile Summary Row */}
             <div className="flex items-center gap-3 p-3 bg-zinc-800/40 rounded-2xl border border-zinc-700/50">
               <div className="w-9 h-9 rounded-full overflow-hidden border border-zinc-700 shrink-0">
                 <img
@@ -1103,7 +1251,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Navigation Menu Links */}
             <div className="space-y-1">
               <button
                 type="button"
@@ -1177,7 +1324,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* 2. Contact & Info Card */}
           <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <span className="text-[14px] font-bold text-zinc-900 font-heading">
@@ -1318,7 +1464,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* 3. Profile Analytics Card */}
           <div className="bg-[#161616] rounded-3xl border border-zinc-800 shadow-xl p-5 space-y-4 text-white text-left">
             <div className="flex items-center justify-between">
               <span className="text-[13px] font-extrabold text-white uppercase tracking-wider">
@@ -1359,7 +1504,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Line Chart */}
             <div className="h-28 w-full -ml-3">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
@@ -1416,9 +1560,7 @@ export default function ProfilePage() {
             </a>
           </div>
 
-          {/* 4. Profile Highlights Card */}
           <div className="relative bg-linear-to-br from-zinc-800 to-zinc-950 text-white rounded-3xl border border-zinc-750 shadow-xl p-5 overflow-hidden text-left">
-            {/* Noise overlay */}
             <div
               className="absolute inset-0 pointer-events-none opacity-[0.06] mix-blend-overlay"
               style={{
@@ -1824,12 +1966,8 @@ export default function ProfilePage() {
                   </span>
                   <div className="flex items-center gap-4 mt-1.5">
                     <div className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-500">
-                      <span className="w-2.5 h-2.5 rounded-sm bg-[#3b82f6]" />
-                      <span>Commits</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-500">
-                      <span className="w-2.5 h-2.5 rounded-sm bg-[#c026d3]" />
-                      <span>PRs & Issues</span>
+                      <span className="w-2 h-2 rounded-full bg-linear-to-b from-[#00c9a7] to-[#005c58]" />
+                      <span>Daily Contributions</span>
                     </div>
                   </div>
                 </div>
@@ -1839,47 +1977,7 @@ export default function ProfilePage() {
                 </span>
               </div>
 
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={weeklyActivityData}
-                    barGap={4}
-                    margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
-                  >
-                    <XAxis
-                      dataKey="day"
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fontSize: 10, fontWeight: 600, fill: "#a1a1aa" }}
-                    />
-                    <YAxis
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fontSize: 10, fontWeight: 600, fill: "#a1a1aa" }}
-                    />
-                    <Tooltip
-                      cursor={{ fill: "#f4f4f5" }}
-                      contentStyle={{
-                        borderRadius: "12px",
-                        border: "1px solid #f4f4f5",
-                        fontSize: "11px",
-                      }}
-                    />
-                    <Bar
-                      dataKey="commits"
-                      fill="#3b82f6"
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={16}
-                    />
-                    <Bar
-                      dataKey="problems"
-                      fill="#c026d3"
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={16}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <ActivityStatsChart />
             </div>
 
             <div className="md:col-span-1 bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-5 flex flex-col justify-between">
@@ -1937,7 +2035,6 @@ export default function ProfilePage() {
               </span>
               {isEditing && (
                 <div className="flex items-center gap-2 relative">
-                  {/* Search select container */}
                   <div className="relative">
                     <input
                       type="text"
@@ -3315,11 +3412,9 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Dynamic Modals Overlay */}
       {activeModal && activeModal !== "network" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all">
           <div className="bg-[#161616] border border-zinc-800 text-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative space-y-4 text-left">
-            {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
               <h3 className="text-[14px] font-extrabold uppercase tracking-wider">
                 {activeModal === "bookmarks" && "My Bookmarks"}
@@ -3336,7 +3431,6 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            {/* Modal Content */}
             <div className="py-2 text-[12.5px] leading-relaxed text-zinc-300">
               {activeModal === "bookmarks" && (
                 <div className="space-y-3">
@@ -3399,11 +3493,16 @@ export default function ProfilePage() {
                         navigator.clipboard.writeText(
                           `https://dradix.dev/ref/${profile.username}`,
                         );
-                        alert("Referral link copied to clipboard!");
+                        setCopiedInvite(true);
+                        setTimeout(() => setCopiedInvite(false), 2000);
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-[#00c9a7] text-black font-bold text-[10px] hover:bg-[#00b89a] transition-colors cursor-pointer"
+                      className={`px-3 py-1.5 rounded-lg font-bold text-[10px] transition-all duration-300 cursor-pointer ${
+                        copiedInvite
+                          ? "bg-zinc-800 text-[#00c9a7] border border-[#00c9a7]/30"
+                          : "bg-[#00c9a7] text-black hover:bg-[#00b89a]"
+                      }`}
                     >
-                      Copy
+                      {copiedInvite ? "Copied" : "Copy"}
                     </button>
                   </div>
                   <div className="flex justify-between text-[11px] text-zinc-500 pt-2 border-t border-zinc-800/65">
@@ -3531,7 +3630,6 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Modal Footer */}
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setActiveModal(null)}

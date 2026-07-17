@@ -1007,6 +1007,7 @@ export default function DashboardPage() {
 
               <div className="flex gap-2 text-[10px] text-zinc-500 overflow-x-auto pb-1">
                 {[
+                  "Jan",
                   "Feb",
                   "Mar",
                   "Apr",
@@ -1017,6 +1018,7 @@ export default function DashboardPage() {
                   "Sep",
                   "Oct",
                   "Nov",
+                  "Dec",
                 ].map((m) => (
                   <span
                     key={m}

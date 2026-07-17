@@ -317,7 +317,7 @@ export default function MainLayout({
                 );
               })}
 
-              <Link
+              {/* <Link
                 href="/dashboard/settings"
                 onMouseEnter={handleMouseLeave}
                 className={`flex items-center justify-center p-2 rounded-lg transition-all ${
@@ -328,7 +328,7 @@ export default function MainLayout({
                 title="Settings"
               >
                 <GearIcon className="w-4 h-4" />
-              </Link>
+              </Link> */}
             </nav>
 
             <div
