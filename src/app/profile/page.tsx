@@ -1217,7 +1217,7 @@ export default function ProfilePage() {
               {isEditing ? (
                 <>
                   <FaLock className="w-3.5 h-3.5" />
-                  <span>Lock Info</span>
+                  <span>Cancel</span>
                 </>
               ) : (
                 <>

@@ -1450,25 +1450,51 @@ export default function DashboardPage() {
                 <h2 className="text-[15px] font-bold text-black tracking-tight font-heading">
                   Projects
                 </h2>
-                <span className="text-[11px] font-bold text-zinc-400 bg-[#f4f4f5] rounded-full px-2 py-0.5">
-                  19 Total
+                <span className="text-[11px] font-bold text-zinc-400 bg-zinc-100 rounded-full px-2 py-0.5">
+                  {initialProjectsList.length} Total
                 </span>
               </div>
 
-              <div className="flex items-center gap-1 bg-[#f4f4f5] rounded-xl p-1">
-                {["All", "Live", "In Progress", "Archived"].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
-                      activeTab === tab
-                        ? "bg-black text-white"
-                        : "text-zinc-500 hover:text-zinc-950"
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
+              <div className="relative grid grid-cols-4 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1 w-full max-w-[440px] select-none shrink-0">
+                <div
+                  className="absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-out shadow-xs"
+                  style={{
+                    width: "calc(25% - 5px)",
+                    left: `calc(${["All", "Live", "In Progress", "Archived"].indexOf(activeTab) * 25}% + ${4 - ["All", "Live", "In Progress", "Archived"].indexOf(activeTab)}px)`,
+                  }}
+                />
+                {["All", "Live", "In Progress", "Archived"].map((tab) => {
+                  const isActive = activeTab === tab;
+                  const count =
+                    tab === "All"
+                      ? initialProjectsList.length
+                      : initialProjectsList.filter((p) => p.status === tab)
+                          .length;
+
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setActiveTab(tab)}
+                      className={`relative z-10 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors duration-300 cursor-pointer ${
+                        isActive
+                          ? "text-white"
+                          : "text-zinc-500 hover:text-zinc-900"
+                      }`}
+                    >
+                      <span>{tab}</span>
+                      <span
+                        className={`px-1.5 py-0.5 text-[8px] sm:text-[9px] rounded-md transition-all duration-300 ${
+                          isActive
+                            ? "bg-zinc-800 text-white font-bold"
+                            : "bg-zinc-200 text-zinc-650"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
