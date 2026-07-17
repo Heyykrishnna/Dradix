@@ -398,8 +398,16 @@ const weeklyActivityData = [
   { day: "Sun", commits: 150, problems: 250, total: 400, percentage: 3.0 },
 ];
 
-const CustomTick = (props: any) => {
-  const { x, y, payload, index, activeIndex } = props;
+interface CustomTickProps {
+  x?: number;
+  y?: number;
+  payload?: { value: string };
+  index?: number;
+  activeIndex?: number;
+}
+
+const CustomTick = (props: CustomTickProps) => {
+  const { x = 0, y = 0, payload, index, activeIndex } = props;
   const isActive = index === activeIndex;
   return (
     <g transform={`translate(${x},${y})`}>
@@ -414,14 +422,23 @@ const CustomTick = (props: any) => {
         fontSize={10}
         fontWeight={isActive ? 700 : 500}
       >
-        {payload.value}
+        {payload?.value}
       </text>
     </g>
   );
 };
 
-const CustomLabel = (props: any) => {
-  const { x, y, width, value, index, activeIndex } = props;
+interface CustomLabelProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  value?: number;
+  index?: number;
+  activeIndex?: number;
+}
+
+const CustomLabel = (props: CustomLabelProps) => {
+  const { x = 0, y = 0, width = 0, value, index, activeIndex } = props;
   const isActive = index === activeIndex;
   return (
     <text
@@ -437,7 +454,20 @@ const CustomLabel = (props: any) => {
   );
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: {
+      day: string;
+      commits: number;
+      problems: number;
+      total: number;
+      percentage: number;
+    };
+  }>;
+}
+
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (

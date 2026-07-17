@@ -9,6 +9,11 @@ import {
   CheckCircledIcon,
   CrossCircledIcon,
   UpdateIcon,
+  PlusIcon,
+  TrashIcon,
+  Pencil2Icon,
+  BarChartIcon,
+  Cross2Icon,
 } from "@radix-ui/react-icons";
 import {
   BarChart as ReChartsBarChart,
@@ -34,6 +39,27 @@ import {
   MessageScrollerItem,
   MessageScrollerButton,
 } from "@/components/ui/message-scroller";
+
+export interface Project {
+  id: string;
+  name: string;
+  creator: string;
+  stack: string;
+  platform: string;
+  date: string;
+  status: string;
+  statusColor: string;
+  views: number;
+  likes: number;
+  stars: number;
+}
+
+export interface MonthlyStats {
+  month: string;
+  views: number;
+  likes: number;
+  stars: number;
+}
 
 const initialDevStats = {
   score: 92,
@@ -328,7 +354,7 @@ const levelConfig: Record<string, { label: string; bg: string; text: string }> =
     },
   };
 
-function SkillsSection() {
+function SkillsSection({ projectsList }: { projectsList: Project[] }) {
   const { userSkills } = useSkills();
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
   const activeSkill = hoveredSkill;
@@ -440,7 +466,10 @@ function SkillsSection() {
                 : "-translate-y-2 scale-95"
             }`}
           >
-            <SkillProjectPanel activeSkill={renderedSkill} />
+            <SkillProjectPanel
+              activeSkill={renderedSkill}
+              projectsList={projectsList}
+            />
           </div>
         </div>
       </div>
@@ -448,12 +477,18 @@ function SkillsSection() {
   );
 }
 
-function SkillProjectPanel({ activeSkill }: { activeSkill: string | null }) {
+function SkillProjectPanel({
+  activeSkill,
+  projectsList,
+}: {
+  activeSkill: string | null;
+  projectsList: Project[];
+}) {
   const { userSkills } = useSkills();
   if (!activeSkill) return null;
   const skill = userSkills.find((s) => s.name === activeSkill);
   if (!skill) return null;
-  const projects = initialProjectsList.filter((p) =>
+  const projects = projectsList.filter((p) =>
     skill.relatedProjects.includes(p.name),
   );
   const cfg = levelConfig[skill.level] ?? levelConfig.Beginner;
@@ -537,6 +572,156 @@ function SkillProjectPanel({ activeSkill }: { activeSkill: string | null }) {
 }
 
 export default function DashboardPage() {
+  const [projectsList, setProjectsList] = useState(initialProjectsList);
+  const [projectModalType, setProjectModalType] = useState<
+    "add" | "edit" | "delete" | "analytics" | null
+  >(null);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [analyticsMetric, setAnalyticsMetric] = useState<
+    "views" | "likes" | "stars"
+  >("views");
+  const [hoveredDataPoint, setHoveredDataPoint] = useState<MonthlyStats | null>(null);
+  const [projectFormState, setProjectFormState] = useState({
+    name: "",
+    stack: "",
+    platform: "",
+    status: "Live",
+    views: 0,
+    likes: 0,
+    stars: 0,
+  });
+
+  const handleOpenAddModal = () => {
+    setProjectFormState({
+      name: "",
+      stack: "",
+      platform: "",
+      status: "Live",
+      views: 0,
+      likes: 0,
+      stars: 0,
+    });
+    setProjectModalType("add");
+  };
+
+  const handleOpenEditModal = (proj: Project) => {
+    setEditingProjectId(proj.id);
+    setProjectFormState({
+      name: proj.name,
+      stack: proj.stack,
+      platform: proj.platform,
+      status: proj.status,
+      views: proj.views,
+      likes: proj.likes,
+      stars: proj.stars,
+    });
+  };
+
+  const handleSaveProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!projectFormState.name.trim()) return;
+
+    const statusColors: Record<string, string> = {
+      Live: "#005c58",
+      "In Progress": "#f59e0b",
+      Archived: "#ef4444",
+    };
+
+    if (projectModalType === "add") {
+      const newProj = {
+        id: `#${Math.floor(100000000 + Math.random() * 900000000)}`,
+        name: projectFormState.name,
+        creator: "Yatharth K.",
+        stack: projectFormState.stack || "HTML, CSS",
+        platform: projectFormState.platform || "GitHub",
+        date: new Date().toLocaleDateString("en-US", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }),
+        status: projectFormState.status,
+        statusColor: statusColors[projectFormState.status] || "#005c58",
+        views: Number(projectFormState.views) || 0,
+        likes: Number(projectFormState.likes) || 0,
+        stars: Number(projectFormState.stars) || 0,
+      };
+      setProjectsList([newProj, ...projectsList]);
+    }
+    setProjectModalType(null);
+    setSelectedProject(null);
+  };
+
+  const handleInlineSave = () => {
+    if (!projectFormState.name.trim()) return;
+
+    const statusColors: Record<string, string> = {
+      Live: "#005c58",
+      "In Progress": "#f59e0b",
+      Archived: "#ef4444",
+    };
+
+    setProjectsList(
+      projectsList.map((p) =>
+        p.id === editingProjectId
+          ? {
+              ...p,
+              name: projectFormState.name,
+              stack: projectFormState.stack,
+              platform: projectFormState.platform,
+              status: projectFormState.status,
+              statusColor:
+                statusColors[projectFormState.status] || p.statusColor,
+              views: Number(projectFormState.views),
+              likes: Number(projectFormState.likes),
+              stars: Number(projectFormState.stars),
+            }
+          : p,
+      ),
+    );
+    setEditingProjectId(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedProject) {
+      setProjectsList(projectsList.filter((p) => p.id !== selectedProject.id));
+    }
+    setProjectModalType(null);
+    setSelectedProject(null);
+  };
+
+  const getProjectMonthlyStats = (proj: Project | null) => {
+    if (!proj) return [];
+    const seed = proj.name.length;
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const baseViews = proj.views / 12;
+    const baseLikes = proj.likes / 12;
+    const baseStars = proj.stars / 12;
+
+    return months.map((month, idx) => {
+      const factor = 0.5 + Math.sin(idx + seed) * 0.3 + idx / 24;
+      return {
+        month,
+        views: Math.round(baseViews * factor * 1.2),
+        likes: Math.round(baseLikes * factor * 1.2),
+        stars: Math.round(baseStars * factor * 1.2),
+      };
+    });
+  };
+
   const [activeTab, setActiveTab] = useState("All");
   const [hoveredBar, setHoveredBar] = useState<{
     month: string;
@@ -662,19 +847,26 @@ export default function DashboardPage() {
     setIsSyncing(true);
     setTimeout(() => {
       setIsSyncing(false);
-      setNotifications((prev) => {
-        const updated = [
-          {
-            text: "Dynamic sync check completed: All systems normal",
-            time: "Just now",
-            type: "sync",
-          },
-          ...prev,
-        ];
-        localStorage.setItem("dradix_notifications", JSON.stringify(updated));
-        window.dispatchEvent(new Event("storage"));
-        return updated;
-      });
+      const newNotif = {
+        text: "Dynamic sync check completed: All systems normal",
+        time: "Just now",
+        type: "sync",
+      };
+
+      const saved = localStorage.getItem("dradix_notifications");
+      let currentNotifs = [];
+      if (saved) {
+        try {
+          currentNotifs = JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      const updated = [newNotif, ...currentNotifs];
+
+      localStorage.setItem("dradix_notifications", JSON.stringify(updated));
+      window.dispatchEvent(new Event("storage"));
+      setNotifications(updated);
     }, 1500);
   };
 
@@ -693,7 +885,7 @@ export default function DashboardPage() {
     .filter((c) => !c.done)
     .map((c) => `No ${c.label.split(" ")[0]}`);
 
-  const sortedProjects = [...initialProjectsList]
+  const sortedProjects = [...projectsList]
     .filter((p) => activeTab === "All" || p.status === activeTab)
     .sort((a, b) => {
       if (!sortField) return 0;
@@ -1446,13 +1638,23 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <div id="projects" className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-[15px] font-bold text-black tracking-tight font-heading">
-                  Projects
-                </h2>
-                <span className="text-[11px] font-bold text-zinc-400 bg-zinc-100 rounded-full px-2 py-0.5">
-                  {initialProjectsList.length} Total
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-[15px] font-bold text-black tracking-tight font-heading">
+                    Projects
+                  </h2>
+                  <span className="text-[11px] font-bold text-zinc-400 bg-zinc-100 rounded-full px-2 py-0.5">
+                    {projectsList.length} Total
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenAddModal}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-black hover:bg-zinc-800 text-white rounded-xl text-[10px] font-bold shadow-sm transition-colors cursor-pointer"
+                >
+                  <PlusIcon className="w-3.5 h-3.5" />
+                  <span>Add Project</span>
+                </button>
               </div>
 
               <div className="relative grid grid-cols-4 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1 w-full max-w-[440px] select-none shrink-0">
@@ -1467,9 +1669,8 @@ export default function DashboardPage() {
                   const isActive = activeTab === tab;
                   const count =
                     tab === "All"
-                      ? initialProjectsList.length
-                      : initialProjectsList.filter((p) => p.status === tab)
-                          .length;
+                      ? projectsList.length
+                      : projectsList.filter((p) => p.status === tab).length;
 
                   return (
                     <button
@@ -1533,59 +1734,232 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#f4f4f5] text-[13px]">
-                  {sortedProjects.map((proj) => (
-                    <tr
-                      key={proj.id}
-                      className="hover:bg-zinc-50/50 transition-colors"
-                    >
-                      <td className="py-3.5 px-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center text-[9px] font-bold text-zinc-500">
-                            {proj.name[0].toUpperCase()}
-                          </div>
-                          <span className="font-bold text-zinc-900">
-                            {proj.name}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-2 text-zinc-500">
-                        {proj.stack}
-                      </td>
-                      <td className="py-3.5 px-2 text-zinc-600 font-semibold">
-                        {proj.platform}
-                      </td>
-                      <td className="py-3.5 px-2 text-zinc-500">
-                        {proj.views} / {proj.likes}
-                      </td>
-                      <td className="py-3.5 px-2 text-zinc-500">
-                        {proj.stars} ★
-                      </td>
-                      <td className="py-3.5 px-2">
-                        <div className="flex items-center gap-1.5">
-                          <div
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: proj.statusColor }}
-                          />
-                          <span className="font-bold text-[12px] text-zinc-800">
-                            {proj.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-2 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button className="px-2.5 py-1 bg-[#f4f4f5] hover:bg-[#eef2f6] text-[10px] font-bold text-zinc-700 rounded-lg transition-colors">
-                            Edit
-                          </button>
-                          <button className="px-2.5 py-1 bg-[#f4f4f5] hover:bg-[#eef2f6] text-[10px] font-bold text-zinc-700 rounded-lg transition-colors">
-                            Delete
-                          </button>
-                          <button className="px-2.5 py-1 bg-[#f4f4f5] hover:bg-[#eef2f6] text-[10px] font-bold text-zinc-700 rounded-lg transition-colors">
-                            Analytics
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {sortedProjects.map((proj) => {
+                    const isEditing = editingProjectId === proj.id;
+                    const hasChanges =
+                      isEditing &&
+                      (projectFormState.name !== proj.name ||
+                        projectFormState.stack !== proj.stack ||
+                        projectFormState.platform !== proj.platform ||
+                        projectFormState.status !== proj.status ||
+                        Number(projectFormState.views) !== proj.views ||
+                        Number(projectFormState.likes) !== proj.likes ||
+                        Number(projectFormState.stars) !== proj.stars);
+
+                    return (
+                      <tr
+                        key={proj.id}
+                        className={`transition-colors ${isEditing ? "bg-zinc-50/80" : "hover:bg-zinc-50/50"}`}
+                      >
+                        <td className="py-3.5 px-2">
+                          {isEditing ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center text-[9px] font-bold text-zinc-500 shrink-0">
+                                {projectFormState.name
+                                  ? projectFormState.name[0]?.toUpperCase() ||
+                                    "P"
+                                  : "P"}
+                              </div>
+                              <input
+                                type="text"
+                                value={projectFormState.name}
+                                onChange={(e) =>
+                                  setProjectFormState({
+                                    ...projectFormState,
+                                    name: e.target.value,
+                                  })
+                                }
+                                className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] font-bold text-zinc-900 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-28"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center text-[9px] font-bold text-zinc-500">
+                                {proj.name[0].toUpperCase()}
+                              </div>
+                              <span className="font-bold text-zinc-900">
+                                {proj.name}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-2 text-zinc-500">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={projectFormState.stack}
+                              onChange={(e) =>
+                                setProjectFormState({
+                                  ...projectFormState,
+                                  stack: e.target.value,
+                                })
+                              }
+                              className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-36"
+                            />
+                          ) : (
+                            proj.stack
+                          )}
+                        </td>
+                        <td className="py-3.5 px-2 text-zinc-650 font-semibold">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={projectFormState.platform}
+                              onChange={(e) =>
+                                setProjectFormState({
+                                  ...projectFormState,
+                                  platform: e.target.value,
+                                })
+                              }
+                              className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] text-zinc-650 font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-24"
+                            />
+                          ) : (
+                            proj.platform
+                          )}
+                        </td>
+                        <td className="py-3.5 px-2 text-zinc-500">
+                          {isEditing ? (
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                min="0"
+                                value={projectFormState.views}
+                                onChange={(e) =>
+                                  setProjectFormState({
+                                    ...projectFormState,
+                                    views: parseInt(e.target.value) || 0,
+                                  })
+                                }
+                                className="rounded border border-zinc-200 px-1 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-16 text-center font-semibold"
+                                title="Views"
+                              />
+                              <span className="text-zinc-300">/</span>
+                              <input
+                                type="number"
+                                min="0"
+                                value={projectFormState.likes}
+                                onChange={(e) =>
+                                  setProjectFormState({
+                                    ...projectFormState,
+                                    likes: parseInt(e.target.value) || 0,
+                                  })
+                                }
+                                className="rounded border border-zinc-200 px-1 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-14 text-center font-semibold"
+                                title="Likes"
+                              />
+                            </div>
+                          ) : (
+                            `${proj.views} / ${proj.likes}`
+                          )}
+                        </td>
+                        <td className="py-3.5 px-2 text-zinc-500">
+                          {isEditing ? (
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                min="0"
+                                value={projectFormState.stars}
+                                onChange={(e) =>
+                                  setProjectFormState({
+                                    ...projectFormState,
+                                    stars: parseInt(e.target.value) || 0,
+                                  })
+                                }
+                                className="rounded border border-zinc-200 px-1.5 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-14 text-center font-semibold"
+                              />
+                              <span className="text-zinc-400">★</span>
+                            </div>
+                          ) : (
+                            `${proj.stars} ★`
+                          )}
+                        </td>
+                        <td className="py-3.5 px-2">
+                          {isEditing ? (
+                            <select
+                              value={projectFormState.status}
+                              onChange={(e) =>
+                                setProjectFormState({
+                                  ...projectFormState,
+                                  status: e.target.value,
+                                })
+                              }
+                              className="rounded border border-zinc-200 px-1.5 py-0.5 text-[11px] font-bold text-zinc-800 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 cursor-pointer"
+                            >
+                              <option value="Live">Live</option>
+                              <option value="In Progress">In Progress</option>
+                              <option value="Archived">Archived</option>
+                            </select>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <div
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ backgroundColor: proj.statusColor }}
+                              />
+                              <span className="font-bold text-[12px] text-zinc-800">
+                                {proj.status}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-2 text-right">
+                          {isEditing ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              {hasChanges && (
+                                <button
+                                  type="button"
+                                  onClick={handleInlineSave}
+                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition-all shadow-sm cursor-pointer animate-fade-in"
+                                >
+                                  <CheckCircledIcon className="w-3.5 h-3.5" />
+                                  <span>Save</span>
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setEditingProjectId(null)}
+                                className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-650 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+                              >
+                                <span>Cancel</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModal(proj)}
+                                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f4f4f5] hover:bg-zinc-200 text-[10px] font-bold text-zinc-700 rounded-lg transition-colors cursor-pointer"
+                              >
+                                <Pencil2Icon className="w-3.5 h-3.5 text-zinc-500" />
+                                <span>Edit</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedProject(proj);
+                                  setProjectModalType("delete");
+                                }}
+                                className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-[10px] font-bold text-red-600 rounded-lg transition-colors cursor-pointer"
+                              >
+                                <TrashIcon className="w-3.5 h-3.5 text-red-500" />
+                                <span>Delete</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedProject(proj);
+                                  setProjectModalType("analytics");
+                                }}
+                                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#003c3a]/10 hover:bg-[#003c3a]/25 text-[10px] font-bold text-[#003c3a] rounded-lg transition-colors cursor-pointer"
+                              >
+                                <BarChartIcon className="w-3.5 h-3.5 text-[#003c3a]" />
+                                <span>Analytics</span>
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1692,7 +2066,7 @@ export default function DashboardPage() {
 
         {/* Category 3: Skills & Academic Roadmap */}
         <div className="space-y-6">
-          <SkillsSection />
+          <SkillsSection projectsList={projectsList} />
 
           <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
             <h3 className="text-[15px] font-bold text-black tracking-tight">
@@ -2035,6 +2409,530 @@ export default function DashboardPage() {
           </div>
         </footer>
       </div>
+
+      {/* Add Project Modal */}
+      {projectModalType === "add" && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out text-left animate-fade-in">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-scale-in text-left max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
+              <h3 className="text-[16px] font-extrabold text-black tracking-tight font-heading">
+                Add New Project
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setProjectModalType(null);
+                  setSelectedProject(null);
+                }}
+                className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-50 rounded-xl transition-all duration-300 ease-in-out hover:scale-110 active:scale-90 cursor-pointer"
+              >
+                <Cross2Icon className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={handleSaveProject}
+              className="p-6 space-y-4 overflow-y-auto"
+            >
+              <div>
+                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. dradix"
+                  value={projectFormState.name}
+                  onChange={(e) =>
+                    setProjectFormState({
+                      ...projectFormState,
+                      name: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  Tech Stack
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Next.js, TS, Tailwind"
+                  value={projectFormState.stack}
+                  onChange={(e) =>
+                    setProjectFormState({
+                      ...projectFormState,
+                      stack: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-semibold transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    Platform
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. GitHub"
+                    value={projectFormState.platform}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        platform: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-semibold transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    Status
+                  </label>
+                  <select
+                    value={projectFormState.status}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        status: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
+                  >
+                    <option value="Live">Live</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Archived">Archived</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 pt-2">
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                    Views
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={projectFormState.views}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        views: parseInt(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                    Likes
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={projectFormState.likes}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        likes: parseInt(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                    Stars
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={projectFormState.stars}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        stars: parseInt(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-zinc-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProjectModalType(null);
+                    setSelectedProject(null);
+                  }}
+                  className="px-4 py-2.5 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-black text-white hover:bg-zinc-800 rounded-xl text-[12px] font-bold shadow-md cursor-pointer transition-all active:scale-95"
+                >
+                  Create Project
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {projectModalType === "delete" && selectedProject && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out text-left animate-fade-in">
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-sm overflow-hidden flex flex-col animate-scale-in text-left">
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto text-red-500">
+                <TrashIcon className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-[16px] font-extrabold text-black font-heading">
+                  Delete Project
+                </h3>
+                <p className="text-[12px] text-zinc-500 leading-relaxed">
+                  Are you sure you want to delete{" "}
+                  <span className="font-bold text-zinc-900">
+                    &quot;{selectedProject?.name}&quot;
+                  </span>
+                  ? This action is permanent and cannot be undone.
+                </p>
+              </div>
+
+              <div className="pt-3 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProjectModalType(null);
+                    setSelectedProject(null);
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[12px] font-bold shadow-md cursor-pointer transition-all active:scale-95"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Project Analytics Modal */}
+      {projectModalType === "analytics" &&
+        selectedProject &&
+        (() => {
+          const stats = getProjectMonthlyStats(selectedProject);
+          const maxVal = Math.max(...stats.map((d) => d[analyticsMetric])) || 1;
+
+          const points = stats.map((d, i) => ({
+            x: (i / 11) * 500 + 40,
+            y: 200 - (d[analyticsMetric] / maxVal) * 150 - 20,
+            data: d,
+          }));
+
+          const pathD = points
+            .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+            .join(" ");
+          const areaD = points.length
+            ? `${pathD} L ${points[points.length - 1].x} 180 L ${points[0].x} 180 Z`
+            : "";
+
+          const themeColor = selectedProject.statusColor || "#003c3a";
+
+          return (
+            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out text-left animate-fade-in">
+              <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col animate-scale-in text-left max-h-[90vh]">
+                <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <h3 className="text-[16px] font-extrabold text-black tracking-tight font-heading leading-tight">
+                        {selectedProject.name} Analytics
+                      </h3>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mt-0.5">
+                        Performance Metrics & Traffic
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProjectModalType(null);
+                      setSelectedProject(null);
+                      setHoveredDataPoint(null);
+                    }}
+                    className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-50 rounded-xl transition-all duration-300 ease-in-out hover:scale-110 active:scale-90 cursor-pointer"
+                  >
+                    <Cross2Icon className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-6 overflow-y-auto">
+                  <div className="grid grid-cols-3 gap-4">
+                    {(["views", "likes", "stars"] as const).map((metric) => {
+                      const label =
+                        metric === "views"
+                          ? "Views"
+                          : metric === "likes"
+                            ? "Likes"
+                            : "Stars";
+                      const value = selectedProject[metric];
+                      const isActive = analyticsMetric === metric;
+
+                      return (
+                        <button
+                          key={metric}
+                          type="button"
+                          onClick={() => {
+                            setAnalyticsMetric(metric);
+                            setHoveredDataPoint(null);
+                          }}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-zinc-950 border-transparent shadow-md"
+                              : "bg-zinc-50 border-zinc-100 hover:border-zinc-200"
+                          }`}
+                        >
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                            {label}
+                          </p>
+                          <p
+                            className={`text-xl font-extrabold mt-1 ${isActive ? "text-white" : "text-zinc-900"}`}
+                          >
+                            {value.toLocaleString()}
+                          </p>
+                          <div className="flex items-center gap-1 mt-1 text-[9px] font-bold text-emerald-500">
+                            <span>↑ 12.4%</span>
+                            <span
+                              className={`${isActive ? "text-zinc-500" : "text-zinc-400"} font-normal`}
+                            >
+                              vs last mo.
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="bg-zinc-50 rounded-2xl p-5 border border-zinc-100 relative">
+                    <div className="flex justify-between items-center mb-4">
+                      <p className="text-[12px] font-bold text-zinc-700">
+                        Monthly Trend ({analyticsMetric.toUpperCase()})
+                      </p>
+                      {hoveredDataPoint && (
+                        <div className="text-[11px] font-bold text-zinc-900 bg-white border border-zinc-200 px-2 py-0.5 rounded-lg shadow-sm">
+                          {hoveredDataPoint.month}:{" "}
+                          <span
+                            className="font-extrabold"
+                            style={{ color: themeColor }}
+                          >
+                            {hoveredDataPoint[analyticsMetric].toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="w-full overflow-hidden select-none">
+                      <svg
+                        className="w-full h-60 overflow-visible"
+                        viewBox="0 0 580 200"
+                        onMouseLeave={() => setHoveredDataPoint(null)}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="chartGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="0%"
+                              stopColor={themeColor}
+                              stopOpacity="0.25"
+                            />
+                            <stop
+                              offset="100%"
+                              stopColor={themeColor}
+                              stopOpacity="0.0"
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        {/* Grid Lines */}
+                        {[0, 1, 2, 3].map((g) => {
+                          const y = 30 + g * 50;
+                          return (
+                            <line
+                              key={g}
+                              x1="40"
+                              y1={y}
+                              x2="540"
+                              y2={y}
+                              stroke="#e4e4e7"
+                              strokeWidth="1"
+                              strokeDasharray="4 4"
+                            />
+                          );
+                        })}
+
+                        {/* Vertical Hover Guideline */}
+                        {hoveredDataPoint &&
+                          (() => {
+                            const hp = points.find(
+                              (p) => p.data.month === hoveredDataPoint.month,
+                            );
+                            if (!hp) return null;
+                            return (
+                              <line
+                                x1={hp.x}
+                                y1={20}
+                                x2={hp.x}
+                                y2={180}
+                                stroke={themeColor}
+                                strokeWidth="1.5"
+                                strokeDasharray="4 4"
+                                className="pointer-events-none transition-all duration-150"
+                              />
+                            );
+                          })()}
+
+                        {/* Area Fill */}
+                        {areaD && (
+                          <path
+                            d={areaD}
+                            fill="url(#chartGradient)"
+                            className="transition-all duration-500 pointer-events-none"
+                          />
+                        )}
+
+                        {/* Line Path */}
+                        {pathD && (
+                          <path
+                            d={pathD}
+                            fill="none"
+                            stroke={themeColor}
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="transition-all duration-500 pointer-events-none"
+                          />
+                        )}
+
+                        {/* Data Point Circles */}
+                        {points.map((p, idx) => {
+                          const isHovered =
+                            hoveredDataPoint?.month === p.data.month;
+                          return (
+                            <circle
+                              key={idx}
+                              cx={p.x}
+                              cy={p.y}
+                              r={isHovered ? 6 : 4}
+                              fill="white"
+                              stroke={themeColor}
+                              strokeWidth={isHovered ? "3.5" : "2.5"}
+                              className="transition-all duration-150 pointer-events-none"
+                            />
+                          );
+                        })}
+
+                        {/* Tooltip Popup */}
+                        {hoveredDataPoint &&
+                          (() => {
+                            const hp = points.find(
+                              (p) => p.data.month === hoveredDataPoint.month,
+                            );
+                            if (!hp) return null;
+                            const val =
+                              hoveredDataPoint[
+                                analyticsMetric
+                              ].toLocaleString();
+                            return (
+                              <g className="pointer-events-none transition-all duration-200">
+                                {/* Drop shadow indicator */}
+                                <rect
+                                  x={hp.x - 45}
+                                  y={hp.y - 37}
+                                  width="90"
+                                  height="24"
+                                  rx="6"
+                                  fill="#18181b"
+                                />
+                                <text
+                                  x={hp.x}
+                                  y={hp.y - 22}
+                                  textAnchor="middle"
+                                  fill="white"
+                                  fontSize="10"
+                                  fontWeight="black"
+                                >
+                                  {val}
+                                </text>
+                                <polygon
+                                  points={`${hp.x - 4},${hp.y - 13} ${hp.x + 4},${hp.y - 13} ${hp.x},${hp.y - 9}`}
+                                  fill="#18181b"
+                                />
+                              </g>
+                            );
+                          })()}
+
+                        {/* Invisible Hover overlay bars */}
+                        {points.map((p, idx) => (
+                          <rect
+                            key={`hover-col-${idx}`}
+                            x={p.x - 22.7}
+                            y={15}
+                            width={45.4}
+                            height={170}
+                            fill="transparent"
+                            className="cursor-pointer"
+                            onMouseEnter={() => setHoveredDataPoint(p.data)}
+                          />
+                        ))}
+
+                        {/* X Axis Labels */}
+                        {points.map((p, idx) => (
+                          <text
+                            key={idx}
+                            x={p.x}
+                            y="195"
+                            textAnchor="middle"
+                            fill="#888"
+                            fontSize="9"
+                            fontWeight="bold"
+                            className="pointer-events-none"
+                          >
+                            {p.data.month}
+                          </text>
+                        ))}
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 }

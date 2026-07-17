@@ -9,11 +9,8 @@ import {
   LayersIcon,
   CodeIcon,
   RocketIcon,
-  GearIcon,
   ChevronDownIcon,
-  MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
-import { Trophy } from "lucide-react";
 
 type SubItem = { label: string; href: string; desc: string };
 type NavCategory = {
@@ -143,21 +140,6 @@ const initialNavbarNotifications: NotificationItem[] = [
   { text: "Resume analyzed by AI coach", time: "1h ago", type: "analyze" },
   { text: "New badge unlocked: 42-day streak", time: "4h ago", type: "badge" },
   { text: "Weekly activity report is ready", time: "1d ago", type: "report" },
-];
-
-const leaderboardRankings = [
-  { rank: 1, name: "Arjun Mehta", score: 98, xp: "12.4k", avatar: "AM" },
-  { rank: 2, name: "Priya Singh", score: 95, xp: "11.8k", avatar: "PS" },
-  {
-    rank: 3,
-    name: "Yatharth K.",
-    score: 92,
-    xp: "10.9k",
-    avatar: "YK",
-    isYou: true,
-  },
-  { rank: 4, name: "Rohan Gupta", score: 89, xp: "9.7k", avatar: "RG" },
-  { rank: 5, name: "Neha Sharma", score: 87, xp: "8.9k", avatar: "NS" },
 ];
 
 export default function MainLayout({
