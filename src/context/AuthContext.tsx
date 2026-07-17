@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { SafeUser, ApiResponse } from "../types/auth";
-import { apiFetch, setAccessToken } from "../lib/api";
+import { apiFetch, setAccessToken, setRefreshToken } from "../lib/api";
 
 interface AuthContextType {
   user: SafeUser | null;
@@ -96,12 +96,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const res = await apiFetch<ApiResponse<{ user: SafeUser; accessToken: string }>>("/auth/login", {
+      const res = await apiFetch<ApiResponse<{ user: SafeUser; accessToken: string; refreshToken?: string }>>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
       if (res.data?.accessToken) {
         setAccessToken(res.data.accessToken);
+      }
+      if (res.data?.refreshToken) {
+        setRefreshToken(res.data.refreshToken);
       }
       if (res.data?.user) {
         setUser(res.data.user);
@@ -142,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error(err);
     } finally {
       setAccessToken(null);
+      setRefreshToken(null);
       setUser(null);
       setLoading(false);
       router.push("/auth");

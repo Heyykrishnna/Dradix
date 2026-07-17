@@ -3,7 +3,7 @@
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { setAccessToken } from "@/lib/api";
+import { setAccessToken, setRefreshToken } from "@/lib/api";
 
 function CallbackContent() {
   const router = useRouter();
@@ -12,8 +12,12 @@ function CallbackContent() {
 
   useEffect(() => {
     const token = searchParams.get("token");
+    const refreshToken = searchParams.get("refreshToken");
     if (token) {
       setAccessToken(token);
+      if (refreshToken) {
+        setRefreshToken(refreshToken);
+      }
       checkAuth().then(() => {
         router.replace("/dashboard");
       });
