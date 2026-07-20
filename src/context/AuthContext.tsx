@@ -70,13 +70,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (user) {
+      const hasSocials = user.socials && typeof user.socials === "object" && Object.keys(user.socials).length > 0;
+      if (user.bio && hasSocials) {
+        localStorage.setItem("isOnboarded", "true");
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (loading) return;
 
     const isPublicRoute = PUBLIC_ROUTES.some((route) =>
       route === "/" ? pathname === "/" : pathname.startsWith(route)
     );
 
-    const isOnboarded = typeof window !== "undefined" && localStorage.getItem("isOnboarded") === "true";
+    const hasSocials = user?.socials && typeof user.socials === "object" && Object.keys(user.socials).length > 0;
+    const isUserOnboarded = !!(user?.bio && hasSocials);
+    const isOnboarded = (typeof window !== "undefined" && localStorage.getItem("isOnboarded") === "true") || isUserOnboarded;
 
     if (!user) {
       if (!isPublicRoute) {
@@ -147,6 +158,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAccessToken(null);
       setRefreshToken(null);
       setUser(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("isOnboarded");
+        localStorage.removeItem("userProfile");
+      }
       setLoading(false);
       router.push("/auth");
     }

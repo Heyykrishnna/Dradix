@@ -15,7 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiFetch, cleanUrl } from "@/lib/api";
 
 function AuthFormContent() {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [showVerifyNotice, setShowVerifyNotice] = useState(false);
