@@ -10,14 +10,165 @@ import {
   Cross1Icon,
 } from "@radix-ui/react-icons";
 import { FcGoogle } from "react-icons/fc";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch, cleanUrl } from "@/lib/api";
+import { ApiResponse } from "@/types/auth";
 
 function AuthFormContent() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState<1 | 2 | 3 | 4>(1);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
+  const [forgotResetToken, setForgotResetToken] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSuccessMsg, setForgotSuccessMsg] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const getForgotPwdStrength = (pwd: string) => {
+    if (!pwd) return { score: 0, text: "Enter password", color: "bg-zinc-800" };
+    const requirements = {
+      length: pwd.length >= 8,
+      uppercase: /[A-Z]/.test(pwd),
+      lowercase: /[a-z]/.test(pwd),
+      number: /[0-9]/.test(pwd),
+      special: /[^A-Za-z0-9]/.test(pwd),
+    };
+    let metCount = 0;
+    if (requirements.length) metCount++;
+    if (requirements.uppercase) metCount++;
+    if (requirements.lowercase) metCount++;
+    if (requirements.number) metCount++;
+    if (requirements.special) metCount++;
+
+    let text = "Weak";
+    let color = "bg-red-500";
+    if (metCount <= 2) {
+      text = "Weak";
+      color = "bg-red-500";
+    } else if (metCount <= 4) {
+      text = "Fair";
+      color = "bg-amber-500";
+    } else {
+      text = "Strong";
+      color = "bg-emerald-500";
+    }
+    return { score: metCount, text, color, req: requirements };
+  };
+
+  const forgotStrength = getForgotPwdStrength(forgotNewPassword);
+  const isForgotPwdValid = !!(
+    forgotStrength.req?.length &&
+    forgotStrength.req?.uppercase &&
+    forgotStrength.req?.lowercase &&
+    forgotStrength.req?.number &&
+    forgotStrength.req?.special &&
+    forgotNewPassword === forgotConfirmPassword
+  );
+
+  const handleForgotEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotError("");
+    setForgotSuccessMsg("");
+    try {
+      await apiFetch("/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      setForgotSuccessMsg(
+        "If an account exists with this email, password reset instructions have been sent.",
+      );
+      setCooldown(60);
+      setForgotStep(2);
+    } catch (err) {
+      setForgotError(err instanceof Error ? err.message : "Request failed");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleForgotResend = async () => {
+    if (cooldown > 0) return;
+    setForgotLoading(true);
+    setForgotError("");
+    setForgotSuccessMsg("");
+    try {
+      await apiFetch("/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      setForgotSuccessMsg("A new verification code has been sent.");
+      setCooldown(60);
+    } catch (err) {
+      setForgotError(err instanceof Error ? err.message : "Resend failed");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleForgotOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotError("");
+    try {
+      const res = await apiFetch<ApiResponse<{ resetToken: string }>>(
+        "/auth/verify-reset-otp",
+        {
+          method: "POST",
+          body: JSON.stringify({ email: forgotEmail, otp: forgotOtp }),
+        },
+      );
+      if (res.data?.resetToken) {
+        setForgotResetToken(res.data.resetToken);
+        setForgotStep(3);
+      } else {
+        throw new Error("Failed to verify code");
+      }
+    } catch (err) {
+      setForgotError(
+        err instanceof Error ? err.message : "Verification failed",
+      );
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleForgotPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isForgotPwdValid) return;
+    setForgotLoading(true);
+    setForgotError("");
+    try {
+      await apiFetch("/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+          resetToken: forgotResetToken,
+          newPassword: forgotNewPassword,
+        }),
+      });
+      setForgotStep(4);
+    } catch (err) {
+      setForgotError(
+        err instanceof Error ? err.message : "Password reset failed",
+      );
+    } finally {
+      setForgotLoading(false);
+    }
+  };
   const [showVerifyNotice, setShowVerifyNotice] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [resendStatus, setResendStatus] = useState<
@@ -98,10 +249,12 @@ function AuthFormContent() {
       await verify2FA(
         twoFactorToken,
         useRecoveryCode ? undefined : otpCode,
-        useRecoveryCode ? recoveryCode : undefined
+        useRecoveryCode ? recoveryCode : undefined,
       );
     } catch (err: unknown) {
-      setTwoFAError(err instanceof Error ? err.message : "2FA Verification failed");
+      setTwoFAError(
+        err instanceof Error ? err.message : "2FA Verification failed",
+      );
     } finally {
       setTwoFALoading(false);
     }
@@ -208,7 +361,9 @@ function AuthFormContent() {
                         placeholder="000000"
                         required
                         value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                        onChange={(e) =>
+                          setOtpCode(e.target.value.replace(/\D/g, ""))
+                        }
                         className="w-full px-4 py-3 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[14px] placeholder:text-zinc-600 text-center tracking-[0.5em] text-lg font-mono transition-colors"
                       />
                     </div>
@@ -569,53 +724,349 @@ function AuthFormContent() {
 
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowForgotModal(false)}
-            aria-hidden="true"
+          <button
+            type="button"
+            aria-label="Close modal"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm w-full h-full border-none outline-hidden cursor-default"
+            onClick={() => {
+              setShowForgotModal(false);
+              setForgotStep(1);
+              setForgotEmail("");
+              setForgotOtp("");
+              setForgotNewPassword("");
+              setForgotConfirmPassword("");
+              setForgotError("");
+              setForgotSuccessMsg("");
+            }}
           />
-          <div className="relative w-full max-w-md bg-[#101010] border border-zinc-800/80 rounded-2xl shadow-2xl p-8 transform transition-all">
+          <div className="relative w-full max-w-md bg-[#101010] border border-zinc-800/80 rounded-2xl shadow-2xl p-8 transform transition-all text-white animate-fadeIn">
             <button
-              onClick={() => setShowForgotModal(false)}
+              onClick={() => {
+                setShowForgotModal(false);
+                setForgotStep(1);
+                setForgotEmail("");
+                setForgotOtp("");
+                setForgotNewPassword("");
+                setForgotConfirmPassword("");
+                setForgotError("");
+                setForgotSuccessMsg("");
+              }}
               className="absolute top-4 right-4 p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-full transition-colors"
             >
               <Cross1Icon className="w-5 h-5" />
             </button>
 
-            <h2 className="text-2xl font-serif mb-2 tracking-tight">
-              Reset Password
-            </h2>
-            <p className="text-zinc-400 text-sm mb-6">
-              Enter your email address and we&apos;ll send you a link to reset
-              your password.
-            </p>
+            {forgotStep === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-serif mb-2 tracking-tight">
+                    Reset Password
+                  </h2>
+                  <p className="text-zinc-400 text-sm">
+                    Enter your email address and we will send you a verification
+                    code to reset your password.
+                  </p>
+                </div>
 
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setShowForgotModal(false);
-              }}
-            >
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-medium text-zinc-300">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  placeholder="name@example.com"
-                  required
-                  className="w-full px-4 py-3 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[14px] placeholder:text-zinc-600 transition-colors"
-                />
+                {forgotError && (
+                  <p className="text-red-400 text-xs bg-red-950/40 p-3 border border-red-900/60 rounded-lg">
+                    {forgotError}
+                  </p>
+                )}
+
+                <form onSubmit={handleForgotEmailSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-medium text-zinc-300">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="name@example.com"
+                      required
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[14px] placeholder:text-zinc-600 transition-colors text-white"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="w-full py-3 bg-zinc-200 hover:bg-white disabled:bg-zinc-700 text-black disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors"
+                  >
+                    {forgotLoading ? "Sending..." : "Send Verification Code"}
+                  </button>
+                </form>
               </div>
+            )}
 
-              <button
-                type="submit"
-                className="w-full py-3 bg-zinc-200 hover:bg-white text-black rounded-lg font-semibold text-[14px] transition-colors shadow-[0_0_20px_rgba(255,255,255,0.05)]"
-              >
-                Send Reset Link
-              </button>
-            </form>
+            {forgotStep === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-serif mb-2 tracking-tight">
+                    Enter Verification Code
+                  </h2>
+                  <p className="text-zinc-400 text-sm">
+                    {forgotSuccessMsg ||
+                      "We have sent a 6-digit code to your email."}
+                  </p>
+                </div>
+
+                {forgotError && (
+                  <p className="text-red-400 text-xs bg-red-950/40 p-3 border border-red-900/60 rounded-lg">
+                    {forgotError}
+                  </p>
+                )}
+
+                <form onSubmit={handleForgotOtpSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-medium text-zinc-300">
+                      Verification Code (OTP)
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="000000"
+                      required
+                      value={forgotOtp}
+                      onChange={(e) =>
+                        setForgotOtp(e.target.value.replace(/\D/g, ""))
+                      }
+                      className="w-full px-4 py-3 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[14px] text-center font-mono tracking-widest placeholder:text-zinc-600 transition-colors text-white"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="w-full py-3 bg-zinc-200 hover:bg-white disabled:bg-zinc-700 text-black disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors"
+                  >
+                    {forgotLoading ? "Verifying..." : "Verify Code"}
+                  </button>
+
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      disabled={cooldown > 0 || forgotLoading}
+                      onClick={handleForgotResend}
+                      className="text-xs text-zinc-400 hover:text-white disabled:text-zinc-600 font-medium transition-colors"
+                    >
+                      {cooldown > 0
+                        ? `Resend code in ${cooldown}s`
+                        : "Resend Code"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {forgotStep === 3 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-serif mb-2 tracking-tight">
+                    Create New Password
+                  </h2>
+                  <p className="text-zinc-400 text-sm">
+                    Please choose a strong password that you haven&apos;t used
+                    recently.
+                  </p>
+                </div>
+
+                {forgotError && (
+                  <p className="text-red-400 text-xs bg-red-950/40 p-3 border border-red-900/60 rounded-lg">
+                    {forgotError}
+                  </p>
+                )}
+
+                <form
+                  onSubmit={handleForgotPasswordReset}
+                  className="space-y-4"
+                >
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-medium text-zinc-300">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      required
+                      value={forgotNewPassword}
+                      onChange={(e) => setForgotNewPassword(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[14px] placeholder:text-zinc-600 transition-colors text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-medium text-zinc-300">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      required
+                      value={forgotConfirmPassword}
+                      onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#181818] border border-zinc-800/80 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-[14px] placeholder:text-zinc-600 transition-colors text-white"
+                    />
+                  </div>
+
+                  {forgotNewPassword && (
+                    <div className="p-3.5 border border-zinc-800/80 rounded-xl bg-zinc-900/50 space-y-2.5 animate-fadeIn">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-semibold text-zinc-400">
+                          Password Strength:
+                        </span>
+                        <span className="font-bold text-zinc-200">
+                          {forgotStrength.text}
+                        </span>
+                      </div>
+
+                      <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden flex gap-1">
+                        {[1, 2, 3, 4, 5].map((level) => (
+                          <div
+                            key={level}
+                            className={`h-full flex-1 transition-all duration-300 ${
+                              forgotStrength.score >= level
+                                ? forgotStrength.color
+                                : "bg-zinc-800"
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 text-[10px]">
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`w-1 h-1 rounded-full ${forgotStrength.req?.length ? "bg-emerald-500" : "bg-zinc-600"}`}
+                          />
+                          <span
+                            className={
+                              forgotStrength.req?.length
+                                ? "text-emerald-400"
+                                : "text-zinc-500"
+                            }
+                          >
+                            8+ chars
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`w-1 h-1 rounded-full ${forgotStrength.req?.uppercase ? "bg-emerald-500" : "bg-zinc-600"}`}
+                          />
+                          <span
+                            className={
+                              forgotStrength.req?.uppercase
+                                ? "text-emerald-400"
+                                : "text-zinc-500"
+                            }
+                          >
+                            Uppercase
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`w-1 h-1 rounded-full ${forgotStrength.req?.lowercase ? "bg-emerald-500" : "bg-zinc-600"}`}
+                          />
+                          <span
+                            className={
+                              forgotStrength.req?.lowercase
+                                ? "text-emerald-400"
+                                : "text-zinc-500"
+                            }
+                          >
+                            Lowercase
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`w-1 h-1 rounded-full ${forgotStrength.req?.number ? "bg-emerald-500" : "bg-zinc-600"}`}
+                          />
+                          <span
+                            className={
+                              forgotStrength.req?.number
+                                ? "text-emerald-400"
+                                : "text-zinc-500"
+                            }
+                          >
+                            Number
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`w-1 h-1 rounded-full ${forgotStrength.req?.special ? "bg-emerald-500" : "bg-zinc-600"}`}
+                          />
+                          <span
+                            className={
+                              forgotStrength.req?.special
+                                ? "text-emerald-400"
+                                : "text-zinc-500"
+                            }
+                          >
+                            Special char
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`w-1 h-1 rounded-full ${forgotNewPassword === forgotConfirmPassword && forgotConfirmPassword ? "bg-emerald-500" : "bg-zinc-600"}`}
+                          />
+                          <span
+                            className={
+                              forgotNewPassword === forgotConfirmPassword &&
+                              forgotConfirmPassword
+                                ? "text-emerald-400"
+                                : "text-zinc-500"
+                            }
+                          >
+                            Match
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={forgotLoading || !isForgotPwdValid}
+                    className="w-full py-3 bg-zinc-200 hover:bg-white disabled:bg-zinc-700 text-black disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors disabled:cursor-not-allowed"
+                  >
+                    {forgotLoading ? "Resetting..." : "Reset Password"}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {forgotStep === 4 && (
+              <div className="space-y-6 text-center">
+                <div className="w-12 h-12 bg-emerald-950/40 border border-emerald-900/60 rounded-full flex items-center justify-center mx-auto text-emerald-400 text-xl font-bold">
+                  ✓
+                </div>
+                <div>
+                  <h2 className="text-2xl font-serif mb-2 tracking-tight">
+                    Password Reset Complete
+                  </h2>
+                  <p className="text-zinc-400 text-sm">
+                    Your password has been successfully reset. You have been
+                    logged out of all other devices for security.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowForgotModal(false);
+                    setForgotStep(1);
+                    setForgotEmail("");
+                    setForgotOtp("");
+                    setForgotNewPassword("");
+                    setForgotConfirmPassword("");
+                    setForgotError("");
+                    setForgotSuccessMsg("");
+                  }}
+                  className="w-full py-3 bg-zinc-200 hover:bg-white text-black rounded-lg font-semibold text-[14px] transition-colors"
+                >
+                  Return to Sign In
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
