@@ -63,6 +63,95 @@ export default function SettingsPage() {
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false);
 
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [pwdLoading, setPwdLoading] = useState(false);
+  const [showForceLogoutModal, setShowForceLogoutModal] = useState(false);
+
+  const getPasswordRequirements = (pwd: string) => {
+    return {
+      length: pwd.length >= 8,
+      uppercase: /[A-Z]/.test(pwd),
+      lowercase: /[a-z]/.test(pwd),
+      number: /[0-9]/.test(pwd),
+      special: /[^A-Za-z0-9]/.test(pwd),
+    };
+  };
+
+  const getPasswordStrength = (pwd: string) => {
+    if (!pwd) return { score: 0, text: "Enter password", color: "bg-zinc-200" };
+    const req = getPasswordRequirements(pwd);
+    let metCount = 0;
+    if (req.length) metCount++;
+    if (req.uppercase) metCount++;
+    if (req.lowercase) metCount++;
+    if (req.number) metCount++;
+    if (req.special) metCount++;
+
+    let text = "Weak";
+    let color = "bg-red-500";
+    if (metCount <= 2) {
+      text = "Weak";
+      color = "bg-red-500";
+    } else if (metCount <= 4) {
+      text = "Fair";
+      color = "bg-amber-500";
+    } else {
+      text = "Strong";
+      color = "bg-emerald-500";
+    }
+    return { score: metCount, text, color, req };
+  };
+
+  const strength = getPasswordStrength(newPassword);
+  const isPasswordValid = !!(
+    strength.req?.length &&
+    strength.req?.uppercase &&
+    strength.req?.lowercase &&
+    strength.req?.number &&
+    strength.req?.special &&
+    newPassword === confirmNewPassword
+  );
+
+  const handlePasswordChangeSubmit = async (logoutAll: boolean) => {
+    setShowForceLogoutModal(false);
+    setPwdLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      await apiFetch<ApiResponse<{ loggedOut: boolean }>>(
+        "/auth/change-password",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            currentPassword,
+            newPassword,
+            logoutAllDevices: logoutAll,
+          }),
+        },
+      );
+
+      setSuccessMsg("Password changed successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+
+      if (logoutAll) {
+        logout();
+      } else {
+        checkAuth();
+      }
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error ? err.message : "Failed to change password",
+      );
+    } finally {
+      setPwdLoading(false);
+    }
+  };
+
   const openReauth = (
     action: "setup" | "disable" | "view_codes" | "regen_codes",
   ) => {
@@ -323,6 +412,209 @@ export default function SettingsPage() {
             </button>
           </div>
         )}
+
+        <div className="bg-white border border-zinc-200/80 shadow-xs rounded-2xl p-6 sm:p-8 space-y-6">
+          <div className="border-b border-zinc-200 pb-6">
+            <h2 className="text-lg font-semibold tracking-tight text-zinc-900">
+              Update Password
+            </h2>
+            <p className="text-zinc-500 text-xs mt-1">
+              Ensure your account is using a strong, unique password to stay
+              protected.
+            </p>
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (isPasswordValid) {
+                setShowForceLogoutModal(true);
+              }
+            }}
+            className="space-y-5"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-700">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-700">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-700">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-sm"
+                />
+              </div>
+            </div>
+
+            {newPassword && (
+              <div className="p-4 border border-zinc-200 rounded-xl bg-zinc-50/50 space-y-3.5 animate-fadeIn">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-semibold text-zinc-600">
+                    Password Strength:
+                  </span>
+                  <span className="font-bold text-zinc-900">
+                    {strength.text}
+                  </span>
+                </div>
+
+                <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden flex gap-1">
+                  {[1, 2, 3, 4, 5].map((level) => (
+                    <div
+                      key={level}
+                      className={`h-full flex-1 transition-all duration-300 ${
+                        strength.score >= level ? strength.color : "bg-zinc-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        strength.req?.length ? "bg-emerald-500" : "bg-zinc-300"
+                      }`}
+                    />
+                    <span
+                      className={
+                        strength.req?.length
+                          ? "text-emerald-700 font-medium"
+                          : "text-zinc-500"
+                      }
+                    >
+                      At least 8 characters
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        strength.req?.uppercase
+                          ? "bg-emerald-500"
+                          : "bg-zinc-300"
+                      }`}
+                    />
+                    <span
+                      className={
+                        strength.req?.uppercase
+                          ? "text-emerald-700 font-medium"
+                          : "text-zinc-500"
+                      }
+                    >
+                      At least one uppercase (A-Z)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        strength.req?.lowercase
+                          ? "bg-emerald-500"
+                          : "bg-zinc-300"
+                      }`}
+                    />
+                    <span
+                      className={
+                        strength.req?.lowercase
+                          ? "text-emerald-700 font-medium"
+                          : "text-zinc-500"
+                      }
+                    >
+                      At least one lowercase (a-z)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        strength.req?.number ? "bg-emerald-500" : "bg-zinc-300"
+                      }`}
+                    />
+                    <span
+                      className={
+                        strength.req?.number
+                          ? "text-emerald-700 font-medium"
+                          : "text-zinc-500"
+                      }
+                    >
+                      At least one number (0-9)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        strength.req?.special ? "bg-emerald-500" : "bg-zinc-300"
+                      }`}
+                    />
+                    <span
+                      className={
+                        strength.req?.special
+                          ? "text-emerald-700 font-medium"
+                          : "text-zinc-500"
+                      }
+                    >
+                      At least one special character
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        newPassword === confirmNewPassword && confirmNewPassword
+                          ? "bg-emerald-500"
+                          : "bg-zinc-300"
+                      }`}
+                    />
+                    <span
+                      className={
+                        newPassword === confirmNewPassword && confirmNewPassword
+                          ? "text-emerald-700 font-medium"
+                          : "text-zinc-500"
+                      }
+                    >
+                      Passwords match
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={pwdLoading || !isPasswordValid}
+              className="px-4 py-2.5 bg-[#003c3a] hover:bg-[#002d2b] disabled:bg-zinc-300 disabled:opacity-80 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:cursor-not-allowed"
+            >
+              {pwdLoading ? "Updating..." : "Update Password"}
+            </button>
+          </form>
+        </div>
 
         <div className="bg-white border border-zinc-200/80 shadow-xs rounded-2xl p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-6">
@@ -740,6 +1032,48 @@ export default function SettingsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+        {showForceLogoutModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-xs"
+              onClick={() => setShowForceLogoutModal(false)}
+            />
+            <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-2xl p-6 sm:p-8 animate-fadeIn">
+              <button
+                onClick={() => setShowForceLogoutModal(false)}
+                className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all"
+              >
+                <Cross1Icon className="w-4 h-4" />
+              </button>
+
+              <h3 className="text-lg font-bold text-zinc-900 mb-2">
+                Sign out of other devices?
+              </h3>
+              <p className="text-zinc-500 text-xs mb-6 leading-relaxed">
+                Would you like to terminate all other active device sessions and
+                sign in again using your new password? This secures your account
+                if your previous password was compromised.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => handlePasswordChangeSubmit(false)}
+                  className="px-4 py-2.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition-all"
+                >
+                  No, Keep Other Sessions
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePasswordChangeSubmit(true)}
+                  className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                >
+                  Yes, Sign Out Everywhere
+                </button>
+              </div>
             </div>
           </div>
         )}
