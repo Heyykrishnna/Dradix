@@ -1033,7 +1033,9 @@ export default function SettingsPage() {
                           >
                             <svg
                               className="w-4 h-4"
-                              fill={session.is_trusted ? "currentColor" : "none"}
+                              fill={
+                                session.is_trusted ? "currentColor" : "none"
+                              }
                               viewBox="0 0 24 24"
                               stroke="currentColor"
                               strokeWidth="2"
@@ -1047,7 +1049,9 @@ export default function SettingsPage() {
                           </button>
                           <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex flex-col items-center opacity-0 group-hover/trust:opacity-100 transition-opacity duration-150 z-20">
                             <div className="bg-zinc-900 text-white text-[10px] font-medium px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
-                              {session.is_trusted ? "Remove Trust" : "Mark as Trusted"}
+                              {session.is_trusted
+                                ? "Remove Trust"
+                                : "Mark as Trusted"}
                             </div>
                             <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
                           </div>
@@ -1086,7 +1090,9 @@ export default function SettingsPage() {
                           </button>
                           <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex flex-col items-center opacity-0 group-hover/logout:opacity-100 transition-opacity duration-150 z-20">
                             <div className="bg-zinc-900 text-white text-[10px] font-medium px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
-                              {isCurrent ? "Logout this device" : "Terminate session"}
+                              {isCurrent
+                                ? "Logout this device"
+                                : "Terminate session"}
                             </div>
                             <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
                           </div>
@@ -1099,9 +1105,17 @@ export default function SettingsPage() {
                         <span className="block font-medium text-zinc-400">
                           Session ID
                         </span>
-                        <code className="text-zinc-700 font-mono select-all">
-                          {session.session_token.slice(0, 8)}...
-                        </code>
+                        <div className="relative group/sessionid inline-block">
+                          <code className="text-zinc-700 font-mono select-all cursor-default">
+                            {session.session_token.slice(0, 8)}...
+                          </code>
+                          <div className="pointer-events-none absolute bottom-full left-0 mb-2 flex flex-col items-start opacity-0 group-hover/sessionid:opacity-100 transition-opacity duration-150 z-20">
+                            <div className="bg-zinc-900 text-white text-[10px] font-mono px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
+                              {session.session_token}
+                            </div>
+                            <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1 ml-2" />
+                          </div>
+                        </div>
                       </div>
                       <div>
                         <span className="block font-medium text-zinc-400">
