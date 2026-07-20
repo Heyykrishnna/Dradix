@@ -1021,58 +1021,19 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleToggleTrust(session)}
-                          disabled={actionLoading === session.id}
-                          className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors shrink-0 cursor-pointer ${
-                            session.is_trusted
-                              ? "text-emerald-600 hover:text-emerald-700"
-                              : "text-zinc-400 hover:text-zinc-600"
-                          }`}
-                          title={
-                            session.is_trusted
-                              ? "Remove Trust"
-                              : "Mark as Trusted"
-                          }
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill={session.is_trusted ? "currentColor" : "none"}
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2"
+                        <div className="relative group/trust">
+                          <button
+                            onClick={() => handleToggleTrust(session)}
+                            disabled={actionLoading === session.id}
+                            className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors shrink-0 cursor-pointer ${
+                              session.is_trusted
+                                ? "text-emerald-600 hover:text-emerald-700"
+                                : "text-zinc-400 hover:text-zinc-600"
+                            }`}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleRevoke(session.id, session.session_token)
-                          }
-                          disabled={actionLoading === session.id}
-                          className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-red-600 shrink-0 cursor-pointer ${
-                            isCurrent
-                              ? "hover:bg-red-50 hover:text-red-600"
-                              : ""
-                          }`}
-                          title={
-                            isCurrent
-                              ? "Logout this device"
-                              : "Terminate session"
-                          }
-                        >
-                          {actionLoading === session.id ? (
-                            <div className="w-4 h-4 border-2 border-zinc-200 border-t-zinc-500 rounded-full animate-spin" />
-                          ) : isCurrent ? (
-                            <ExitIcon className="w-4 h-4" />
-                          ) : (
                             <svg
                               className="w-4 h-4"
-                              fill="none"
+                              fill={session.is_trusted ? "currentColor" : "none"}
                               viewBox="0 0 24 24"
                               stroke="currentColor"
                               strokeWidth="2"
@@ -1080,11 +1041,56 @@ export default function SettingsPage() {
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                               />
                             </svg>
-                          )}
-                        </button>
+                          </button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex flex-col items-center opacity-0 group-hover/trust:opacity-100 transition-opacity duration-150 z-20">
+                            <div className="bg-zinc-900 text-white text-[10px] font-medium px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
+                              {session.is_trusted ? "Remove Trust" : "Mark as Trusted"}
+                            </div>
+                            <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
+                          </div>
+                        </div>
+                        <div className="relative group/logout">
+                          <button
+                            onClick={() =>
+                              handleRevoke(session.id, session.session_token)
+                            }
+                            disabled={actionLoading === session.id}
+                            className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-red-600 shrink-0 cursor-pointer ${
+                              isCurrent
+                                ? "hover:bg-red-50 hover:text-red-600"
+                                : ""
+                            }`}
+                          >
+                            {actionLoading === session.id ? (
+                              <div className="w-4 h-4 border-2 border-zinc-200 border-t-zinc-500 rounded-full animate-spin" />
+                            ) : isCurrent ? (
+                              <ExitIcon className="w-4 h-4" />
+                            ) : (
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex flex-col items-center opacity-0 group-hover/logout:opacity-100 transition-opacity duration-150 z-20">
+                            <div className="bg-zinc-900 text-white text-[10px] font-medium px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
+                              {isCurrent ? "Logout this device" : "Terminate session"}
+                            </div>
+                            <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
+                          </div>
+                        </div>
                       </div>
                     </div>
 
