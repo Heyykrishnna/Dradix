@@ -4,8 +4,6 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { SafeUser, ApiResponse } from "../types/auth";
 import { apiFetch, setAccessToken, setRefreshToken } from "../lib/api";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 interface AuthContextType {
   user: SafeUser | null;
@@ -24,7 +22,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const PUBLIC_ROUTES = ["/", "/auth", "/coming-soon", "/auth/callback", "/auth/verify"];
+const PUBLIC_ROUTES = [
+  "/",
+  "/auth",
+  "/coming-soon",
+  "/auth/callback",
+  "/auth/verify",
+];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SafeUser | null>(null);
@@ -73,7 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (user) {
-      const hasSocials = user.socials && typeof user.socials === "object" && Object.keys(user.socials).length > 0;
+      const hasSocials =
+        user.socials &&
+        typeof user.socials === "object" &&
+        Object.keys(user.socials).length > 0;
       if (user.bio && hasSocials) {
         localStorage.setItem("isOnboarded", "true");
       }
@@ -84,12 +91,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (loading) return;
 
     const isPublicRoute = PUBLIC_ROUTES.some((route) =>
-      route === "/" ? pathname === "/" : pathname.startsWith(route)
+      route === "/" ? pathname === "/" : pathname.startsWith(route),
     );
 
-    const hasSocials = user?.socials && typeof user.socials === "object" && Object.keys(user.socials).length > 0;
+    const hasSocials =
+      user?.socials &&
+      typeof user.socials === "object" &&
+      Object.keys(user.socials).length > 0;
     const isUserOnboarded = !!(user?.bio && hasSocials);
-    const isOnboarded = (typeof window !== "undefined" && localStorage.getItem("isOnboarded") === "true") || isUserOnboarded;
+    const isOnboarded =
+      (typeof window !== "undefined" &&
+        localStorage.getItem("isOnboarded") === "true") ||
+      isUserOnboarded;
 
     if (!user) {
       if (!isPublicRoute) {
@@ -98,7 +111,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       if (!isOnboarded && pathname !== "/onboarding" && !isPublicRoute) {
         router.replace("/onboarding");
-      } else if (isOnboarded && (pathname === "/auth" || pathname === "/onboarding")) {
+      } else if (
+        isOnboarded &&
+        (pathname === "/auth" || pathname === "/onboarding")
+      ) {
         router.replace("/dashboard");
       } else if (pathname === "/auth") {
         router.replace("/onboarding");
@@ -107,8 +123,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, pathname, loading, router]);
 
   const login = async (email: string, password: string) => {
+    setLoading(true);
     try {
-      const res = await apiFetch<ApiResponse<{ user: SafeUser; accessToken: string; refreshToken?: string }>>("/auth/login", {
+      const res = await apiFetch<
+        ApiResponse<{
+          user: SafeUser;
+          accessToken: string;
+          refreshToken?: string;
+        }>
+      >("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
@@ -124,6 +147,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/dashboard");
     } catch (err) {
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     first_name?: string;
     last_name?: string;
   }) => {
+    setLoading(true);
     try {
       await apiFetch<ApiResponse<{ email: string }>>("/auth/register", {
         method: "POST",
@@ -141,6 +167,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     } catch (err) {
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -176,7 +204,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{ user, loading, login, register, logout, checkAuth }}
     >
       {children}
-      <ToastContainer position="top-right" autoClose={3000} theme="light" />
     </AuthContext.Provider>
   );
 }
