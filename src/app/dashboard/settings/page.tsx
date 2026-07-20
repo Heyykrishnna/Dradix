@@ -300,7 +300,11 @@ export default function SettingsPage() {
     const isCurrentlyTrusted = session.is_trusted;
     const url = `/auth/sessions/${session.id}/trust`;
     const method = isCurrentlyTrusted ? "DELETE" : "POST";
-    const deviceId = session.device_id || (typeof window !== "undefined" ? localStorage.getItem("dradix_device_id") : "");
+    const deviceId =
+      session.device_id ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("dradix_device_id")
+        : "");
 
     if (!deviceId) {
       setErrorMsg("Unable to retrieve device ID for this session.");
@@ -317,7 +321,11 @@ export default function SettingsPage() {
         body: JSON.stringify({ deviceId }),
       });
       if (res.success) {
-        setSuccessMsg(isCurrentlyTrusted ? "Device trust removed." : "Device marked as trusted.");
+        setSuccessMsg(
+          isCurrentlyTrusted
+            ? "Device trust removed."
+            : "Device marked as trusted.",
+        );
         fetchSessions();
       }
     } catch (err: unknown) {
@@ -426,9 +434,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error
-          ? err.message
-          : "Failed to log out of all devices",
+        err instanceof Error ? err.message : "Failed to log out of all devices",
       );
     } finally {
       setBulkLoading(false);
@@ -1023,7 +1029,11 @@ export default function SettingsPage() {
                               ? "text-emerald-600 hover:text-emerald-700"
                               : "text-zinc-400 hover:text-zinc-600"
                           }`}
-                          title={session.is_trusted ? "Remove Trust" : "Mark as Trusted"}
+                          title={
+                            session.is_trusted
+                              ? "Remove Trust"
+                              : "Mark as Trusted"
+                          }
                         >
                           <svg
                             className="w-4 h-4"
@@ -1045,10 +1055,14 @@ export default function SettingsPage() {
                           }
                           disabled={actionLoading === session.id}
                           className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-red-600 shrink-0 cursor-pointer ${
-                            isCurrent ? "hover:bg-red-50 hover:text-red-600" : ""
+                            isCurrent
+                              ? "hover:bg-red-50 hover:text-red-600"
+                              : ""
                           }`}
                           title={
-                            isCurrent ? "Logout this device" : "Terminate session"
+                            isCurrent
+                              ? "Logout this device"
+                              : "Terminate session"
                           }
                         >
                           {actionLoading === session.id ? (
@@ -1076,28 +1090,37 @@ export default function SettingsPage() {
 
                     <div className="pt-3 border-t border-zinc-200/60 grid grid-cols-2 sm:grid-cols-4 gap-4 text-[11px] text-zinc-500">
                       <div>
-                        <span className="block font-medium text-zinc-400">Session ID</span>
+                        <span className="block font-medium text-zinc-400">
+                          Session ID
+                        </span>
                         <code className="text-zinc-700 font-mono select-all">
                           {session.session_token.slice(0, 8)}...
                         </code>
                       </div>
                       <div>
-                        <span className="block font-medium text-zinc-400">Status</span>
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="block font-medium text-zinc-400">
+                          Status
+                        </span>
+                        <span className="inline-flex text-zinc-700 items-center text-[10px]">
                           Active
                         </span>
                       </div>
                       <div>
-                        <span className="block font-medium text-zinc-400">Expires At</span>
+                        <span className="block font-medium text-zinc-400">
+                          Expires At
+                        </span>
                         <span className="text-zinc-700 font-medium">
                           {formatDate(session.expires_at)}
                         </span>
                       </div>
                       <div>
-                        <span className="block font-medium text-zinc-400">Last Refreshed</span>
+                        <span className="block font-medium text-zinc-400">
+                          Last Refreshed
+                        </span>
                         <span className="text-zinc-700 font-medium">
-                          {session.rotated_at ? formatDate(session.rotated_at) : formatDate(session.created_at)}
+                          {session.rotated_at
+                            ? formatDate(session.rotated_at)
+                            : formatDate(session.created_at)}
                         </span>
                       </div>
                     </div>
