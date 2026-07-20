@@ -11,6 +11,7 @@ import {
 } from "@radix-ui/react-icons";
 import { FcGoogle } from "react-icons/fc";
 import { useState, Suspense } from "react";
+import { toast } from "react-toastify";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch, cleanUrl } from "@/lib/api";
 
@@ -50,7 +51,28 @@ function AuthFormContent() {
 
     try {
       if (isLogin) {
-        await login(email, password);
+        const toastId = toast.loading("Logging in...", {
+          position: "top-right",
+          theme: "light",
+        });
+        try {
+          await login(email, password);
+          toast.update(toastId, {
+            render: "Logged in successfully!",
+            type: "success",
+            isLoading: false,
+            autoClose: 2000,
+          });
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : "Authentication failed";
+          toast.update(toastId, {
+            render: message,
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+          });
+          throw err;
+        }
       } else {
         const baseUsername = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "");
         const array = new Uint32Array(1);

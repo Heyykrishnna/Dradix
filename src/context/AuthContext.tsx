@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { SafeUser, ApiResponse } from "../types/auth";
 import { apiFetch, setAccessToken, setRefreshToken } from "../lib/api";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface AuthContextType {
   user: SafeUser | null;
@@ -105,7 +107,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, pathname, loading, router]);
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
     try {
       const res = await apiFetch<ApiResponse<{ user: SafeUser; accessToken: string; refreshToken?: string }>>("/auth/login", {
         method: "POST",
@@ -123,8 +124,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/dashboard");
     } catch (err) {
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -135,7 +134,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     first_name?: string;
     last_name?: string;
   }) => {
-    setLoading(true);
     try {
       await apiFetch<ApiResponse<{ email: string }>>("/auth/register", {
         method: "POST",
@@ -143,8 +141,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     } catch (err) {
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -180,6 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{ user, loading, login, register, logout, checkAuth }}
     >
       {children}
+      <ToastContainer position="top-right" autoClose={3000} theme="light" />
     </AuthContext.Provider>
   );
 }
