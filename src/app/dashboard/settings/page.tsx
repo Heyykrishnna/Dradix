@@ -974,8 +974,10 @@ export default function SettingsPage() {
 
         {showReauthModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-xs"
+            <button
+              type="button"
+              aria-label="Close modal"
+              className="absolute inset-0 bg-black/50 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
               onClick={() => setShowReauthModal(false)}
             />
             <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-2xl p-6 sm:p-8 animate-fadeIn">
@@ -1037,8 +1039,10 @@ export default function SettingsPage() {
         )}
         {showForceLogoutModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-xs"
+            <button
+              type="button"
+              aria-label="Close modal"
+              className="absolute inset-0 bg-black/50 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
               onClick={() => setShowForceLogoutModal(false)}
             />
             <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-2xl p-6 sm:p-8 animate-fadeIn">
