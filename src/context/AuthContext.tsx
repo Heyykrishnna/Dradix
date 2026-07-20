@@ -8,7 +8,8 @@ import { apiFetch, setAccessToken, setRefreshToken } from "../lib/api";
 interface AuthContextType {
   user: SafeUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ require2FA?: boolean; twoFactorToken?: string } | void>;
+  verify2FA: (twoFactorToken: string, otp?: string, recoveryCode?: string) => Promise<void>;
   register: (data: {
     email: string;
     username: string;
@@ -123,18 +124,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, pathname, loading, router]);
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
     try {
       const res = await apiFetch<
         ApiResponse<{
           user: SafeUser;
-          accessToken: string;
+          accessToken?: string;
           refreshToken?: string;
+          require2FA?: boolean;
+          twoFactorToken?: string;
         }>
       >("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
+      if (res.data?.require2FA) {
+        return {
+          require2FA: true,
+          twoFactorToken: res.data.twoFactorToken,
+        };
+      }
       if (res.data?.accessToken) {
         setAccessToken(res.data.accessToken);
       }
@@ -147,8 +155,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/dashboard");
     } catch (err) {
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -159,7 +165,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     first_name?: string;
     last_name?: string;
   }) => {
-    setLoading(true);
     try {
       await apiFetch<ApiResponse<{ email: string }>>("/auth/register", {
         method: "POST",
@@ -167,8 +172,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     } catch (err) {
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -190,6 +193,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/auth");
     }
   };
+  const verify2FA = async (twoFactorToken: string, otp?: string, recoveryCode?: string) => {
+    try {
+      const res = await apiFetch<
+        ApiResponse<{
+          user: SafeUser;
+          accessToken: string;
+          refreshToken?: string;
+        }>
+      >("/auth/verify-2fa", {
+        method: "POST",
+        body: JSON.stringify({ twoFactorToken, otp, recoveryCode }),
+      });
+      if (res.data?.accessToken) {
+        setAccessToken(res.data.accessToken);
+      }
+      if (res.data?.refreshToken) {
+        setRefreshToken(res.data.refreshToken);
+      }
+      if (res.data?.user) {
+        setUser(res.data.user);
+      }
+      router.push("/dashboard");
+    } catch (err) {
+      throw err;
+    }
+  };
 
   if (loading) {
     return (
@@ -201,7 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, checkAuth }}
+      value={{ user, loading, login, verify2FA, register, logout, checkAuth }}
     >
       {children}
     </AuthContext.Provider>

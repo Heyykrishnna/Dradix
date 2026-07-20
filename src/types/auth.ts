@@ -9,6 +9,7 @@ export interface SafeUser {
   developer_score: number;
   skills: string[];
   socials: Record<string, string>;
+  two_factor_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
