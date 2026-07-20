@@ -20,6 +20,9 @@ interface Session {
   last_active: string;
   expires_at: string;
   relativeActive?: string;
+  is_trusted?: boolean;
+  device_id?: string | null;
+  rotated_at?: string | null;
 }
 
 const getRelativeTime = (dateStr: string, now: number): string => {
@@ -293,6 +296,39 @@ export default function SettingsPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleToggleTrust = async (session: Session) => {
+    const isCurrentlyTrusted = session.is_trusted;
+    const url = `/auth/sessions/${session.id}/trust`;
+    const method = isCurrentlyTrusted ? "DELETE" : "POST";
+    const deviceId = session.device_id || (typeof window !== "undefined" ? localStorage.getItem("dradix_device_id") : "");
+
+    if (!deviceId) {
+      setErrorMsg("Unable to retrieve device ID for this session.");
+      return;
+    }
+
+    setActionLoading(session.id);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const res = await apiFetch<ApiResponse<null>>(url, {
+        method,
+        body: JSON.stringify({ deviceId }),
+      });
+      if (res.success) {
+        setSuccessMsg(isCurrentlyTrusted ? "Device trust removed." : "Device marked as trusted.");
+        fetchSessions();
+      }
+    } catch (err: unknown) {
+      setErrorMsg(
+        err instanceof Error ? err.message : "Failed to update trust settings",
+      );
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleRevoke = async (id: number, sessionToken: string) => {
     if (sessionToken === currentSessionToken) {
       if (confirm("This will log you out of your current session. Continue?")) {
@@ -359,6 +395,40 @@ export default function SettingsPage() {
         err instanceof Error
           ? err.message
           : "Failed to terminate other sessions",
+      );
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleRevokeAll = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to log out of all devices? You will be logged out of this session immediately.",
+      )
+    ) {
+      return;
+    }
+
+    setBulkLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+    try {
+      const res = await apiFetch<ApiResponse<null>>(
+        "/auth/sessions/logout-all",
+        {
+          method: "POST",
+        },
+      );
+      if (res.success) {
+        setSuccessMsg("Successfully logged out of all devices.");
+        await logout();
+      }
+    } catch (err: unknown) {
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Failed to log out of all devices",
       );
     } finally {
       setBulkLoading(false);
@@ -812,17 +882,26 @@ export default function SettingsPage() {
                 sessions you don&apos;t recognize.
               </p>
             </div>
-            {sessions.length > 1 && (
+            <div className="flex flex-wrap gap-2">
               <button
-                onClick={handleRevokeOther}
+                onClick={handleRevokeAll}
                 disabled={bulkLoading}
-                className="self-start sm:self-center px-4 py-2 bg-[#003c3a] hover:bg-[#002d2b] text-white disabled:opacity-50 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
               >
-                {bulkLoading
-                  ? "Logging out others..."
-                  : "Logout All Other Devices"}
+                {bulkLoading ? "Logging out all..." : "Logout All Devices"}
               </button>
-            )}
+              {sessions.length > 1 && (
+                <button
+                  onClick={handleRevokeOther}
+                  disabled={bulkLoading}
+                  className="px-4 py-2 bg-[#003c3a] hover:bg-[#002d2b] text-white disabled:opacity-50 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                >
+                  {bulkLoading
+                    ? "Logging out others..."
+                    : "Logout Other Devices"}
+                </button>
+              )}
+            </div>
           </div>
 
           {loading ? (
@@ -840,131 +919,188 @@ export default function SettingsPage() {
                 return (
                   <div
                     key={session.id}
-                    className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${
+                    className={`flex flex-col gap-4 p-5 rounded-xl border transition-all ${
                       isCurrent
                         ? "bg-[#f0f6f6] border-[#003c3a]/30 shadow-xs"
                         : "bg-zinc-50/50 border-zinc-200/60 hover:bg-zinc-50 hover:border-zinc-300"
                     }`}
                   >
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-                        isCurrent
-                          ? "bg-[#003c3a]/10 text-[#003c3a] border-[#003c3a]/20"
-                          : "bg-zinc-100 text-zinc-500 border-zinc-200"
-                      }`}
-                    >
-                      {isMobile ? (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                          />
-                        </svg>
-                      ) : isTablet ? (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                          />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                          />
-                        </svg>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-sm text-zinc-900 truncate">
-                          {session.device_name || "Unknown Device"}
-                        </span>
-                        {isCurrent && (
-                          <span className="px-2 py-0.5 text-[9px] font-black bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/25 rounded-md animate-pulse">
-                            Current Device
-                          </span>
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                          isCurrent
+                            ? "bg-[#003c3a]/10 text-[#003c3a] border-[#003c3a]/20"
+                            : "bg-zinc-100 text-zinc-500 border-zinc-200"
+                        }`}
+                      >
+                        {isMobile ? (
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                            />
+                          </svg>
+                        ) : isTablet ? (
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
+                          </svg>
                         )}
                       </div>
 
-                      <div className="text-zinc-600 text-[12px] space-y-0.5">
-                        <p className="font-medium text-zinc-700">
-                          {session.browser_name || "Unknown Browser"}{" "}
-                          {session.browser_version || ""} on{" "}
-                          {session.os || "Unknown OS"}
-                        </p>
-                        <p className="text-zinc-500 text-[11px]">
-                          IP:{" "}
-                          <span className="text-zinc-700 font-medium">
-                            {session.ip_address || "Unknown"}
-                          </span>{" "}
-                          • Location:{" "}
-                          <span className="text-zinc-700 font-medium">
-                            {session.location || "Unknown Location"}
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm text-zinc-900 truncate">
+                            {session.device_name || "Unknown Device"}
                           </span>
-                        </p>
-                        <p className="text-zinc-400 text-[10px] pt-1">
-                          Logged in: {formatDate(session.created_at)} • Last
-                          active: {session.relativeActive || "Unknown"}
-                        </p>
+                          {isCurrent && (
+                            <span className="px-2 py-0.5 text-[9px] font-black bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/25 rounded-md">
+                              Current Device
+                            </span>
+                          )}
+                          {session.is_trusted && (
+                            <span className="px-2 py-0.5 text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md">
+                              Trusted Device
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-zinc-600 text-[12px] space-y-0.5">
+                          <p className="font-medium text-zinc-700">
+                            {session.browser_name || "Unknown Browser"}{" "}
+                            {session.browser_version || ""} on{" "}
+                            {session.os || "Unknown OS"}
+                          </p>
+                          <p className="text-zinc-500 text-[11px]">
+                            IP:{" "}
+                            <span className="text-zinc-700 font-medium mr-3">
+                              {session.ip_address || "Unknown"}
+                            </span>
+                            Location:{" "}
+                            <span className="text-zinc-700 font-medium">
+                              {session.location || "Unknown Location"}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleToggleTrust(session)}
+                          disabled={actionLoading === session.id}
+                          className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors shrink-0 cursor-pointer ${
+                            session.is_trusted
+                              ? "text-emerald-600 hover:text-emerald-700"
+                              : "text-zinc-400 hover:text-zinc-600"
+                          }`}
+                          title={session.is_trusted ? "Remove Trust" : "Mark as Trusted"}
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill={session.is_trusted ? "currentColor" : "none"}
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleRevoke(session.id, session.session_token)
+                          }
+                          disabled={actionLoading === session.id}
+                          className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-red-600 shrink-0 cursor-pointer ${
+                            isCurrent ? "hover:bg-red-50 hover:text-red-600" : ""
+                          }`}
+                          title={
+                            isCurrent ? "Logout this device" : "Terminate session"
+                          }
+                        >
+                          {actionLoading === session.id ? (
+                            <div className="w-4 h-4 border-2 border-zinc-200 border-t-zinc-500 rounded-full animate-spin" />
+                          ) : isCurrent ? (
+                            <ExitIcon className="w-4 h-4" />
+                          ) : (
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          )}
+                        </button>
                       </div>
                     </div>
 
-                    <button
-                      onClick={() =>
-                        handleRevoke(session.id, session.session_token)
-                      }
-                      disabled={actionLoading === session.id}
-                      className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-red-600 shrink-0 cursor-pointer ${
-                        isCurrent ? "hover:bg-red-50 hover:text-red-600" : ""
-                      }`}
-                      title={
-                        isCurrent ? "Logout this device" : "Terminate session"
-                      }
-                    >
-                      {actionLoading === session.id ? (
-                        <div className="w-4 h-4 border-2 border-zinc-200 border-t-zinc-500 rounded-full animate-spin" />
-                      ) : isCurrent ? (
-                        <ExitIcon className="w-4 h-4" />
-                      ) : (
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      )}
-                    </button>
+                    <div className="pt-3 border-t border-zinc-200/60 grid grid-cols-2 sm:grid-cols-4 gap-4 text-[11px] text-zinc-500">
+                      <div>
+                        <span className="block font-medium text-zinc-400">Session ID</span>
+                        <code className="text-zinc-700 font-mono select-all">
+                          {session.session_token.slice(0, 8)}...
+                        </code>
+                      </div>
+                      <div>
+                        <span className="block font-medium text-zinc-400">Status</span>
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Active
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block font-medium text-zinc-400">Expires At</span>
+                        <span className="text-zinc-700 font-medium">
+                          {formatDate(session.expires_at)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block font-medium text-zinc-400">Last Refreshed</span>
+                        <span className="text-zinc-700 font-medium">
+                          {session.rotated_at ? formatDate(session.rotated_at) : formatDate(session.created_at)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 );
               })}

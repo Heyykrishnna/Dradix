@@ -91,6 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
+    if (pathname.startsWith("/auth/callback")) return;
+
     const isPublicRoute = PUBLIC_ROUTES.some((route) =>
       route === "/" ? pathname === "/" : pathname.startsWith(route),
     );
@@ -117,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (pathname === "/auth" || pathname === "/onboarding")
       ) {
         router.replace("/dashboard");
-      } else if (pathname === "/auth") {
+      } else if (!isOnboarded && pathname === "/auth") {
         router.replace("/onboarding");
       }
     }

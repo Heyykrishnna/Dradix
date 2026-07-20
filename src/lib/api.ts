@@ -65,6 +65,18 @@ export async function apiFetch<T = unknown>(path: string, options: FetchOptions 
     requestHeaders.set('Content-Type', 'application/json');
   }
 
+  let deviceId: string | null = null;
+  if (typeof window !== 'undefined') {
+    deviceId = localStorage.getItem('dradix_device_id');
+    if (!deviceId) {
+      deviceId = crypto.randomUUID();
+      localStorage.setItem('dradix_device_id', deviceId);
+    }
+  }
+  if (deviceId) {
+    requestHeaders.set('X-Device-Id', deviceId);
+  }
+
   const token = getAccessToken();
   if (token && !skipAuth) {
     requestHeaders.set('Authorization', `Bearer ${token}`);
