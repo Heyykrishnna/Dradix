@@ -384,7 +384,7 @@ function SkillsSection({ projectsList }: { projectsList: Project[] }) {
                 setRenderedSkill(skill.name);
               }}
               onMouseLeave={() => setHoveredSkill(null)}
-              className={`relative shrink-0 flex flex-col items-center gap-2 rounded-2xl px-4 py-4 w-[110px] transition-all duration-300 ${
+              className={`relative shrink-0 flex flex-col items-center gap-2 rounded-2xl px-4 py-4 w-27.5 transition-all duration-300 ${
                 isHovered ? "bg-zinc-100 shadow-sm" : "bg-white"
               }`}
             >
@@ -517,7 +517,7 @@ function SkillProjectPanel({
             <span className={`font-bold ${cfg.text}`}>{skill.level}</span>
           </p>
         </div>
-        <div className="ml-auto w-full max-w-[160px] h-2 bg-zinc-100 rounded-full overflow-hidden">
+        <div className="ml-auto w-full max-w-40 h-2 bg-zinc-100 rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{ width: `${skill.pct}%`, backgroundColor: skill.color }}
@@ -581,7 +581,9 @@ export default function DashboardPage() {
   const [analyticsMetric, setAnalyticsMetric] = useState<
     "views" | "likes" | "stars"
   >("views");
-  const [hoveredDataPoint, setHoveredDataPoint] = useState<MonthlyStats | null>(null);
+  const [hoveredDataPoint, setHoveredDataPoint] = useState<MonthlyStats | null>(
+    null,
+  );
   const [projectFormState, setProjectFormState] = useState({
     name: "",
     stack: "",
@@ -1119,7 +1121,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="bg-[#e6edde] rounded-[24px] p-5 space-y-4 flex flex-col items-center text-center">
-          <div className="w-full max-w-[160px] aspect-square relative flex items-center justify-center bg-white/40 rounded-2xl p-4">
+          <div className="w-full max-w-40 aspect-square relative flex items-center justify-center bg-white/40 rounded-2xl p-4">
             <svg
               viewBox="0 0 24 24"
               className="w-16 h-16 text-[#4d6a34]"
@@ -1660,7 +1662,7 @@ export default function DashboardPage() {
                 </button>
               </div>
 
-              <div className="relative grid grid-cols-4 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1 w-full max-w-[440px] select-none shrink-0">
+              <div className="relative grid grid-cols-4 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1 w-full max-w-110 select-none shrink-0">
                 <div
                   className="absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-out shadow-xs"
                   style={{
@@ -2266,11 +2268,11 @@ export default function DashboardPage() {
                 Developer Timeline
               </h3>
               <div className="relative pl-6 space-y-4">
-                <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-zinc-200" />
+                <div className="absolute left-1.75 top-2 bottom-2 w-0.5 bg-zinc-200" />
                 {timelineMilestones.map((item, idx) => (
                   <div key={idx} className="relative space-y-1">
                     <div
-                      className="absolute left-[-23px] top-1.5 w-3.5 h-3.5 rounded-full bg-white border-2"
+                      className="absolute -left-5.75 top-1.5 w-3.5 h-3.5 rounded-full bg-white border-2"
                       style={{ borderColor: item.color }}
                     />
                     <div className="flex justify-between text-[11px]">
@@ -2283,7 +2285,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="group/notif-card bg-[#f4f4f5] rounded-[24px] p-5 border border-transparent hover:border-zinc-200 hover:bg-white hover:shadow-xl transition-all duration-500 ease-in-out flex flex-col h-[300px] hover:h-[520px] overflow-hidden relative">
+            <div className="group/notif-card bg-[#f4f4f5] rounded-[24px] p-5 border border-transparent hover:border-zinc-200 hover:bg-white hover:shadow-xl transition-all duration-500 ease-in-out flex flex-col h-75 hover:h-130 overflow-hidden relative">
               <div className="flex justify-between items-center shrink-0 mb-4">
                 <h3 className="text-[15px] font-bold text-black tracking-tight">
                   Activity & Notifications

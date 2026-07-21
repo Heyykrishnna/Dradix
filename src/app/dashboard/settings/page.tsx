@@ -779,7 +779,7 @@ export default function SettingsPage() {
                         onChange={(e) =>
                           setConfirmOtp(e.target.value.replace(/\D/g, ""))
                         }
-                        className="max-w-[150px] px-3.5 py-2 bg-white border border-zinc-300 rounded-xl text-sm text-center font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600"
+                        className="max-w-37.5 px-3.5 py-2 bg-white border border-zinc-300 rounded-xl text-sm text-center font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600"
                       />
                       <button
                         type="submit"
