@@ -160,14 +160,14 @@ export default function ComingSoonPage() {
           <div className="flex items-center justify-center gap-2.5 mt-5">
             <div className="flex -space-x-2 overflow-hidden shrink-0">
               <Image
-                src="/assets/images/Avatar.jpg"
+                src="/assets/images/avatar/Avatar.jpg"
                 alt="Community member"
                 width={24}
                 height={24}
                 className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover"
               />
               <Image
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"
+                src="/assets/images/avatar/AVA.jpg"
                 alt="Community member"
                 width={24}
                 height={24}
@@ -175,7 +175,7 @@ export default function ComingSoonPage() {
                 unoptimized
               />
               <Image
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop"
+                src="/assets/images/avatar/AVA-2.jpg"
                 alt="Community member"
                 width={24}
                 height={24}

@@ -304,7 +304,7 @@ const initialProfile: Omit<ProfileState, "skills"> = {
   email: "yatharth.k@dradix.dev",
   phone: "+91 98765 43210",
   location: "Bengaluru, Karnataka, India",
-  avatarUrl: "/assets/images/Avatar.jpg",
+  avatarUrl: "/assets/images/avatar/Avatar.jpg",
   coverUrl: "/assets/images/BANNER-A.png",
   coverPositionX: 50,
   coverPositionY: 50,

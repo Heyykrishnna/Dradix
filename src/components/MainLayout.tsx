@@ -153,7 +153,7 @@ export default function MainLayout({
   const { user } = useAuth();
   const [imageError, setImageError] = useState(false);
 
-  const avatarUrl = user?.avatar_url || "/assets/images/Avatar.jpg";
+  const avatarUrl = user?.avatar_url || "/assets/images/avatar/Avatar.jpg";
   const displayName = user
     ? user.first_name
       ? `${user.first_name} ${user.last_name || ""}`.trim()
