@@ -596,6 +596,54 @@ function SkillProjectPanel({
   );
 }
 
+interface DashboardResponseData {
+  profile?: {
+    username: string;
+    first_name?: string | null;
+    last_name?: string | null;
+  };
+  developer_score?: number;
+  github?: {
+    total_commits?: number;
+    stars_earned?: number;
+    total_prs?: number;
+    total_issues?: number;
+  };
+  coding_profiles?: Array<{
+    platform: string;
+    rating?: number;
+    global_ranking?: number;
+    problems_solved?: number;
+  }>;
+  projects?: Array<{
+    id: number | string;
+    name: string;
+    description?: string;
+    tech_stack?: string[];
+    created_at: string | Date;
+  }>;
+  achievements?: Array<{
+    id: number;
+    title: string;
+  }>;
+  recruiterChecklist?: Array<{
+    label: string;
+    done: boolean;
+  }>;
+  timeline?: Array<{
+    date: string;
+    title: string;
+    desc: string;
+    color: string;
+  }>;
+  notifications?: NotificationItem[];
+  careerRings?: Array<{
+    label: string;
+    value: number;
+    color: string;
+  }>;
+}
+
 export default function DashboardPage() {
   const [projectsList, setProjectsList] = useState(initialProjectsList);
   const [devStats, setDevStats] = useState(initialDevStats);
@@ -838,15 +886,19 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await apiFetch<{ data: any }>("/dashboard");
+        const response = await apiFetch<{ data: DashboardResponseData }>("/dashboard");
         if (response && response.data) {
           const data = response.data;
-          
+
           if (data.profile) {
             setDevStats({
               score: data.developer_score || 0,
               contributions: data.github?.total_commits || 0,
-              problemsSolved: data.coding_profiles?.reduce((acc: number, curr: any) => acc + (curr.problems_solved || 0), 0) || 0,
+              problemsSolved:
+                data.coding_profiles?.reduce(
+                  (acc, curr) => acc + (curr.problems_solved || 0),
+                  0,
+                ) || 0,
               streak: 42,
               projects: data.projects?.length || 0,
               liveProjects: data.projects?.length || 0,
@@ -863,15 +915,21 @@ export default function DashboardPage() {
           }
 
           if (data.projects && data.projects.length > 0) {
-            const mappedProjects = data.projects.map((proj: any) => ({
+            const mappedProjects = data.projects.map((proj) => ({
               id: proj.id.toString(),
               name: proj.name,
-              creator: `${data.profile.first_name || ''} ${data.profile.last_name || ''}`.trim() || data.profile.username,
-              stack: proj.tech_stack ? proj.tech_stack.join(', ') : '',
-              platform: 'GitHub',
-              date: new Date(proj.created_at).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
-              status: 'Live',
-              statusColor: '#005c58',
+              creator:
+                `${data.profile?.first_name || ""} ${data.profile?.last_name || ""}`.trim() ||
+                data.profile?.username || "",
+              stack: proj.tech_stack ? proj.tech_stack.join(", ") : "",
+              platform: "GitHub",
+              date: new Date(proj.created_at).toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }),
+              status: "Live",
+              statusColor: "#005c58",
               views: 120,
               likes: 15,
               stars: 5,
@@ -880,21 +938,24 @@ export default function DashboardPage() {
           }
 
           if (data.coding_profiles && data.coding_profiles.length > 0) {
-            const mappedPlatforms = data.coding_profiles.map((cp: any) => {
-              const platformName = cp.platform.charAt(0).toUpperCase() + cp.platform.slice(1);
-              let color = '#3b82f6';
-              let logo = '';
-              if (cp.platform.toLowerCase() === 'leetcode') {
-                color = '#f59e0b';
-                logo = 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg';
-              } else if (cp.platform.toLowerCase() === 'codeforces') {
-                color = '#3b82f6';
-                logo = 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg';
+            const mappedPlatforms = data.coding_profiles.map((cp) => {
+              const platformName =
+                cp.platform.charAt(0).toUpperCase() + cp.platform.slice(1);
+              let color = "#3b82f6";
+              let logo = "";
+              if (cp.platform.toLowerCase() === "leetcode") {
+                color = "#f59e0b";
+                logo =
+                  "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg";
+              } else if (cp.platform.toLowerCase() === "codeforces") {
+                color = "#3b82f6";
+                logo =
+                  "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg";
               }
               return {
                 name: platformName,
                 rating: cp.rating || 0,
-                rank: cp.global_ranking ? `#${cp.global_ranking}` : 'Member',
+                rank: cp.global_ranking ? `#${cp.global_ranking}` : "Member",
                 solved: cp.problems_solved || 0,
                 color,
                 streak: 10,
@@ -1093,15 +1154,13 @@ export default function DashboardPage() {
           <div className="space-y-2">
             <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
               <span className="text-[12px] font-semibold text-zinc-700">
-                {devStats.projects} Projects (
-                {devStats.liveProjects} Live)
+                {devStats.projects} Projects ({devStats.liveProjects} Live)
               </span>
               <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
             </button>
             <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
               <span className="text-[12px] font-semibold text-zinc-700">
-                {devStats.repositories} Repos (
-                {devStats.publicRepos} Public)
+                {devStats.repositories} Repos ({devStats.publicRepos} Public)
               </span>
               <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
             </button>
@@ -1584,10 +1643,10 @@ export default function DashboardPage() {
                       activeActivityToggle === "Daily"
                         ? dailyActivityData
                         : activeActivityToggle === "Weekly"
-                        ? weeklyActivityData
-                        : activeActivityToggle === "Monthly"
-                        ? monthlyActivityData
-                        : yearlyActivityData
+                          ? weeklyActivityData
+                          : activeActivityToggle === "Monthly"
+                            ? monthlyActivityData
+                            : yearlyActivityData
                     }
                     margin={{ top: 5, right: 10, left: -25, bottom: 0 }}
                   >

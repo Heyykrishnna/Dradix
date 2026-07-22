@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 
 interface SegmentedSliderProps<T extends string> {
   options: readonly T[];
@@ -23,7 +23,7 @@ export function SegmentedSlider<T extends string>({
     width: 0,
   });
 
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     if (!containerRef.current) return;
     const index = options.indexOf(value);
     const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>("button");
@@ -38,13 +38,13 @@ export function SegmentedSlider<T extends string>({
         width: targetRect.width,
       });
     }
-  };
+  }, [options, value]);
 
   useEffect(() => {
     updatePosition();
     window.addEventListener("resize", updatePosition);
     return () => window.removeEventListener("resize", updatePosition);
-  }, [value, options]);
+  }, [updatePosition]);
 
   const isDark = theme === "dark";
 

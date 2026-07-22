@@ -74,6 +74,10 @@ export default function DocumentUploadModal({
     },
   ]);
 
+  React.useEffect(() => {
+    onUploadComplete?.(fileList);
+  }, [fileList, onUploadComplete]);
+
   if (!isOpen) return null;
 
   const formatFileSize = (bytes: number) => {
