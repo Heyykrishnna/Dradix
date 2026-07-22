@@ -113,14 +113,14 @@ export default function ComingSoonPage() {
       )}
 
       <div
-        className={`relative z-10 w-full max-w-210 bg-white rounded-[32px] sm:rounded-[40px] shadow-2xl border border-white/50 pt-10 sm:pt-14 pb-0 px-6 sm:px-12 flex flex-col items-center justify-between transition-all duration-700 ease-in-out ${imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+        className={`relative z-10 w-full max-w-260 bg-white rounded-[32px] sm:rounded-[40px] shadow-2xl border border-white/50 pt-10 sm:pt-14 pb-0 px-6 sm:px-12 flex flex-col items-center justify-between transition-all duration-700 ease-in-out ${imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
       >
         <div className="w-full text-center flex flex-col items-center">
           <h1 className="font-sans font-black text-3xl sm:text-5xl md:text-6xl text-zinc-900 tracking-tight leading-none mb-3.5">
             Join The Waitlist
           </h1>
 
-          <p className="text-zinc-500 font-sans text-xs sm:text-sm font-normal leading-relaxed max-w-md mx-auto mb-8">
+          <p className="text-zinc-500 font-sans text-xs sm:text-sm font-normal leading-relaxed max-w-md mx-auto mb-12">
             Join now to access new features and updates
             <br className="hidden sm:block" />
             and be part of our early community.
@@ -171,7 +171,7 @@ export default function ComingSoonPage() {
                 alt="Community member"
                 width={24}
                 height={24}
-                className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover"
+                className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover select-none pointer-events-none"
                 unoptimized
               />
               <Image
@@ -190,7 +190,7 @@ export default function ComingSoonPage() {
 
           <form
             onSubmit={handlePasswordSubmit}
-            className="mt-6 flex flex-col items-center"
+            className="mt-2 flex flex-col items-center"
           >
             <input
               type="password"
@@ -204,7 +204,7 @@ export default function ComingSoonPage() {
                 passwordError
                   ? "border-rose-500 text-rose-500"
                   : "border-zinc-300 focus:border-zinc-800 text-zinc-800"
-              } text-[12px] tracking-wider text-center placeholder:text-zinc-400 focus:outline-none py-1 w-44 transition-colors font-sans`}
+              } text-[8px] tracking-wider text-center placeholder:text-zinc-400 focus:outline-none py-1 w-30 transition-colors font-sans`}
             />
           </form>
         </div>
