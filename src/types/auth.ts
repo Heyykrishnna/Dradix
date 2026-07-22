@@ -5,6 +5,7 @@ export interface SafeUser {
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
+  cover_url: string | null;
   bio: string | null;
   developer_score: number;
   skills: string[];

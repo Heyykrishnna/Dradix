@@ -2,6 +2,8 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
+import { apiFetch } from "@/lib/api";
 import {
   FaPlus,
   FaTrashCan,
@@ -471,7 +473,7 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white/95 backdrop-blur-md border border-zinc-200/80 shadow-lg rounded-2xl p-3.5 text-[11px] text-zinc-700 min-w-[160px] transition-all duration-200">
+      <div className="bg-white/95 backdrop-blur-md border border-zinc-200/80 shadow-lg rounded-2xl p-3.5 text-[11px] text-zinc-700 min-w-40 transition-all duration-200">
         <p className="font-bold text-zinc-900 text-[12px] mb-2 border-b border-zinc-100 pb-1.5 flex items-center justify-between">
           <span>{data.day} Stats</span>
           <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#005c58]/10 text-[#005c58]">
@@ -577,12 +579,58 @@ const ActivityStatsChart = () => {
 };
 
 export default function ProfilePage() {
+  const { user, checkAuth } = useAuth();
   const { userSkills, addSkill, removeSkill, updateSkillPct } = useSkills();
-  const [profile, setProfile] =
-    useState<Omit<ProfileState, "skills">>(initialProfile);
+  const [profile, setProfile] = useState<Omit<ProfileState, "skills">>(() => {
+    if (typeof window !== "undefined") {
+      const savedAvatar = localStorage.getItem("dradix_profile_avatar");
+      const savedCover = localStorage.getItem("dradix_profile_banner");
+      return {
+        ...initialProfile,
+        avatarUrl: savedAvatar || initialProfile.avatarUrl,
+        coverUrl: savedCover || initialProfile.coverUrl,
+      };
+    }
+    return initialProfile;
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [formState, setFormState] =
-    useState<Omit<ProfileState, "skills">>(initialProfile);
+    useState<Omit<ProfileState, "skills">>(profile);
+
+  useEffect(() => {
+    if (user) {
+      const savedAvatar =
+        typeof window !== "undefined"
+          ? localStorage.getItem("dradix_profile_avatar")
+          : null;
+      const savedCover =
+        typeof window !== "undefined"
+          ? localStorage.getItem("dradix_profile_banner")
+          : null;
+      const avatar = user.avatar_url || savedAvatar || initialProfile.avatarUrl;
+      const cover = user.cover_url || savedCover || initialProfile.coverUrl;
+      const name = user.first_name
+        ? `${user.first_name} ${user.last_name || ""}`.trim()
+        : user.username || initialProfile.name;
+
+      queueMicrotask(() => {
+        setProfile((prev) => ({
+          ...prev,
+          name,
+          avatarUrl: avatar,
+          coverUrl: cover,
+          bio: user.bio || prev.bio,
+        }));
+        setFormState((prev) => ({
+          ...prev,
+          name,
+          avatarUrl: avatar,
+          coverUrl: cover,
+          bio: user.bio || prev.bio,
+        }));
+      });
+    }
+  }, [user]);
   const hasChanges =
     isEditing && JSON.stringify(profile) !== JSON.stringify(formState);
   const [newTechTag, setNewTechTag] = useState("");
@@ -728,9 +776,36 @@ export default function ProfilePage() {
     };
   }, [imageModalType, activeModal]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setProfile(formState);
     setIsEditing(false);
+
+    if (typeof window !== "undefined") {
+      if (formState.avatarUrl)
+        localStorage.setItem("dradix_profile_avatar", formState.avatarUrl);
+      if (formState.coverUrl)
+        localStorage.setItem("dradix_profile_banner", formState.coverUrl);
+    }
+
+    try {
+      const nameParts = formState.name.trim().split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      await apiFetch("/users/profile", {
+        method: "PATCH",
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          avatar_url: formState.avatarUrl,
+          cover_url: formState.coverUrl,
+          bio: formState.bio,
+        }),
+      });
+      await checkAuth();
+    } catch (err) {
+      console.warn("Backend profile save warning:", err);
+    }
   };
 
   const handleCancel = () => {
@@ -752,8 +827,13 @@ export default function ProfilePage() {
     }
   };
 
-  const handleImageModalSave = () => {
+  const handleImageModalSave = async () => {
     if (!modalPreview) return;
+    const newAvatarUrl =
+      imageModalType === "avatar" ? modalPreview : formState.avatarUrl;
+    const newCoverUrl =
+      imageModalType === "cover" ? modalPreview : formState.coverUrl;
+
     if (imageModalType === "cover") {
       setFormState((prev) => ({
         ...prev,
@@ -762,10 +842,34 @@ export default function ProfilePage() {
         coverPositionX: modalPositionX,
         coverPositionY: modalPositionY,
       }));
+      setProfile((prev) => ({
+        ...prev,
+        coverUrl: modalPreview,
+      }));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("dradix_profile_banner", modalPreview);
+      }
     } else {
       setFormState((prev) => ({ ...prev, avatarUrl: modalPreview }));
+      setProfile((prev) => ({ ...prev, avatarUrl: modalPreview }));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("dradix_profile_avatar", modalPreview);
+      }
     }
     setImageModalType(null);
+
+    try {
+      await apiFetch("/users/profile", {
+        method: "PATCH",
+        body: JSON.stringify({
+          avatar_url: newAvatarUrl,
+          cover_url: newCoverUrl,
+        }),
+      });
+      await checkAuth();
+    } catch (err) {
+      console.warn("Backend image sync notice:", err);
+    }
   };
 
   const handleModalFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1081,17 +1185,15 @@ export default function ProfilePage() {
 
           <div className="absolute bottom-0 left-0 right-0 h-10 bg-linear-to-b from-transparent via-white/50 to-white backdrop-blur-[2px] pointer-events-none" />
 
-          {isEditing && (
-            <div className="absolute inset-0 bg-black/45 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center z-10 duration-200">
-              <button
-                onClick={() => openImageModal("cover")}
-                className="flex items-center gap-2 px-3 py-2.5 bg-white text-black hover:bg-zinc-50 rounded-xl text-[10px] font-light transition-all shadow-lg cursor-pointer"
-              >
-                <FaCamera className="w-3 h-3" />
-                <span>Update Banner Image</span>
-              </button>
-            </div>
-          )}
+          <div className="absolute inset-0 bg-black/45 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center z-10 duration-200">
+            <button
+              onClick={() => openImageModal("cover")}
+              className="flex items-center gap-2 px-3 py-2.5 bg-white text-black hover:bg-zinc-50 rounded-xl text-[10px] font-medium transition-all shadow-lg cursor-pointer"
+            >
+              <FaCamera className="w-3 h-3" />
+              <span>Update Banner Image</span>
+            </button>
+          </div>
         </div>
 
         <div className="px-6 md:px-8 pb-8 pt-16 md:pt-20 flex flex-col md:flex-row md:items-end justify-between gap-6 relative">
@@ -1102,17 +1204,15 @@ export default function ProfilePage() {
               className="w-full h-full object-cover rounded-2xl"
             />
 
-            {isEditing && (
-              <div className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 cursor-pointer">
-                <button
-                  onClick={() => openImageModal("avatar")}
-                  className="flex items-center gap-1.5 bg-white text-black px-2 py-1.5 rounded-xl text-[9px] font-light hover:bg-zinc-50 transition-colors shadow-md cursor-pointer"
-                >
-                  <FaCamera className="w-2.5 h-2.5" />
-                  <span>Update Photo</span>
-                </button>
-              </div>
-            )}
+            <div className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 cursor-pointer">
+              <button
+                onClick={() => openImageModal("avatar")}
+                className="flex items-center gap-1.5 bg-white text-black px-2 py-1.5 rounded-xl text-[9px] font-semibold hover:bg-zinc-50 transition-colors shadow-md cursor-pointer"
+              >
+                <FaCamera className="w-2.5 h-2.5" />
+                <span>Update Photo</span>
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 md:pl-36 text-left">
@@ -2329,11 +2429,11 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-zinc-100">
+            <div className="space-y-6 relative before:absolute before:left-2.75 before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-100">
               {(isEditing ? formState.experience : profile.experience).map(
                 (exp, idx) => (
                   <div key={idx} className="relative pl-8 text-left group/item">
-                    <span className="absolute left-[5px] top-1.5 w-3.5 h-3.5 bg-black border-4 border-white rounded-full group-hover/item:scale-110 transition-transform shadow-sm" />
+                    <span className="absolute left-1.25 top-1.5 w-3.5 h-3.5 bg-black border-4 border-white rounded-full group-hover/item:scale-110 transition-transform shadow-sm" />
 
                     {isEditing ? (
                       <div className="space-y-3 p-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200 relative">
@@ -2905,10 +3005,10 @@ export default function ProfilePage() {
             <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
               <div className="relative grid grid-cols-2 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1 w-56 select-none shrink-0">
                 <div
-                  className={`absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-out shadow-xs w-[106px] ${
+                  className={`absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-out shadow-xs w-26.5 ${
                     networkTab === "following"
                       ? "left-1 translate-x-0"
-                      : "left-1 translate-x-[110px]"
+                      : "left-1 translate-x-27.5"
                   }`}
                 />
 
@@ -2964,18 +3064,18 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-6 overflow-y-auto h-[480px] shrink-0 scrollbar-thin transition-all duration-300">
+            <div className="p-6 space-y-6 overflow-y-auto h-120 shrink-0 scrollbar-thin transition-all duration-300">
               {networkTab === "following" && (
                 <div className="space-y-6 animate-fade-in">
                   <div className="space-y-4 pt-1">
                     <div className="relative grid grid-cols-3 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1 w-64 select-none shrink-0">
                       <div
-                        className={`absolute top-1 bottom-1 bg-zinc-900 rounded-lg transition-all duration-300 ease-out shadow-xs w-[80px] ${
+                        className={`absolute top-1 bottom-1 bg-zinc-900 rounded-lg transition-all duration-300 ease-out shadow-xs w-20 ${
                           followingFilter === "all"
                             ? "left-1 translate-x-0"
                             : followingFilter === "people"
-                              ? "left-1 translate-x-[84px]"
-                              : "left-1 translate-x-[168px]"
+                              ? "left-1 translate-x-21"
+                              : "left-1 translate-x-42"
                         }`}
                       />
                       {(["all", "people", "topic"] as const).map((filter) => (
@@ -3001,10 +3101,10 @@ export default function ProfilePage() {
                       <div className="flex flex-col sm:flex-row gap-2">
                         <div className="relative grid grid-cols-2 bg-white border border-zinc-200 rounded-xl p-1 gap-1 w-32 select-none shrink-0">
                           <div
-                            className={`absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-out shadow-xs w-[58px] ${
+                            className={`absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-out shadow-xs w-14.5 ${
                               followType === "person"
                                 ? "left-1 translate-x-0"
-                                : "left-1 translate-x-[62px]"
+                                : "left-1 translate-x-15.5"
                             }`}
                           />
                           <button
@@ -3140,7 +3240,7 @@ export default function ProfilePage() {
                         .map((item) => (
                           <div
                             key={item.id}
-                            className="p-4 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 flex flex-col justify-between text-left transition-all duration-300 hover:bg-zinc-100/50 hover:shadow-xs min-h-[145px]"
+                            className="p-4 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 flex flex-col justify-between text-left transition-all duration-300 hover:bg-zinc-100/50 hover:shadow-xs min-h-36.25"
                           >
                             <div className="flex items-start justify-between w-full gap-2">
                               <div className="relative">
@@ -3293,7 +3393,7 @@ export default function ProfilePage() {
                         return (
                           <div
                             key={follower.id}
-                            className="p-4 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 flex flex-col justify-between text-left transition-all duration-300 hover:bg-zinc-100/50 hover:shadow-xs min-h-[145px]"
+                            className="p-4 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 flex flex-col justify-between text-left transition-all duration-300 hover:bg-zinc-100/50 hover:shadow-xs min-h-36.25"
                           >
                             <div className="flex items-start justify-between w-full gap-2">
                               <div className="relative">
