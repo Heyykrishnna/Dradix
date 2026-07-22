@@ -5,6 +5,7 @@ import Image from "next/image";
 import DocumentUploadModal from "@/components/DocumentUploadModal";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 import {
   FaPlus,
   FaTrashCan,
@@ -29,6 +30,8 @@ import {
   FaUserMinus,
   FaChevronDown,
   FaList,
+  FaRotate,
+  FaCode,
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -658,6 +661,213 @@ export default function ProfilePage() {
     | "network"
     | null
   >(null);
+
+  interface GithubResponseItem {
+    username: string;
+    total_commits?: number;
+    stars_earned?: number;
+  }
+
+  interface CodingProfileResponseItem {
+    platform: string;
+    username: string;
+    rating?: number;
+    problems_solved?: number;
+  }
+
+  interface CodingProfilesApiResponse {
+    github?: GithubResponseItem | null;
+    coding_profiles?: CodingProfileResponseItem[];
+  }
+
+  const [platformHandles, setPlatformHandles] = useState<
+    Record<string, string>
+  >({
+    github: "",
+    leetcode: "",
+    codeforces: "",
+    hackerrank: "",
+    codechef: "",
+    geeksforgeeks: "",
+  });
+
+  const [platformStats, setPlatformStats] = useState<
+    Record<
+      string,
+      {
+        connected: boolean;
+        rating?: number;
+        solved?: number;
+        commits?: number;
+        stars?: number;
+      }
+    >
+  >({
+    github: { connected: false },
+    leetcode: { connected: false },
+    codeforces: { connected: false },
+    hackerrank: { connected: false },
+    codechef: { connected: false },
+    geeksforgeeks: { connected: false },
+  });
+
+  const [syncingPlatforms, setSyncingPlatforms] = useState<
+    Record<string, boolean>
+  >({});
+  const [isSyncingAllPlatforms, setIsSyncingAllPlatforms] = useState(false);
+
+  useEffect(() => {
+    const fetchPlatformsData = async () => {
+      try {
+        const res = await apiFetch<{
+          data: CodingProfilesApiResponse;
+        }>("/coding-profiles");
+        if (res && res.data) {
+          if (res.data.github) {
+            const gh = res.data.github;
+            setPlatformHandles((prev) => ({ ...prev, github: gh.username }));
+            setPlatformStats((prev) => ({
+              ...prev,
+              github: {
+                connected: true,
+                commits: gh.total_commits || 0,
+                stars: gh.stars_earned || 0,
+              },
+            }));
+          }
+
+          if (
+            res.data.coding_profiles &&
+            Array.isArray(res.data.coding_profiles)
+          ) {
+            res.data.coding_profiles.forEach((cp) => {
+              const platformKey = cp.platform.toLowerCase();
+              setPlatformHandles((prev) => ({
+                ...prev,
+                [platformKey]: cp.username,
+              }));
+              setPlatformStats((prev) => ({
+                ...prev,
+                [platformKey]: {
+                  connected: true,
+                  rating: cp.rating || 0,
+                  solved: cp.problems_solved || 0,
+                },
+              }));
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load platform accounts:", err);
+      }
+    };
+
+    fetchPlatformsData();
+  }, []);
+
+  const handleSaveAndSyncPlatform = async (platformId: string) => {
+    const username = platformHandles[platformId];
+    if (!username || !username.trim()) return;
+
+    setSyncingPlatforms((prev) => ({ ...prev, [platformId]: true }));
+    try {
+      await apiFetch("/coding-profiles/add", {
+        method: "POST",
+        body: JSON.stringify({
+          platform: platformId,
+          username: username.trim(),
+        }),
+      });
+
+      const res = await apiFetch<{
+        data: CodingProfilesApiResponse;
+      }>("/coding-profiles");
+      if (res && res.data) {
+        if (platformId === "github" && res.data.github) {
+          const gh = res.data.github;
+          setPlatformStats((prev) => ({
+            ...prev,
+            github: {
+              connected: true,
+              commits: gh.total_commits || 0,
+              stars: gh.stars_earned || 0,
+            },
+          }));
+        } else if (res.data.coding_profiles) {
+          const updated = res.data.coding_profiles.find(
+            (cp) => cp.platform.toLowerCase() === platformId,
+          );
+          if (updated) {
+            setPlatformStats((prev) => ({
+              ...prev,
+              [platformId]: {
+                connected: true,
+                rating: updated.rating || 0,
+                solved: updated.problems_solved || 0,
+              },
+            }));
+          }
+        }
+      }
+    } catch (err) {
+      console.error(`Failed to sync platform ${platformId}:`, err);
+    } finally {
+      setSyncingPlatforms((prev) => ({ ...prev, [platformId]: false }));
+    }
+  };
+
+  const handleSyncAllPlatforms = async () => {
+    setIsSyncingAllPlatforms(true);
+    const allPlatforms = [
+      "github",
+      "leetcode",
+      "codeforces",
+      "hackerrank",
+      "codechef",
+      "geeksforgeeks",
+    ];
+    const loadingState: Record<string, boolean> = {};
+    allPlatforms.forEach((p) => (loadingState[p] = true));
+    setSyncingPlatforms(loadingState);
+
+    try {
+      await apiFetch("/coding-profiles/sync", { method: "POST" });
+      const res = await apiFetch<{
+        data: CodingProfilesApiResponse;
+      }>("/coding-profiles");
+      if (res && res.data) {
+        if (res.data.github) {
+          const gh = res.data.github;
+          setPlatformStats((prev) => ({
+            ...prev,
+            github: {
+              connected: true,
+              commits: gh.total_commits || 0,
+              stars: gh.stars_earned || 0,
+            },
+          }));
+        }
+        if (res.data.coding_profiles) {
+          res.data.coding_profiles.forEach((cp) => {
+            const key = cp.platform.toLowerCase();
+            setPlatformStats((prev) => ({
+              ...prev,
+              [key]: {
+                connected: true,
+                rating: cp.rating || 0,
+                solved: cp.problems_solved || 0,
+              },
+            }));
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Sync all platforms error:", err);
+    } finally {
+      setSyncingPlatforms({});
+      setIsSyncingAllPlatforms(false);
+    }
+  };
 
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const [imageModalType, setImageModalType] = useState<
@@ -1593,6 +1803,149 @@ export default function ProfilePage() {
                   {profile.messages}
                 </p>
               </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-5 text-left">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+              <div className="flex items-center gap-2">
+                <FaCode className="w-4 h-4 text-[#005c58]" />
+                <span className="text-[14px] font-bold text-zinc-900 font-heading">
+                  Coding Platforms Sync
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleSyncAllPlatforms}
+                disabled={isSyncingAllPlatforms}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#005c58] text-white hover:bg-[#003c3a] rounded-xl text-[10px] font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {isSyncingAllPlatforms ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin text-white" />
+                    <span>Syncing...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaRotate className="w-3 h-3 text-white" />
+                    <span>Sync All</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {[
+                {
+                  id: "github",
+                  name: "GitHub",
+                  logo: "https://cdn.simpleicons.org/github",
+                },
+                {
+                  id: "leetcode",
+                  name: "LeetCode",
+                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg",
+                },
+                {
+                  id: "codeforces",
+                  name: "Codeforces",
+                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg",
+                },
+                {
+                  id: "hackerrank",
+                  name: "HackerRank",
+                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/hackerrank.svg",
+                },
+                {
+                  id: "codechef",
+                  name: "CodeChef",
+                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codechef.svg",
+                },
+                {
+                  id: "geeksforgeeks",
+                  name: "GeeksforGeeks",
+                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg",
+                },
+              ].map((p) => {
+                const stat = platformStats[p.id] || { connected: false };
+                const isSyncingThis = syncingPlatforms[p.id];
+                return (
+                  <div
+                    key={p.id}
+                    className="p-3 bg-zinc-50/80 rounded-2xl border border-zinc-200/60 flex flex-col gap-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={p.logo}
+                          alt={p.name}
+                          className="w-4 h-4 object-contain"
+                        />
+                        <span className="text-[12px] font-bold text-zinc-900">
+                          {p.name}
+                        </span>
+                      </div>
+                      {isSyncingThis ? (
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 flex items-center gap-1">
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                          Syncing...
+                        </span>
+                      ) : stat.connected ? (
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center gap-1">
+                          <FaCheck className="w-2.5 h-2.5" />
+                          Synced
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-zinc-200 text-zinc-500">
+                          Not Connected
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder={`${p.name} handle`}
+                        value={platformHandles[p.id] || ""}
+                        onChange={(e) =>
+                          setPlatformHandles({
+                            ...platformHandles,
+                            [p.id]: e.target.value,
+                          })
+                        }
+                        className="flex-1 rounded-xl border border-zinc-200 px-2.5 py-1 text-[11px] font-semibold text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#005c58]/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSaveAndSyncPlatform(p.id)}
+                        disabled={
+                          isSyncingThis || !platformHandles[p.id]?.trim()
+                        }
+                        className="px-2.5 py-1 bg-zinc-900 hover:bg-black text-white rounded-xl text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        {isSyncingThis ? "Syncing..." : "Save & Sync"}
+                      </button>
+                    </div>
+
+                    {stat.connected && (
+                      <div className="pt-1.5 border-t border-zinc-200/60 flex items-center justify-between text-[10px]">
+                        <span className="text-zinc-500 font-medium">
+                          Live Stats:
+                        </span>
+                        {isSyncingThis ? (
+                          <span className="inline-block animate-pulse bg-zinc-300 h-3.5 w-16 rounded-md" />
+                        ) : (
+                          <span className="font-extrabold text-zinc-900">
+                            {p.id === "github"
+                              ? `${stat.commits || 0} Commits • ${stat.stars || 0} Stars`
+                              : `Rating: ${stat.rating || 0} • Solved: ${stat.solved || 0}`}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

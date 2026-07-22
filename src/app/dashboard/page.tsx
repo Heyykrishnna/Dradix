@@ -113,16 +113,6 @@ const codingPlatforms = [
     logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codechef.svg",
   },
   {
-    name: "AtCoder",
-    rating: 1420,
-    rank: "2 Star",
-    solved: 55,
-    color: "#005c58",
-    streak: 0,
-    history: [1, 0, 1, 2, 0],
-    logo: "https://user-images.githubusercontent.com/63050133/151978980-3e677a92-60b0-4ae7-b1ce-2bd00ab3fe85.svg",
-  },
-  {
     name: "HackerRank",
     rating: 2100,
     rank: "5 Star",
@@ -886,7 +876,9 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await apiFetch<{ data: DashboardResponseData }>("/dashboard");
+        const response = await apiFetch<{ data: DashboardResponseData }>(
+          "/dashboard",
+        );
         if (response && response.data) {
           const data = response.data;
 
@@ -920,7 +912,8 @@ export default function DashboardPage() {
               name: proj.name,
               creator:
                 `${data.profile?.first_name || ""} ${data.profile?.last_name || ""}`.trim() ||
-                data.profile?.username || "",
+                data.profile?.username ||
+                "",
               stack: proj.tech_stack ? proj.tech_stack.join(", ") : "",
               platform: "GitHub",
               date: new Date(proj.created_at).toLocaleDateString("en-US", {
@@ -942,15 +935,29 @@ export default function DashboardPage() {
               const platformName =
                 cp.platform.charAt(0).toUpperCase() + cp.platform.slice(1);
               let color = "#3b82f6";
-              let logo = "";
-              if (cp.platform.toLowerCase() === "leetcode") {
+              let logo =
+                "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg";
+              const lower = cp.platform.toLowerCase();
+              if (lower === "leetcode") {
                 color = "#f59e0b";
                 logo =
                   "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg";
-              } else if (cp.platform.toLowerCase() === "codeforces") {
+              } else if (lower === "codeforces") {
                 color = "#3b82f6";
                 logo =
                   "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg";
+              } else if (lower === "hackerrank") {
+                color = "#2ec4b6";
+                logo =
+                  "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/hackerrank.svg";
+              } else if (lower === "codechef") {
+                color = "#5b4638";
+                logo =
+                  "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codechef.svg";
+              } else if (lower === "geeksforgeeks") {
+                color = "#2f9d58";
+                logo =
+                  "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg";
               }
               return {
                 name: platformName,
