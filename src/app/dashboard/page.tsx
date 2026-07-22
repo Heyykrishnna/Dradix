@@ -30,6 +30,7 @@ import {
   Tooltip,
 } from "recharts";
 import { useSkills } from "@/context/SkillsContext";
+import SegmentedSlider from "./components/SegmentedSlider";
 
 import {
   MessageScrollerProvider,
@@ -219,6 +220,15 @@ const languageData = [
 
 // skillsList has been moved to SkillsContext
 
+const dailyActivityData = [
+  { day: "6am", hours: 0.8, commits: 2, problems: 1 },
+  { day: "9am", hours: 1.5, commits: 4, problems: 2 },
+  { day: "12pm", hours: 2.2, commits: 6, problems: 3 },
+  { day: "3pm", hours: 1.8, commits: 5, problems: 2 },
+  { day: "6pm", hours: 2.6, commits: 9, problems: 4 },
+  { day: "9pm", hours: 1.1, commits: 3, problems: 1 },
+];
+
 const weeklyActivityData = [
   { day: "Mon", hours: 4.5, commits: 12, problems: 6 },
   { day: "Tue", hours: 6.2, commits: 18, problems: 8 },
@@ -227,6 +237,20 @@ const weeklyActivityData = [
   { day: "Fri", hours: 5.5, commits: 14, problems: 7 },
   { day: "Sat", hours: 4.0, commits: 7, problems: 4 },
   { day: "Sun", hours: 2.9, commits: 6, problems: 2 },
+];
+
+const monthlyActivityData = [
+  { day: "Week 1", hours: 28, commits: 68, problems: 35 },
+  { day: "Week 2", hours: 34, commits: 87, problems: 42 },
+  { day: "Week 3", hours: 31, commits: 72, problems: 38 },
+  { day: "Week 4", hours: 40, commits: 98, problems: 51 },
+];
+
+const yearlyActivityData = [
+  { day: "Q1", hours: 310, commits: 720, problems: 340 },
+  { day: "Q2", hours: 360, commits: 840, problems: 410 },
+  { day: "Q3", hours: 420, commits: 960, problems: 490 },
+  { day: "Q4", hours: 380, commits: 910, problems: 450 },
 ];
 
 const learningCourses = [
@@ -1436,36 +1460,35 @@ export default function DashboardPage() {
 
           <div id="activity" className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-[15px] font-bold text-black tracking-tight font-heading">
-                    Weekly Activity
+                    {activeActivityToggle} Activity
                   </h3>
                   <p className="text-[10px] text-zinc-400 mt-0.5">
                     Hours coded & commits pushed
                   </p>
                 </div>
-                <div className="flex bg-white rounded-lg p-0.5 gap-0.5 text-[9px] font-bold">
-                  {["Daily", "Weekly", "Monthly", "Yearly"].map((t) => (
-                    <button
-                      key={t}
-                      onClick={() =>
-                        setActiveActivityToggle(
-                          t as "Daily" | "Weekly" | "Monthly" | "Yearly",
-                        )
-                      }
-                      className={`px-2 py-1 rounded ${activeActivityToggle === t ? "bg-black text-white" : "text-zinc-500 hover:text-zinc-800"}`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
+                <SegmentedSlider
+                  options={["Daily", "Weekly", "Monthly", "Yearly"] as const}
+                  value={activeActivityToggle}
+                  onChange={setActiveActivityToggle}
+                  theme="light"
+                />
               </div>
 
               <div className="h-40">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={weeklyActivityData}
+                    data={
+                      activeActivityToggle === "Daily"
+                        ? dailyActivityData
+                        : activeActivityToggle === "Weekly"
+                        ? weeklyActivityData
+                        : activeActivityToggle === "Monthly"
+                        ? monthlyActivityData
+                        : yearlyActivityData
+                    }
                     margin={{ top: 5, right: 10, left: -25, bottom: 0 }}
                   >
                     <CartesianGrid
