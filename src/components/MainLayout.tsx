@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 import {
   BellIcon,
   HomeIcon,
@@ -148,6 +149,24 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const [imageError, setImageError] = useState(false);
+
+  const avatarUrl = user?.avatar_url || "/assets/images/Avatar.jpg";
+  const displayName = user
+    ? user.first_name
+      ? `${user.first_name} ${user.last_name || ""}`.trim()
+      : user.username
+    : "Yatharth K.";
+
+  const initials =
+    displayName
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "YK";
+
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -309,7 +328,6 @@ export default function MainLayout({
 
           <div className="relative" onMouseLeave={handleMouseLeave}>
             <nav className="flex bg-[#f4f4f5] rounded-xl p-1 gap-1 relative">
-              {/* Sliding background pill */}
               <div
                 className="absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-[cubic-bezier(0.2,1,0.3,1)] pointer-events-none"
                 style={{
@@ -550,14 +568,25 @@ export default function MainLayout({
 
             <Link
               href="/profile"
-              className="flex items-center gap-2.5 pl-3 border-l border-zinc-200 hover:opacity-85 transition-opacity cursor-pointer"
+              className="flex items-center gap-2.5 pl-3 border-l border-zinc-200 hover:opacity-85 transition-opacity cursor-pointer group"
             >
-              <div className="w-9 h-9 rounded-xl bg-[#e2e8f0] flex items-center justify-center overflow-hidden shrink-0">
-                <span className="text-[11px] font-black text-zinc-700">YK</span>
+              <div className="w-9 h-9 rounded-xl bg-[#e2e8f0] border border-zinc-200/80 flex items-center justify-center overflow-hidden shrink-0 shadow-sm relative">
+                {avatarUrl && !imageError ? (
+                  <img
+                    src={avatarUrl}
+                    alt={displayName}
+                    className="w-full h-full object-cover"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <span className="text-[11px] font-black text-zinc-700">
+                    {initials}
+                  </span>
+                )}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-[12px] font-bold text-black leading-none">
-                  Yatharth K.
+                <p className="text-[12px] font-bold text-black leading-none group-hover:text-zinc-700 transition-colors">
+                  {displayName}
                 </p>
                 <p className="text-[10px] text-zinc-400 leading-none mt-1">
                   Developer
