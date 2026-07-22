@@ -3,6 +3,7 @@ import { Geist_Mono, Instrument_Serif, Geist } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/next";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -94,6 +95,7 @@ export default function RootLayout({
             <LockGuard>{children}</LockGuard>
           </SkillsProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
