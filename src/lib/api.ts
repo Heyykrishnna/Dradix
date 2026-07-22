@@ -2,10 +2,8 @@ export const cleanUrl = (url: string): string => {
   let cleaned = url.trim();
   cleaned = cleaned.replace(/^(https?:?\/\/+)+/i, '');
   cleaned = cleaned.replace(/^(https?\/+)+/i, '');
-  
   const isLocal = cleaned.includes('localhost') || cleaned.includes('127.0.0.1');
   const protocol = isLocal ? 'http://' : 'https://';
-  
   return protocol + cleaned;
 };
 
@@ -16,81 +14,38 @@ let refreshTokenInMemory: string | null = null;
 
 export const getAccessToken = (): string | null => {
   if (accessTokenInMemory) return accessTokenInMemory;
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('dradix_token');
-  }
+  if (typeof window !== 'undefined') return localStorage.getItem('dradix_token');
   return null;
 };
 
 export const setAccessToken = (token: string | null) => {
   accessTokenInMemory = token;
   if (typeof window !== 'undefined') {
-    if (token) {
-      localStorage.setItem('dradix_token', token);
-    } else {
-      localStorage.removeItem('dradix_token');
-    }
+    if (token) localStorage.setItem('dradix_token', token);
+    else localStorage.removeItem('dradix_token');
   }
 };
 
 export const getRefreshToken = (): string | null => {
   if (refreshTokenInMemory) return refreshTokenInMemory;
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('dradix_refresh_token');
-  }
+  if (typeof window !== 'undefined') return localStorage.getItem('dradix_refresh_token');
   return null;
 };
 
 export const setRefreshToken = (token: string | null) => {
   refreshTokenInMemory = token;
   if (typeof window !== 'undefined') {
-    if (token) {
-      localStorage.setItem('dradix_refresh_token', token);
-    } else {
-      localStorage.removeItem('dradix_refresh_token');
-    }
+    if (token) localStorage.setItem('dradix_refresh_token', token);
+    else localStorage.removeItem('dradix_refresh_token');
   }
 };
 
-interface FetchOptions extends RequestInit {
-  skipAuth?: boolean;
-}
+let refreshPromise: Promise<string | null> | null = null;
 
-export async function apiFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
-  const { skipAuth = false, headers = {}, ...rest } = options;
-  const url = `${API_URL}${path}`;
+const performTokenRefresh = async (): Promise<string | null> => {
+  if (refreshPromise) return refreshPromise;
 
-  const requestHeaders = new Headers(headers);
-  if (!requestHeaders.has('Content-Type') && !(rest.body instanceof FormData)) {
-    requestHeaders.set('Content-Type', 'application/json');
-  }
-
-  let deviceId: string | null = null;
-  if (typeof window !== 'undefined') {
-    deviceId = localStorage.getItem('dradix_device_id');
-    if (!deviceId) {
-      deviceId = crypto.randomUUID();
-      localStorage.setItem('dradix_device_id', deviceId);
-    }
-  }
-  if (deviceId) {
-    requestHeaders.set('X-Device-Id', deviceId);
-  }
-
-  const token = getAccessToken();
-  if (token && !skipAuth) {
-    requestHeaders.set('Authorization', `Bearer ${token}`);
-  }
-
-  const fetchOptions: RequestInit = {
-    ...rest,
-    headers: requestHeaders,
-    credentials: 'include',
-  };
-
-  let response = await fetch(url, fetchOptions);
-
-  if (response.status === 401 && !skipAuth && path !== '/auth/refresh') {
+  refreshPromise = (async () => {
     try {
       const storedRefreshToken = getRefreshToken();
       const refreshResponse = await fetch(`${API_URL}/auth/refresh`, {
@@ -102,24 +57,59 @@ export async function apiFetch<T = unknown>(path: string, options: FetchOptions 
 
       if (refreshResponse.ok) {
         const refreshData = await refreshResponse.json();
-        const newAccessToken = refreshData.data?.accessToken;
-        const newRefreshToken = refreshData.data?.refreshToken;
-        
+        const newAccessToken = refreshData.data?.accessToken as string | undefined;
+        const newRefreshToken = refreshData.data?.refreshToken as string | undefined;
         if (newAccessToken) {
           setAccessToken(newAccessToken);
-          if (newRefreshToken) {
-            setRefreshToken(newRefreshToken);
-          }
-          requestHeaders.set('Authorization', `Bearer ${newAccessToken}`);
-          response = await fetch(url, fetchOptions);
+          if (newRefreshToken) setRefreshToken(newRefreshToken);
+          return newAccessToken;
         }
-      } else {
-        setAccessToken(null);
-        setRefreshToken(null);
       }
-    } catch {
+
       setAccessToken(null);
       setRefreshToken(null);
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+};
+
+interface FetchOptions extends RequestInit {
+  skipAuth?: boolean;
+}
+
+export async function apiFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
+  const { skipAuth = false, headers = {}, ...rest } = options;
+  const url = `${API_URL}${path}`;
+
+  const buildHeaders = (overrideToken?: string): Headers => {
+    const h = new Headers(headers);
+    if (!h.has('Content-Type') && !(rest.body instanceof FormData)) {
+      h.set('Content-Type', 'application/json');
+    }
+    if (typeof window !== 'undefined') {
+      let deviceId = localStorage.getItem('dradix_device_id');
+      if (!deviceId) {
+        deviceId = crypto.randomUUID();
+        localStorage.setItem('dradix_device_id', deviceId);
+      }
+      h.set('X-Device-Id', deviceId);
+    }
+    const token = overrideToken ?? getAccessToken();
+    if (token && !skipAuth) h.set('Authorization', `Bearer ${token}`);
+    return h;
+  };
+
+  let response = await fetch(url, { ...rest, headers: buildHeaders(), credentials: 'include' });
+
+  if (response.status === 401 && !skipAuth && path !== '/auth/refresh') {
+    const newToken = await performTokenRefresh();
+    const tokenToUse = newToken ?? getAccessToken();
+    if (tokenToUse) {
+      response = await fetch(url, { ...rest, headers: buildHeaders(tokenToUse), credentials: 'include' });
     }
   }
 
@@ -128,5 +118,5 @@ export async function apiFetch<T = unknown>(path: string, options: FetchOptions 
     throw new Error(data.message || 'Something went wrong');
   }
 
-  return data;
+  return data as T;
 }
