@@ -2786,35 +2786,50 @@ export default function ProfilePage() {
             </div>
 
             <div className="px-6 pt-4">
-              <div className="flex bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1">
+              <div className="relative flex bg-zinc-50 border border-dashed border-zinc-200/90 rounded-full p-1.5 items-center select-none">
+                <div
+                  className="absolute top-1.5 bottom-1.5 left-1.5 w-[calc((100%-12px)/3)] bg-black rounded-full shadow-xs transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                  style={{
+                    transform: `translateX(${
+                      modalActiveTab === "upload"
+                        ? "0%"
+                        : modalActiveTab === "url"
+                          ? "100%"
+                          : "200%"
+                    })`,
+                  }}
+                />
                 <button
+                  type="button"
                   onClick={() => setModalActiveTab("upload")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-bold transition-all cursor-pointer ${
+                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
                     modalActiveTab === "upload"
-                      ? "bg-black text-white"
-                      : "text-zinc-500 hover:text-zinc-900"
+                      ? "text-white"
+                      : "text-zinc-500 hover:text-zinc-800 font-semibold"
                   }`}
                 >
                   <FaUpload className="w-3.5 h-3.5" />
                   <span>Upload File</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setModalActiveTab("url")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-bold transition-all cursor-pointer ${
+                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
                     modalActiveTab === "url"
-                      ? "bg-black text-white"
-                      : "text-zinc-500 hover:text-zinc-900"
+                      ? "text-white"
+                      : "text-zinc-500 hover:text-zinc-800 font-semibold"
                   }`}
                 >
                   <FaLink className="w-3.5 h-3.5" />
                   <span>Image URL</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setModalActiveTab("presets")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[12px] font-bold transition-all cursor-pointer ${
+                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
                     modalActiveTab === "presets"
-                      ? "bg-black text-white"
-                      : "text-zinc-500 hover:text-zinc-900"
+                      ? "text-white"
+                      : "text-zinc-500 hover:text-zinc-800 font-semibold"
                   }`}
                 >
                   <FaImage className="w-3.5 h-3.5" />
