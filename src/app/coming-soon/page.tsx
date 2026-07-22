@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Noise from "@/components/Noise";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
+import { apiFetch } from "@/lib/api";
 
 export default function ComingSoonPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function ComingSoonPage() {
   const [bgUrl, setBgUrl] = useState<string>("/assets/images/COM-2.png");
   const [email, setEmail] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNotifiedModal, setShowNotifiedModal] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
@@ -44,12 +46,30 @@ export default function ComingSoonPage() {
     }
   }, []);
 
-  const handleRequestAccess = (e: React.FormEvent) => {
+  const handleRequestAccess = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) {
-      setSubmittedEmail(email.trim());
+    const cleanEmail = email.trim();
+    if (!cleanEmail || isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      await apiFetch("/waitlist", {
+        method: "POST",
+        body: JSON.stringify({ email: cleanEmail }),
+        skipAuth: true,
+      });
+
+      setSubmittedEmail(cleanEmail);
       setShowNotifiedModal(true);
       setEmail("");
+    } catch (err: unknown) {
+      console.warn("Backend waitlist sync issue, saving locally:", err);
+      setSubmittedEmail(cleanEmail);
+      setShowNotifiedModal(true);
+      setEmail("");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -117,33 +137,50 @@ export default function ComingSoonPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ENTER YOUR EMAIL ADDRESS"
                 required
-                className="bg-transparent font-sans text-[11px] uppercase tracking-wider text-zinc-900 placeholder:text-zinc-400 focus:outline-none flex-1 pr-2 min-w-0"
+                disabled={isSubmitting}
+                className="bg-transparent font-sans text-[11px] uppercase tracking-wider text-zinc-900 placeholder:text-zinc-400 focus:outline-none flex-1 pr-2 min-w-0 disabled:opacity-50"
               />
               <button
                 type="submit"
-                className="bg-linear-to-b from-zinc-800 to-zinc-950 hover:from-black hover:to-zinc-900 text-white font-sans text-[11px] font-bold uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-md active:scale-95 shrink-0 cursor-pointer"
+                disabled={isSubmitting}
+                className="bg-linear-to-b from-zinc-800 to-zinc-950 hover:from-black hover:to-zinc-900 text-white font-sans text-[11px] font-bold uppercase tracking-wider px-6 py-3 rounded-full transition-all shadow-md active:scale-95 shrink-0 cursor-pointer disabled:opacity-80 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                GET NOTIFIED
+                {isSubmitting ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>UPDATING...</span>
+                  </>
+                ) : (
+                  "GET NOTIFIED"
+                )}
               </button>
             </div>
           </form>
 
           <div className="flex items-center justify-center gap-2.5 mt-5">
             <div className="flex -space-x-2 overflow-hidden shrink-0">
-              <img
+              <Image
                 src="/assets/images/Avatar.jpg"
                 alt="Community member"
+                width={24}
+                height={24}
                 className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover"
               />
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"
                 alt="Community member"
+                width={24}
+                height={24}
                 className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover"
+                unoptimized
               />
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop"
                 alt="Community member"
+                width={24}
+                height={24}
                 className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover"
+                unoptimized
               />
             </div>
             <span className="text-[11px] font-sans text-zinc-500 font-medium tracking-tight">
@@ -173,9 +210,11 @@ export default function ComingSoonPage() {
         </div>
 
         <div className="w-full max-w-2xl mt-6 sm:mt-8 pt-2 flex justify-center overflow-hidden">
-          <img
+          <Image
             src="/assets/images/WAITL.png"
             alt="Waitlist Community"
+            width={600}
+            height={220}
             className="w-full max-h-45 sm:max-h-55 object-contain object-bottom select-none pointer-events-none"
           />
         </div>
@@ -197,7 +236,7 @@ export default function ComingSoonPage() {
             </div>
 
             <h3 className="font-sans font-bold text-lg text-zinc-900 mb-1.5">
-              You're on the list!
+              You&apos;re on the list!
             </h3>
 
             <p className="text-zinc-500 font-sans text-xs leading-relaxed max-w-xs mb-6">

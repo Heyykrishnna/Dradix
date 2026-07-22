@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -572,11 +573,14 @@ export default function MainLayout({
             >
               <div className="w-9 h-9 rounded-xl bg-[#e2e8f0] border border-zinc-200/80 flex items-center justify-center overflow-hidden shrink-0 shadow-sm relative">
                 {avatarUrl && !imageError ? (
-                  <img
+                  <Image
                     src={avatarUrl}
                     alt={displayName}
+                    width={36}
+                    height={36}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
+                    unoptimized
                   />
                 ) : (
                   <span className="text-[11px] font-black text-zinc-700">
