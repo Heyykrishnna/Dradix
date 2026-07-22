@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import DocumentUploadModal from "@/components/DocumentUploadModal";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import {
@@ -658,6 +659,7 @@ export default function ProfilePage() {
     | null
   >(null);
 
+  const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const [imageModalType, setImageModalType] = useState<
     "cover" | "avatar" | null
   >(null);
@@ -2021,10 +2023,10 @@ export default function ProfilePage() {
                 );
               })()}
 
-              <div className="space-y-1 text-left">
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-white border border-zinc-150 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+              <div className="space-y-2 text-left">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-white border border-zinc-200/80 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
                       <img
                         src="/file.svg"
                         alt="Resume"
@@ -2034,33 +2036,43 @@ export default function ProfilePage() {
                         }}
                       />
                     </div>
-                    <div className="text-left">
-                      <p className="text-[12px] font-bold text-zinc-800 leading-none">
+                    <div className="text-left min-w-0">
+                      <p className="text-xs font-bold text-zinc-900 leading-none">
                         Resume
                       </p>
-                      <p className="text-[9px] text-zinc-400 leading-none mt-1">
-                        {isEditing ? formState.resumeName : profile.resumeName}
+                      <p className="text-[10px] text-zinc-500 font-medium leading-none mt-1 truncate max-w-32.5 sm:max-w-40">
+                        {isEditing
+                          ? formState.resumeName
+                          : profile.resumeName || "No file uploaded"}
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => alert(`Downloading ${profile.resumeName}`)}
-                    className="px-2.5 py-1.5 rounded-lg bg-black text-white hover:bg-zinc-800 transition-colors text-[10px] font-bold cursor-pointer"
-                  >
-                    Download
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setIsResumeModalOpen(true)}
+                      className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white transition-all text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
+                    >
+                      <FaUpload className="w-3 h-3" />
+                      <span>Upload</span>
+                    </button>
+                    {(isEditing
+                      ? formState.resumeName
+                      : profile.resumeName) && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          alert(
+                            `Downloading ${isEditing ? formState.resumeName : profile.resumeName}`,
+                          )
+                        }
+                        className="px-3 py-1.5 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-800 hover:bg-zinc-200 transition-all text-xs font-bold cursor-pointer"
+                      >
+                        Download
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {isEditing && (
-                  <input
-                    type="text"
-                    value={formState.resumeName}
-                    onChange={(e) =>
-                      setFormState({ ...formState, resumeName: e.target.value })
-                    }
-                    placeholder="resume_filename.pdf"
-                    className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
-                  />
-                )}
               </div>
             </div>
           </div>
@@ -3785,6 +3797,23 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {isResumeModalOpen && (
+        <DocumentUploadModal
+          isOpen={isResumeModalOpen}
+          onClose={() => setIsResumeModalOpen(false)}
+          title="Upload Resume"
+          subtitle="Select and upload your latest resume document (.pdf, .docx)"
+          acceptedTypes=".pdf,.doc,.docx"
+          onUploadComplete={(files) => {
+            if (files.length > 0) {
+              const uploadedName = files[0].name;
+              setProfile((prev) => ({ ...prev, resumeName: uploadedName }));
+              setFormState((prev) => ({ ...prev, resumeName: uploadedName }));
+            }
+          }}
+        />
       )}
     </div>
   );
