@@ -888,11 +888,11 @@ export default function SettingsPage() {
                 sessions you don&apos;t recognize.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={handleRevokeAll}
                 disabled={bulkLoading}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer whitespace-nowrap"
               >
                 {bulkLoading ? "Logging out all..." : "Logout All Devices"}
               </button>
@@ -900,7 +900,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleRevokeOther}
                   disabled={bulkLoading}
-                  className="px-4 py-2 bg-[#003c3a] hover:bg-[#002d2b] text-white disabled:opacity-50 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                  className="px-4 py-2 bg-[#003c3a] hover:bg-[#002d2b] text-white disabled:opacity-50 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer whitespace-nowrap"
                 >
                   {bulkLoading
                     ? "Logging out others..."
