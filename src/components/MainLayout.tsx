@@ -154,6 +154,29 @@ export default function MainLayout({
   const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [dropdownLeft, setDropdownLeft] = useState(0);
 
+  const activeIndex = navigationConfig.findIndex((cat) => {
+    if (cat.href === "/dashboard") return pathname === "/dashboard";
+    if (cat.href === "/explore") return pathname.startsWith("/explore");
+    return pathname.startsWith(cat.href);
+  });
+
+  const highlightedIndex =
+    hoveredIndex !== null
+      ? hoveredIndex
+      : activeIndex !== -1
+        ? activeIndex
+        : null;
+
+  const [pillStyle, setPillStyle] = useState<{
+    left: number;
+    width: number;
+    opacity: number;
+  }>({
+    left: 0,
+    width: 0,
+    opacity: 0,
+  });
+
   const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("dradix_notifications");
@@ -192,14 +215,40 @@ export default function MainLayout({
   }, []);
 
   useEffect(() => {
-    if (hoveredIndex !== null) {
-      const tabEl = tabRefs.current[hoveredIndex];
-      if (tabEl) {
-        const center = tabEl.offsetLeft + tabEl.offsetWidth / 2;
-        setDropdownLeft(center);
+    const updatePositions = () => {
+      const targetIdx =
+        hoveredIndex !== null
+          ? hoveredIndex
+          : activeIndex !== -1
+            ? activeIndex
+            : null;
+
+      if (targetIdx !== null && tabRefs.current[targetIdx]) {
+        const el = tabRefs.current[targetIdx];
+        if (el) {
+          setPillStyle({
+            left: el.offsetLeft,
+            width: el.offsetWidth,
+            opacity: 1,
+          });
+        }
+      } else {
+        setPillStyle((prev) => ({ ...prev, opacity: 0 }));
       }
-    }
-  }, [hoveredIndex]);
+
+      if (hoveredIndex !== null && tabRefs.current[hoveredIndex]) {
+        const tabEl = tabRefs.current[hoveredIndex];
+        if (tabEl) {
+          const center = tabEl.offsetLeft + tabEl.offsetWidth / 2;
+          setDropdownLeft(center);
+        }
+      }
+    };
+
+    updatePositions();
+    window.addEventListener("resize", updatePositions);
+    return () => window.removeEventListener("resize", updatePositions);
+  }, [hoveredIndex, activeIndex, pathname]);
 
   const handleHashLinkClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -250,10 +299,7 @@ export default function MainLayout({
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col selection:bg-zinc-200">
-      <header
-        className="w-full bg-[#fdfdfd] border-b border-[#f4f4f5] px-6 py-4 flex flex-col sticky top-0 z-50 transition-all duration-300"
-        onMouseLeave={handleMouseLeave}
-      >
+      <header className="w-full bg-[#fdfdfd] border-b border-[#f4f4f5] px-6 py-4 flex flex-col sticky top-0 z-50 transition-all duration-300">
         <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2.5">
             <span className="text-black font-extrabold text-[14px] tracking-tight">
@@ -261,15 +307,20 @@ export default function MainLayout({
             </span>
           </Link>
 
-          <div className="relative">
+          <div className="relative" onMouseLeave={handleMouseLeave}>
             <nav className="flex bg-[#f4f4f5] rounded-xl p-1 gap-1 relative">
+              {/* Sliding background pill */}
+              <div
+                className="absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-[cubic-bezier(0.2,1,0.3,1)] pointer-events-none"
+                style={{
+                  left: `${pillStyle.left}px`,
+                  width: `${pillStyle.width}px`,
+                  opacity: pillStyle.opacity,
+                }}
+              />
+
               {navigationConfig.map((cat, index) => {
-                const isActive =
-                  pathname === cat.href ||
-                  (cat.href !== "/dashboard" &&
-                    cat.href !== "/explore" &&
-                    pathname.startsWith(cat.href)) ||
-                  (cat.href === "/explore" && pathname.startsWith("/explore"));
+                const isHighlighted = highlightedIndex === index;
                 const isHovered = activeHover === cat.label;
                 return (
                   <div
@@ -278,43 +329,32 @@ export default function MainLayout({
                       tabRefs.current[index] = el;
                     }}
                     onMouseEnter={() => handleMouseEnter(cat.label, index)}
-                    className="relative"
+                    className="relative z-10"
                   >
                     <Link
                       href={cat.href}
                       onClick={(e) => handleHashLinkClick(e, cat.href)}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all ${
-                        isActive || isHovered
-                          ? "bg-black text-white"
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-colors duration-200 ${
+                        isHighlighted
+                          ? "text-white"
                           : "text-zinc-500 hover:text-zinc-900"
                       }`}
                     >
                       <cat.icon className="w-4 h-4" />
                       <span>{cat.label}</span>
                       <ChevronDownIcon
-                        className={`w-3.5 h-3.5 opacity-60 transition-transform ${isHovered ? "rotate-180" : ""}`}
+                        className={`w-3.5 h-3.5 opacity-60 transition-transform duration-200 ${
+                          isHovered ? "rotate-180" : ""
+                        }`}
                       />
                     </Link>
                   </div>
                 );
               })}
-
-              {/* <Link
-                href="/dashboard/settings"
-                onMouseEnter={handleMouseLeave}
-                className={`flex items-center justify-center p-2 rounded-lg transition-all ${
-                  pathname === "/dashboard/settings"
-                    ? "bg-black text-white"
-                    : "text-zinc-500 hover:text-zinc-900"
-                }`}
-                title="Settings"
-              >
-                <GearIcon className="w-4 h-4" />
-              </Link> */}
             </nav>
 
             <div
-              className={`absolute top-full mt-2 w-[280px] bg-white rounded-2xl shadow-xl border border-zinc-100 p-0 py-4 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] origin-top z-50 overflow-hidden ${
+              className={`absolute top-full pt-2 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] origin-top z-50 ${
                 activeHover
                   ? "opacity-100 scale-100 pointer-events-auto"
                   : "opacity-0 scale-95 pointer-events-none"
@@ -324,43 +364,45 @@ export default function MainLayout({
                 transform: `translateX(-50%) ${activeHover ? "scale(1)" : "scale(0.95)"}`,
               }}
             >
-              <div
-                className="flex transition-transform duration-300 ease-out"
-                style={{
-                  width: `${navigationConfig.length * 280}px`,
-                  transform: `translateX(-${(hoveredIndex ?? 0) * 280}px)`,
-                }}
-              >
-                {navigationConfig.map((cat) => (
-                  <div
-                    key={cat.label}
-                    className="w-[280px] px-4 space-y-2 shrink-0"
-                  >
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-2 mb-1">
-                      {cat.label} Submenu
-                    </p>
-                    <div className="grid grid-cols-1 gap-1">
-                      {cat.subItems.map((sub) => (
-                        <Link
-                          key={sub.label}
-                          href={sub.href}
-                          onClick={(e) => {
-                            handleMouseLeave();
-                            handleHashLinkClick(e, sub.href);
-                          }}
-                          className="flex flex-col p-2.5 rounded-xl hover:bg-zinc-50 transition-colors text-left"
-                        >
-                          <span className="text-[13px] font-bold text-zinc-900">
-                            {sub.label}
-                          </span>
-                          <span className="text-[11px] text-zinc-400 mt-0.5">
-                            {sub.desc}
-                          </span>
-                        </Link>
-                      ))}
+              <div className="w-70 bg-white rounded-2xl shadow-xl border border-zinc-100 p-0 py-4 overflow-hidden">
+                <div
+                  className="flex transition-transform duration-300 ease-out"
+                  style={{
+                    width: `${navigationConfig.length * 280}px`,
+                    transform: `translateX(-${(hoveredIndex ?? 0) * 280}px)`,
+                  }}
+                >
+                  {navigationConfig.map((cat) => (
+                    <div
+                      key={cat.label}
+                      className="w-70 px-4 space-y-2 shrink-0"
+                    >
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-2 mb-1">
+                        {cat.label} Submenu
+                      </p>
+                      <div className="grid grid-cols-1 gap-1">
+                        {cat.subItems.map((sub) => (
+                          <Link
+                            key={sub.label}
+                            href={sub.href}
+                            onClick={(e) => {
+                              handleMouseLeave();
+                              handleHashLinkClick(e, sub.href);
+                            }}
+                            className="flex flex-col p-2.5 rounded-xl hover:bg-zinc-50 transition-colors text-left"
+                          >
+                            <span className="text-[13px] font-bold text-zinc-900">
+                              {sub.label}
+                            </span>
+                            <span className="text-[11px] text-zinc-400 mt-0.5">
+                              {sub.desc}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
