@@ -32,6 +32,27 @@ import {
 import { useSkills } from "@/context/SkillsContext";
 import SegmentedSlider from "./components/SegmentedSlider";
 import { apiFetch } from "@/lib/api";
+import Loader from "@/components/Loader";
+
+const ErrorQuestionTooltip = ({ message }: { message: string }) => {
+  return (
+    <div className="relative group inline-flex items-center ml-1.5 z-40">
+      <span
+        className="w-4 h-4 rounded-full bg-red-500/10 text-red-600 border border-red-500/30 flex items-center justify-center text-[10px] font-black cursor-pointer hover:bg-red-600 hover:text-white transition-all shadow-xs"
+        title="View Error"
+      >
+        ?
+      </span>
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:flex flex-col w-52 p-2 bg-zinc-900 text-white text-[11px] rounded-xl shadow-2xl border border-zinc-800 z-50 pointer-events-none text-center">
+        <span className="font-bold text-red-400 mb-0.5">Sync / Load Error</span>
+        <span className="text-zinc-300 text-[10px] leading-tight">
+          {message}
+        </span>
+        <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-zinc-900" />
+      </div>
+    </div>
+  );
+};
 
 import {
   MessageScrollerProvider,
@@ -64,130 +85,46 @@ export interface MonthlyStats {
 }
 
 const initialDevStats = {
-  score: 92,
-  contributions: 1487,
-  problemsSolved: 1250,
-  streak: 42,
-  projects: 19,
-  liveProjects: 4,
-  repositories: 52,
-  publicRepos: 12,
-  followers: 624,
-  stars: 382,
-  pullRequests: 145,
-  issuesClosed: 81,
-  hackathons: 8,
-  wins: 2,
-  certificates: 12,
+  score: 0,
+  contributions: 0,
+  problemsSolved: 0,
+  streak: 0,
+  projects: 0,
+  liveProjects: 0,
+  repositories: 0,
+  publicRepos: 0,
+  followers: 0,
+  stars: 0,
+  pullRequests: 0,
+  issuesClosed: 0,
+  hackathons: 0,
+  wins: 0,
+  certificates: 0,
 };
 
-const codingPlatforms = [
-  {
-    name: "LeetCode",
-    rating: 2156,
-    rank: "Guardian",
-    solved: 847,
-    color: "#f59e0b",
-    streak: 42,
-    history: [1, 2, 1, 3, 2],
-    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg",
-  },
-  {
-    name: "Codeforces",
-    rating: 1742,
-    rank: "Specialist",
-    solved: 312,
-    color: "#3b82f6",
-    streak: 18,
-    history: [2, 3, 1, 2, 1],
-    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg",
-  },
-  {
-    name: "CodeChef",
-    rating: 1920,
-    rank: "4 Star",
-    solved: 91,
-    color: "#f43f5e",
-    streak: 7,
-    history: [1, 1, 2, 1, 2],
-    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codechef.svg",
-  },
-  {
-    name: "HackerRank",
-    rating: 2100,
-    rank: "5 Star",
-    solved: 180,
-    color: "#34d399",
-    streak: 12,
-    history: [2, 1, 2, 1, 1],
-    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/hackerrank.svg",
-  },
-  {
-    name: "GeeksforGeeks",
-    rating: 1850,
-    rank: "Expert",
-    solved: 120,
-    color: "#10b981",
-    streak: 5,
-    history: [1, 2, 1, 1, 2],
-    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg",
-  },
-];
+export interface CodingPlatformItem {
+  name: string;
+  rating: number;
+  rank: string;
+  solved: number;
+  color: string;
+  streak: number;
+  history: number[];
+  logo: string;
+}
 
-const initialProjectsList = [
-  {
-    id: "#875412903",
-    name: "dradix",
-    creator: "Yatharth K.",
-    stack: "Next.js, TS",
-    platform: "GitHub",
-    date: "05 Oct, 2025",
-    status: "Live",
-    statusColor: "#005c58",
-    views: 4821,
-    likes: 89,
-    stars: 127,
-  },
-  {
-    id: "#458729654",
-    name: "algo-vault",
-    creator: "Yatharth K.",
-    stack: "Python, React",
-    platform: "Vercel",
-    date: "05 Oct, 2025",
-    status: "In Progress",
-    statusColor: "#f59e0b",
-    views: 2100,
-    likes: 62,
-    stars: 89,
-  },
-  {
-    id: "#913562478",
-    name: "rustify",
-    creator: "Yatharth K.",
-    stack: "Rust, Wasm",
-    platform: "GitHub",
-    date: "05 Oct, 2025",
-    status: "Archived",
-    statusColor: "#ef4444",
-    views: 890,
-    likes: 41,
-    stars: 54,
-  },
-  {
-    id: "#324561327",
-    name: "dradix-cli",
-    creator: "Yatharth K.",
-    stack: "Go, Cobra",
-    platform: "npm",
-    date: "15 Sep, 2025",
-    status: "Live",
-    statusColor: "#005c58",
-    views: 1200,
-    likes: 32,
-    stars: 15,
-  },
-];
+export interface TimelineItem {
+  date: string;
+  title: string;
+  desc: string;
+  color?: string;
+}
+
+export interface CareerRingItem {
+  label: string;
+  value: number;
+  color: string;
+}
 
 const fulfillmentData = [
   { month: "Feb", commits: 45 },
@@ -273,42 +210,6 @@ const achievementBadges = [
   { label: "100 Stars", icon: "S", unlocked: true, color: "#f59e0b" },
   { label: "100 Followers", icon: "F", unlocked: true, color: "#005c58" },
   { label: "Top 5%", icon: "T", unlocked: false, color: "#f43f5e" },
-];
-
-const timelineMilestones = [
-  {
-    date: "Jan 2024",
-    title: "Joined Dradix",
-    desc: "Started tracking developer journey",
-    color: "#005c58",
-  },
-  {
-    date: "Feb 2024",
-    title: "Connected GitHub",
-    desc: "Synced 52 repositories",
-    color: "#3b82f6",
-  },
-  {
-    date: "Mar 2024",
-    title: "Completed First Project",
-    desc: "Launched dradix beta publicly",
-    color: "#f59e0b",
-  },
-  {
-    date: "Apr 2024",
-    title: "Solved 100 Problems",
-    desc: "Hit the milestone on LeetCode",
-    color: "#005c58",
-  },
-];
-
-const careerRings = [
-  { label: "Resume Score", value: 82, color: "#005c58" },
-  { label: "Portfolio Score", value: 75, color: "#3b82f6" },
-  { label: "Dev Score", value: 92, color: "#f59e0b" },
-  { label: "Placement Readiness", value: 72, color: "#f43f5e" },
-  { label: "Interview Readiness", value: 68, color: "#3b82f6" },
-  { label: "System Design Level", value: 58, color: "#005c58" },
 ];
 
 const initialRecruiterChecklist = [
@@ -635,11 +536,13 @@ interface DashboardResponseData {
 }
 
 export default function DashboardPage() {
-  const [projectsList, setProjectsList] = useState(initialProjectsList);
+  const [projectsList, setProjectsList] = useState<Project[]>([]);
   const [devStats, setDevStats] = useState(initialDevStats);
-  const [platformsList, setPlatformsList] = useState(codingPlatforms);
-  const [timeline, setTimeline] = useState(timelineMilestones);
-  const [rings, setRings] = useState(careerRings);
+  const [platformsList, setPlatformsList] = useState<CodingPlatformItem[]>([]);
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
+  const [rings, setRings] = useState<CareerRingItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   const [projectModalType, setProjectModalType] = useState<
     "add" | "edit" | "delete" | "analytics" | null
@@ -752,6 +655,10 @@ export default function DashboardPage() {
           : p,
       ),
     );
+    setEditingProjectId(null);
+  };
+
+  const handleCancelEdit = () => {
     setEditingProjectId(null);
   };
 
@@ -875,6 +782,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      setIsLoading(true);
+      setDashboardError(null);
       try {
         const response = await apiFetch<{ data: DashboardResponseData }>(
           "/dashboard",
@@ -991,6 +900,11 @@ export default function DashboardPage() {
         }
       } catch (err) {
         console.error("Failed to load aggregated dashboard data:", err);
+        setDashboardError(
+          (err as Error)?.message || "Failed to load dashboard data",
+        );
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -1098,6 +1012,14 @@ export default function DashboardPage() {
         : (fieldB as number) - (a[sortField] as number);
     });
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] w-full gap-4 py-30">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
       <div className="lg:col-span-1 space-y-6">
@@ -1105,9 +1027,14 @@ export default function DashboardPage() {
           id="overview"
           className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4"
         >
-          <h2 className="text-[16px] font-bold text-black tracking-tight">
-            Performance Overview
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-[16px] font-bold text-black tracking-tight">
+              Performance Overview
+            </h2>
+            {dashboardError && (
+              <ErrorQuestionTooltip message={dashboardError} />
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white rounded-xl p-3">
               <p className="text-[10px] text-zinc-400 font-semibold uppercase">
@@ -1893,270 +1820,285 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-[#f4f4f5] text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none cursor-pointer">
-                    <th
-                      onClick={() => handleSort("name")}
-                      className="py-3 px-2 hover:text-black transition-colors"
-                    >
-                      Project Name{" "}
-                      {sortField === "name" &&
-                        (sortDirection === "asc" ? "▲" : "▼")}
-                    </th>
-                    <th className="py-3 px-2">Tech Stack</th>
-                    <th className="py-3 px-2">Platform</th>
-                    <th
-                      onClick={() => handleSort("views")}
-                      className="py-3 px-2 hover:text-black transition-colors"
-                    >
-                      Views / Likes{" "}
-                      {sortField === "views" &&
-                        (sortDirection === "asc" ? "▲" : "▼")}
-                    </th>
-                    <th
-                      onClick={() => handleSort("stars")}
-                      className="py-3 px-2 hover:text-black transition-colors"
-                    >
-                      Stars{" "}
-                      {sortField === "stars" &&
-                        (sortDirection === "asc" ? "▲" : "▼")}
-                    </th>
-                    <th className="py-3 px-2">Status</th>
-                    <th className="py-3 px-2"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#f4f4f5] text-[13px]">
-                  {sortedProjects.map((proj) => {
-                    const isEditing = editingProjectId === proj.id;
-                    const hasChanges =
-                      isEditing &&
-                      (projectFormState.name !== proj.name ||
-                        projectFormState.stack !== proj.stack ||
-                        projectFormState.platform !== proj.platform ||
-                        projectFormState.status !== proj.status ||
-                        Number(projectFormState.views) !== proj.views ||
-                        Number(projectFormState.likes) !== proj.likes ||
-                        Number(projectFormState.stars) !== proj.stars);
-
-                    return (
-                      <tr
-                        key={proj.id}
-                        className={`transition-colors ${isEditing ? "bg-zinc-50/80" : "hover:bg-zinc-50/50"}`}
+            {sortedProjects.length === 0 ? (
+              <div className="my-4 p-10 border-2 border-dashed border-zinc-200 rounded-2xl flex flex-col items-center justify-center text-center gap-3 bg-white/70">
+                <div className="space-y-1">
+                  <p className="text-[14px] font-bold text-zinc-900">
+                    No projects found
+                  </p>
+                  <p className="text-[12px] text-zinc-500 max-w-sm font-medium">
+                    {activeTab === "All"
+                      ? "You haven't added any projects yet. Click '+ Add Project' to create your first project."
+                      : `No projects currently found in '${activeTab}' status.`}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#f4f4f5] text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none cursor-pointer">
+                      <th
+                        onClick={() => handleSort("name")}
+                        className="py-3 px-2 hover:text-black transition-colors"
                       >
-                        <td className="py-3.5 px-2">
-                          {isEditing ? (
-                            <div className="flex items-center gap-2">
-                              <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center text-[9px] font-bold text-zinc-500 shrink-0">
-                                {projectFormState.name
-                                  ? projectFormState.name[0]?.toUpperCase() ||
-                                    "P"
-                                  : "P"}
+                        Project Name{" "}
+                        {sortField === "name" &&
+                          (sortDirection === "asc" ? "▲" : "▼")}
+                      </th>
+                      <th className="py-3 px-2">Tech Stack</th>
+                      <th className="py-3 px-2">Platform</th>
+                      <th
+                        onClick={() => handleSort("views")}
+                        className="py-3 px-2 hover:text-black transition-colors"
+                      >
+                        Views / Likes{" "}
+                        {sortField === "views" &&
+                          (sortDirection === "asc" ? "▲" : "▼")}
+                      </th>
+                      <th
+                        onClick={() => handleSort("stars")}
+                        className="py-3 px-2 hover:text-black transition-colors"
+                      >
+                        Stars{" "}
+                        {sortField === "stars" &&
+                          (sortDirection === "asc" ? "▲" : "▼")}
+                      </th>
+                      <th className="py-3 px-2">Status</th>
+                      <th className="py-3 px-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#f4f4f5] text-[13px]">
+                    {sortedProjects.map((proj) => {
+                      const isEditing = editingProjectId === proj.id;
+                      const hasChanges =
+                        isEditing &&
+                        (projectFormState.name !== proj.name ||
+                          projectFormState.stack !== proj.stack ||
+                          projectFormState.platform !== proj.platform ||
+                          projectFormState.status !== proj.status ||
+                          Number(projectFormState.views) !== proj.views ||
+                          Number(projectFormState.likes) !== proj.likes ||
+                          Number(projectFormState.stars) !== proj.stars);
+
+                      return (
+                        <tr
+                          key={proj.id}
+                          className={`transition-colors ${isEditing ? "bg-zinc-50/80" : "hover:bg-zinc-50/50"}`}
+                        >
+                          <td className="py-3.5 px-2">
+                            {isEditing ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center text-[9px] font-bold text-zinc-500 shrink-0">
+                                  {projectFormState.name
+                                    ? projectFormState.name[0]?.toUpperCase() ||
+                                      "P"
+                                    : "P"}
+                                </div>
+                                <input
+                                  type="text"
+                                  value={projectFormState.name}
+                                  onChange={(e) =>
+                                    setProjectFormState({
+                                      ...projectFormState,
+                                      name: e.target.value,
+                                    })
+                                  }
+                                  className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] font-bold text-zinc-900 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-28"
+                                />
                               </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center text-[9px] font-bold text-zinc-500">
+                                  {proj.name[0].toUpperCase()}
+                                </div>
+                                <span className="font-bold text-zinc-900">
+                                  {proj.name}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-2 text-zinc-500">
+                            {isEditing ? (
                               <input
                                 type="text"
-                                value={projectFormState.name}
+                                value={projectFormState.stack}
                                 onChange={(e) =>
                                   setProjectFormState({
                                     ...projectFormState,
-                                    name: e.target.value,
+                                    stack: e.target.value,
                                   })
                                 }
-                                className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] font-bold text-zinc-900 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-28"
+                                className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-36"
                               />
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center text-[9px] font-bold text-zinc-500">
-                                {proj.name[0].toUpperCase()}
+                            ) : (
+                              proj.stack
+                            )}
+                          </td>
+                          <td className="py-3.5 px-2 text-zinc-650 font-semibold">
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={projectFormState.platform}
+                                onChange={(e) =>
+                                  setProjectFormState({
+                                    ...projectFormState,
+                                    platform: e.target.value,
+                                  })
+                                }
+                                className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] text-zinc-650 font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-24"
+                              />
+                            ) : (
+                              proj.platform
+                            )}
+                          </td>
+                          <td className="py-3.5 px-2 text-zinc-500">
+                            {isEditing ? (
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={projectFormState.views}
+                                  onChange={(e) =>
+                                    setProjectFormState({
+                                      ...projectFormState,
+                                      views: parseInt(e.target.value) || 0,
+                                    })
+                                  }
+                                  className="rounded border border-zinc-200 px-1 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-16 text-center font-semibold"
+                                  title="Views"
+                                />
+                                <span className="text-zinc-300">/</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={projectFormState.likes}
+                                  onChange={(e) =>
+                                    setProjectFormState({
+                                      ...projectFormState,
+                                      likes: parseInt(e.target.value) || 0,
+                                    })
+                                  }
+                                  className="rounded border border-zinc-200 px-1 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-14 text-center font-semibold"
+                                  title="Likes"
+                                />
                               </div>
-                              <span className="font-bold text-zinc-900">
-                                {proj.name}
-                              </span>
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-2 text-zinc-500">
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={projectFormState.stack}
-                              onChange={(e) =>
-                                setProjectFormState({
-                                  ...projectFormState,
-                                  stack: e.target.value,
-                                })
-                              }
-                              className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-36"
-                            />
-                          ) : (
-                            proj.stack
-                          )}
-                        </td>
-                        <td className="py-3.5 px-2 text-zinc-650 font-semibold">
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={projectFormState.platform}
-                              onChange={(e) =>
-                                setProjectFormState({
-                                  ...projectFormState,
-                                  platform: e.target.value,
-                                })
-                              }
-                              className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] text-zinc-650 font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-24"
-                            />
-                          ) : (
-                            proj.platform
-                          )}
-                        </td>
-                        <td className="py-3.5 px-2 text-zinc-500">
-                          {isEditing ? (
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                min="0"
-                                value={projectFormState.views}
+                            ) : (
+                              `${proj.views} / ${proj.likes}`
+                            )}
+                          </td>
+                          <td className="py-3.5 px-2 text-zinc-500">
+                            {isEditing ? (
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={projectFormState.stars}
+                                  onChange={(e) =>
+                                    setProjectFormState({
+                                      ...projectFormState,
+                                      stars: parseInt(e.target.value) || 0,
+                                    })
+                                  }
+                                  className="rounded border border-zinc-200 px-1.5 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-14 text-center font-semibold"
+                                />
+                                <span className="text-zinc-400">★</span>
+                              </div>
+                            ) : (
+                              `${proj.stars} ★`
+                            )}
+                          </td>
+                          <td className="py-3.5 px-2">
+                            {isEditing ? (
+                              <select
+                                value={projectFormState.status}
                                 onChange={(e) =>
                                   setProjectFormState({
                                     ...projectFormState,
-                                    views: parseInt(e.target.value) || 0,
+                                    status: e.target.value,
                                   })
                                 }
-                                className="rounded border border-zinc-200 px-1 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-16 text-center font-semibold"
-                                title="Views"
-                              />
-                              <span className="text-zinc-300">/</span>
-                              <input
-                                type="number"
-                                min="0"
-                                value={projectFormState.likes}
-                                onChange={(e) =>
-                                  setProjectFormState({
-                                    ...projectFormState,
-                                    likes: parseInt(e.target.value) || 0,
-                                  })
-                                }
-                                className="rounded border border-zinc-200 px-1 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-14 text-center font-semibold"
-                                title="Likes"
-                              />
-                            </div>
-                          ) : (
-                            `${proj.views} / ${proj.likes}`
-                          )}
-                        </td>
-                        <td className="py-3.5 px-2 text-zinc-500">
-                          {isEditing ? (
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                min="0"
-                                value={projectFormState.stars}
-                                onChange={(e) =>
-                                  setProjectFormState({
-                                    ...projectFormState,
-                                    stars: parseInt(e.target.value) || 0,
-                                  })
-                                }
-                                className="rounded border border-zinc-200 px-1.5 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-14 text-center font-semibold"
-                              />
-                              <span className="text-zinc-400">★</span>
-                            </div>
-                          ) : (
-                            `${proj.stars} ★`
-                          )}
-                        </td>
-                        <td className="py-3.5 px-2">
-                          {isEditing ? (
-                            <select
-                              value={projectFormState.status}
-                              onChange={(e) =>
-                                setProjectFormState({
-                                  ...projectFormState,
-                                  status: e.target.value,
-                                })
-                              }
-                              className="rounded border border-zinc-200 px-1.5 py-0.5 text-[11px] font-bold text-zinc-800 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 cursor-pointer"
-                            >
-                              <option value="Live">Live</option>
-                              <option value="In Progress">In Progress</option>
-                              <option value="Archived">Archived</option>
-                            </select>
-                          ) : (
-                            <div className="flex items-center gap-1.5">
-                              <div
-                                className="w-1.5 h-1.5 rounded-full"
-                                style={{ backgroundColor: proj.statusColor }}
-                              />
-                              <span className="font-bold text-[12px] text-zinc-800">
-                                {proj.status}
-                              </span>
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-2 text-right">
-                          {isEditing ? (
-                            <div className="flex items-center justify-end gap-1.5">
-                              {hasChanges && (
+                                className="rounded border border-zinc-200 px-1.5 py-0.5 text-[11px] font-bold text-zinc-800 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 cursor-pointer"
+                              >
+                                <option value="Live">Live</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Archived">Archived</option>
+                              </select>
+                            ) : (
+                              <div className="flex items-center gap-1.5">
+                                <div
+                                  className="w-1.5 h-1.5 rounded-full"
+                                  style={{ backgroundColor: proj.statusColor }}
+                                />
+                                <span className="font-bold text-[12px] text-zinc-800">
+                                  {proj.status}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-2 text-right">
+                            {isEditing ? (
+                              <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   type="button"
                                   onClick={handleInlineSave}
-                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition-all shadow-sm cursor-pointer animate-fade-in"
+                                  disabled={!hasChanges}
+                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-[#005c58] hover:bg-[#003c3a] text-[10px] font-bold text-white rounded-lg transition-colors cursor-pointer disabled:opacity-40"
                                 >
                                   <CheckCircledIcon className="w-3.5 h-3.5" />
                                   <span>Save</span>
                                 </button>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => setEditingProjectId(null)}
-                                className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-650 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
-                              >
-                                <span>Cancel</span>
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEditModal(proj)}
-                                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f4f4f5] hover:bg-zinc-200 text-[10px] font-bold text-zinc-700 rounded-lg transition-colors cursor-pointer"
-                              >
-                                <Pencil2Icon className="w-3.5 h-3.5 text-zinc-500" />
-                                <span>Edit</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedProject(proj);
-                                  setProjectModalType("delete");
-                                }}
-                                className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-[10px] font-bold text-red-600 rounded-lg transition-colors cursor-pointer"
-                              >
-                                <TrashIcon className="w-3.5 h-3.5 text-red-500" />
-                                <span>Delete</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedProject(proj);
-                                  setProjectModalType("analytics");
-                                }}
-                                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#003c3a]/10 hover:bg-[#003c3a]/25 text-[10px] font-bold text-[#003c3a] rounded-lg transition-colors cursor-pointer"
-                              >
-                                <BarChartIcon className="w-3.5 h-3.5 text-[#003c3a]" />
-                                <span>Analytics</span>
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                                <button
+                                  type="button"
+                                  onClick={handleCancelEdit}
+                                  className="flex items-center gap-1 px-2 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-[10px] font-bold text-zinc-600 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  <CrossCircledIcon className="w-3.5 h-3.5" />
+                                  <span>Cancel</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditModal(proj)}
+                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f4f4f5] hover:bg-zinc-200 text-[10px] font-bold text-zinc-700 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  <Pencil2Icon className="w-3.5 h-3.5 text-zinc-500" />
+                                  <span>Edit</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedProject(proj);
+                                    setProjectModalType("delete");
+                                  }}
+                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-[10px] font-bold text-red-600 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  <TrashIcon className="w-3.5 h-3.5 text-red-500" />
+                                  <span>Delete</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedProject(proj);
+                                    setProjectModalType("analytics");
+                                  }}
+                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-[#003c3a]/10 hover:bg-[#003c3a]/25 text-[10px] font-bold text-[#003c3a] rounded-lg transition-colors cursor-pointer"
+                                >
+                                  <BarChartIcon className="w-3.5 h-3.5 text-[#003c3a]" />
+                                  <span>Analytics</span>
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <div
@@ -2164,97 +2106,113 @@ export default function DashboardPage() {
             className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-[15px] font-bold text-black tracking-tight font-heading">
-                Coding Platforms
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-[15px] font-bold text-black tracking-tight font-heading">
+                  Coding Platforms
+                </h3>
+                {dashboardError && (
+                  <ErrorQuestionTooltip message={dashboardError} />
+                )}
+              </div>
               <span className="text-[11px] font-bold text-zinc-400 bg-white rounded-full px-2.5 py-0.5">
-                6 Connected
+                {platformsList.length} Connected
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {platformsList.map((plat) => (
-                <div
-                  key={plat.name}
-                  className="bg-white rounded-xl p-4 border border-transparent hover:border-zinc-200 hover:bg-zinc-50 hover:shadow-md transition-all duration-300 text-left flex flex-col justify-between gap-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden"
-                        style={{ backgroundColor: plat.color + "15" }}
-                      >
-                        {plat.logo ? (
-                          <div
-                            className="w-4 h-4"
-                            style={{
-                              backgroundColor: plat.color,
-                              maskImage: `url(${plat.logo})`,
-                              WebkitMaskImage: `url(${plat.logo})`,
-                              maskSize: "contain",
-                              WebkitMaskSize: "contain",
-                              maskRepeat: "no-repeat",
-                              WebkitMaskRepeat: "no-repeat",
-                              maskPosition: "center",
-                              WebkitMaskPosition: "center",
-                            }}
-                            aria-label={plat.name}
-                          />
-                        ) : (
-                          <span
-                            className="text-[11px] font-black"
-                            style={{ color: plat.color }}
-                          >
-                            {plat.name[0]}
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-[12px] font-bold text-black">
-                          {plat.name}
-                        </p>
-                        <p className="text-[10px] text-zinc-400">{plat.rank}</p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] pb-4 font-bold text-black">
-                      Streak: {plat.streak}d
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-[18px] font-black text-black">
-                        {plat.rating}
-                      </p>
-                      <p className="text-[9px] text-zinc-400">Contest Rating</p>
-                    </div>
-                    <div className="flex gap-0.5 items-end h-6">
-                      {plat.history.map((h, i) => (
-                        <div
-                          key={i}
-                          className="w-1 bg-zinc-200 rounded-t-sm"
-                          style={{
-                            height: `${h * 6}px`,
-                            backgroundColor: plat.color,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleSyncAll}
-                    disabled={isSyncing}
-                    className="w-full py-1.5 bg-[#f4f4f5] hover:bg-[#eef2f6] text-[10px] font-bold text-zinc-600 rounded-lg flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+            {platformsList.length === 0 ? (
+              <div className="bg-white rounded-xl p-6 text-center text-zinc-500 text-xs font-medium">
+                No coding platforms connected yet. Add your account handles in
+                Profile to sync live data.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {platformsList.map((plat) => (
+                  <div
+                    key={plat.name}
+                    className="bg-white rounded-xl p-4 border border-transparent hover:border-zinc-200 hover:bg-zinc-50 hover:shadow-md transition-all duration-300 text-left flex flex-col justify-between gap-3"
                   >
-                    <UpdateIcon
-                      className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`}
-                    />
-                    <span>Sync Platform</span>
-                  </button>
-                </div>
-              ))}
-            </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden"
+                          style={{ backgroundColor: plat.color + "15" }}
+                        >
+                          {plat.logo ? (
+                            <div
+                              className="w-4 h-4"
+                              style={{
+                                backgroundColor: plat.color,
+                                maskImage: `url(${plat.logo})`,
+                                WebkitMaskImage: `url(${plat.logo})`,
+                                maskSize: "contain",
+                                WebkitMaskSize: "contain",
+                                maskRepeat: "no-repeat",
+                                WebkitMaskRepeat: "no-repeat",
+                                maskPosition: "center",
+                                WebkitMaskPosition: "center",
+                              }}
+                              aria-label={plat.name}
+                            />
+                          ) : (
+                            <span
+                              className="text-[11px] font-black"
+                              style={{ color: plat.color }}
+                            >
+                              {plat.name[0]}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-[12px] font-bold text-black">
+                            {plat.name}
+                          </p>
+                          <p className="text-[10px] text-zinc-400">
+                            {plat.rank}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] pb-4 font-bold text-black">
+                        Streak: {plat.streak}d
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-[18px] font-black text-black">
+                          {plat.rating}
+                        </p>
+                        <p className="text-[9px] text-zinc-400">
+                          Contest Rating
+                        </p>
+                      </div>
+                      <div className="flex gap-0.5 items-end h-6">
+                        {(plat.history || []).map((h: number, i: number) => (
+                          <div
+                            key={i}
+                            className="w-1 bg-zinc-200 rounded-t-sm"
+                            style={{
+                              height: `${h * 6}px`,
+                              backgroundColor: plat.color,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleSyncAll}
+                      disabled={isSyncing}
+                      className="w-full py-1.5 bg-[#f4f4f5] hover:bg-[#eef2f6] text-[10px] font-bold text-zinc-600 rounded-lg flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+                    >
+                      <UpdateIcon
+                        className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`}
+                      />
+                      <span>Sync Platform</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

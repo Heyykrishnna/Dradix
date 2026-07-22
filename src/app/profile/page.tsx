@@ -6,6 +6,27 @@ import DocumentUploadModal from "@/components/DocumentUploadModal";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { Loader2 } from "lucide-react";
+import Loader from "@/components/Loader";
+
+const ErrorQuestionTooltip = ({ message }: { message: string }) => {
+  return (
+    <div className="relative group inline-flex items-center ml-1 z-30">
+      <span
+        className="w-4 h-4 rounded-full bg-red-500/10 text-red-600 border border-red-500/30 flex items-center justify-center text-[10px] font-black cursor-pointer hover:bg-red-600 hover:text-white transition-all shadow-xs"
+        title="View Error"
+      >
+        ?
+      </span>
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:flex flex-col w-52 p-2 bg-zinc-900 text-white text-[11px] rounded-xl shadow-2xl border border-zinc-800 z-50 pointer-events-none text-center">
+        <span className="font-bold text-red-400 mb-0.5">Error Details</span>
+        <span className="text-zinc-300 text-[10px] leading-tight">
+          {message}
+        </span>
+        <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-zinc-900" />
+      </div>
+    </div>
+  );
+};
 import {
   FaPlus,
   FaTrashCan,
@@ -715,9 +736,14 @@ export default function ProfilePage() {
     Record<string, boolean>
   >({});
   const [isSyncingAllPlatforms, setIsSyncingAllPlatforms] = useState(false);
+  const [isPlatformsLoading, setIsPlatformsLoading] = useState(true);
+  const [platformErrors, setPlatformErrors] = useState<Record<string, string>>(
+    {},
+  );
 
   useEffect(() => {
     const fetchPlatformsData = async () => {
+      setIsPlatformsLoading(true);
       try {
         const res = await apiFetch<{
           data: CodingProfilesApiResponse;
@@ -759,6 +785,12 @@ export default function ProfilePage() {
         }
       } catch (err) {
         console.error("Failed to load platform accounts:", err);
+        setPlatformErrors((prev) => ({
+          ...prev,
+          all: (err as Error)?.message || "Failed to load platform accounts",
+        }));
+      } finally {
+        setIsPlatformsLoading(false);
       }
     };
 
@@ -770,6 +802,7 @@ export default function ProfilePage() {
     if (!username || !username.trim()) return;
 
     setSyncingPlatforms((prev) => ({ ...prev, [platformId]: true }));
+    setPlatformErrors((prev) => ({ ...prev, [platformId]: "" }));
     try {
       await apiFetch("/coding-profiles/add", {
         method: "POST",
@@ -811,6 +844,10 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error(`Failed to sync platform ${platformId}:`, err);
+      setPlatformErrors((prev) => ({
+        ...prev,
+        [platformId]: (err as Error)?.message || `Failed to sync ${platformId}`,
+      }));
     } finally {
       setSyncingPlatforms((prev) => ({ ...prev, [platformId]: false }));
     }
@@ -818,6 +855,7 @@ export default function ProfilePage() {
 
   const handleSyncAllPlatforms = async () => {
     setIsSyncingAllPlatforms(true);
+    setPlatformErrors({});
     const allPlatforms = [
       "github",
       "leetcode",
@@ -863,6 +901,10 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error("Sync all platforms error:", err);
+      setPlatformErrors((prev) => ({
+        ...prev,
+        all: (err as Error)?.message || "Failed to sync all platforms",
+      }));
     } finally {
       setSyncingPlatforms({});
       setIsSyncingAllPlatforms(false);
@@ -1813,11 +1855,14 @@ export default function ProfilePage() {
                 <span className="text-[14px] font-bold text-zinc-900 font-heading">
                   Coding Platforms Sync
                 </span>
+                {platformErrors.all && (
+                  <ErrorQuestionTooltip message={platformErrors.all} />
+                )}
               </div>
               <button
                 type="button"
                 onClick={handleSyncAllPlatforms}
-                disabled={isSyncingAllPlatforms}
+                disabled={isSyncingAllPlatforms || isPlatformsLoading}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[#005c58] text-white hover:bg-[#003c3a] rounded-xl text-[10px] font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {isSyncingAllPlatforms ? (
@@ -1834,119 +1879,136 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            <div className="space-y-3">
-              {[
-                {
-                  id: "github",
-                  name: "GitHub",
-                  logo: "https://cdn.simpleicons.org/github",
-                },
-                {
-                  id: "leetcode",
-                  name: "LeetCode",
-                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg",
-                },
-                {
-                  id: "codeforces",
-                  name: "Codeforces",
-                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg",
-                },
-                {
-                  id: "hackerrank",
-                  name: "HackerRank",
-                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/hackerrank.svg",
-                },
-                {
-                  id: "codechef",
-                  name: "CodeChef",
-                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codechef.svg",
-                },
-                {
-                  id: "geeksforgeeks",
-                  name: "GeeksforGeeks",
-                  logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg",
-                },
-              ].map((p) => {
-                const stat = platformStats[p.id] || { connected: false };
-                const isSyncingThis = syncingPlatforms[p.id];
-                return (
-                  <div
-                    key={p.id}
-                    className="p-3 bg-zinc-50/80 rounded-2xl border border-zinc-200/60 flex flex-col gap-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={p.logo}
-                          alt={p.name}
-                          className="w-4 h-4 object-contain"
-                        />
-                        <span className="text-[12px] font-bold text-zinc-900">
-                          {p.name}
-                        </span>
+            {isPlatformsLoading ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-3">
+                <Loader />
+                <span className="text-[11px] font-semibold text-zinc-500 font-mono tracking-wider animate-pulse">
+                  LOADING PLATFORMS...
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {[
+                  {
+                    id: "github",
+                    name: "GitHub",
+                    logo: "https://cdn.simpleicons.org/github",
+                  },
+                  {
+                    id: "leetcode",
+                    name: "LeetCode",
+                    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg",
+                  },
+                  {
+                    id: "codeforces",
+                    name: "Codeforces",
+                    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg",
+                  },
+                  {
+                    id: "hackerrank",
+                    name: "HackerRank",
+                    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/hackerrank.svg",
+                  },
+                  {
+                    id: "codechef",
+                    name: "CodeChef",
+                    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codechef.svg",
+                  },
+                  {
+                    id: "geeksforgeeks",
+                    name: "GeeksforGeeks",
+                    logo: "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg",
+                  },
+                ].map((p) => {
+                  const stat = platformStats[p.id] || { connected: false };
+                  const isSyncingThis = syncingPlatforms[p.id];
+                  const hasError = !!platformErrors[p.id];
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-3 bg-zinc-50/80 rounded-2xl border border-zinc-200/60 flex flex-col gap-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={p.logo}
+                            alt={p.name}
+                            className="w-4 h-4 object-contain"
+                          />
+                          <span className="text-[12px] font-bold text-zinc-900">
+                            {p.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {hasError && (
+                            <ErrorQuestionTooltip
+                              message={platformErrors[p.id]}
+                            />
+                          )}
+                          {isSyncingThis ? (
+                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 flex items-center gap-1">
+                              <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                              Syncing...
+                            </span>
+                          ) : stat.connected ? (
+                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center gap-1">
+                              <FaCheck className="w-2.5 h-2.5" />
+                              Synced
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-zinc-200 text-zinc-500">
+                              Not Connected
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      {isSyncingThis ? (
-                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 flex items-center gap-1">
-                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                          Syncing...
-                        </span>
-                      ) : stat.connected ? (
-                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center gap-1">
-                          <FaCheck className="w-2.5 h-2.5" />
-                          Synced
-                        </span>
-                      ) : (
-                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-zinc-200 text-zinc-500">
-                          Not Connected
-                        </span>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder={`${p.name} handle`}
+                          value={platformHandles[p.id] || ""}
+                          onChange={(e) =>
+                            setPlatformHandles({
+                              ...platformHandles,
+                              [p.id]: e.target.value,
+                            })
+                          }
+                          className="flex-1 rounded-xl border border-zinc-200 px-2.5 py-1 text-[11px] font-semibold text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#005c58]/20"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSaveAndSyncPlatform(p.id)}
+                          disabled={
+                            isSyncingThis || !platformHandles[p.id]?.trim()
+                          }
+                          className="px-2.5 py-1 bg-zinc-900 hover:bg-black text-white rounded-xl text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          {isSyncingThis ? "Syncing..." : "Save & Sync"}
+                        </button>
+                      </div>
+
+                      {stat.connected && (
+                        <div className="pt-1.5 border-t border-zinc-200/60 flex items-center justify-between text-[10px]">
+                          <span className="text-zinc-500 font-medium">
+                            Live Stats:
+                          </span>
+                          {isSyncingThis ? (
+                            <span className="inline-block animate-pulse bg-zinc-300 h-3.5 w-16 rounded-md" />
+                          ) : (
+                            <span className="font-extrabold text-zinc-900">
+                              {p.id === "github"
+                                ? `${stat.commits || 0} Commits • ${stat.stars || 0} Stars`
+                                : `Rating: ${stat.rating || 0} • Solved: ${stat.solved || 0}`}
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder={`${p.name} handle`}
-                        value={platformHandles[p.id] || ""}
-                        onChange={(e) =>
-                          setPlatformHandles({
-                            ...platformHandles,
-                            [p.id]: e.target.value,
-                          })
-                        }
-                        className="flex-1 rounded-xl border border-zinc-200 px-2.5 py-1 text-[11px] font-semibold text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#005c58]/20"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleSaveAndSyncPlatform(p.id)}
-                        disabled={
-                          isSyncingThis || !platformHandles[p.id]?.trim()
-                        }
-                        className="px-2.5 py-1 bg-zinc-900 hover:bg-black text-white rounded-xl text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-50"
-                      >
-                        {isSyncingThis ? "Syncing..." : "Save & Sync"}
-                      </button>
-                    </div>
-
-                    {stat.connected && (
-                      <div className="pt-1.5 border-t border-zinc-200/60 flex items-center justify-between text-[10px]">
-                        <span className="text-zinc-500 font-medium">
-                          Live Stats:
-                        </span>
-                        {isSyncingThis ? (
-                          <span className="inline-block animate-pulse bg-zinc-300 h-3.5 w-16 rounded-md" />
-                        ) : (
-                          <span className="font-extrabold text-zinc-900">
-                            {p.id === "github"
-                              ? `${stat.commits || 0} Commits • ${stat.stars || 0} Stars`
-                              : `Rating: ${stat.rating || 0} • Solved: ${stat.solved || 0}`}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="bg-[#161616] rounded-3xl border border-zinc-800 shadow-xl p-5 space-y-4 text-white text-left">
