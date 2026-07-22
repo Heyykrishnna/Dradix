@@ -31,6 +31,7 @@ import {
 } from "recharts";
 import { useSkills } from "@/context/SkillsContext";
 import SegmentedSlider from "./components/SegmentedSlider";
+import { apiFetch } from "@/lib/api";
 
 import {
   MessageScrollerProvider,
@@ -597,6 +598,11 @@ function SkillProjectPanel({
 
 export default function DashboardPage() {
   const [projectsList, setProjectsList] = useState(initialProjectsList);
+  const [devStats, setDevStats] = useState(initialDevStats);
+  const [platformsList, setPlatformsList] = useState(codingPlatforms);
+  const [timeline, setTimeline] = useState(timelineMilestones);
+  const [rings, setRings] = useState(careerRings);
+
   const [projectModalType, setProjectModalType] = useState<
     "add" | "edit" | "delete" | "analytics" | null
   >(null);
@@ -829,6 +835,100 @@ export default function DashboardPage() {
 
   const [isSyncing, setIsSyncing] = useState(false);
 
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await apiFetch<{ data: any }>("/dashboard");
+        if (response && response.data) {
+          const data = response.data;
+          
+          if (data.profile) {
+            setDevStats({
+              score: data.developer_score || 0,
+              contributions: data.github?.total_commits || 0,
+              problemsSolved: data.coding_profiles?.reduce((acc: number, curr: any) => acc + (curr.problems_solved || 0), 0) || 0,
+              streak: 42,
+              projects: data.projects?.length || 0,
+              liveProjects: data.projects?.length || 0,
+              repositories: 52,
+              publicRepos: 12,
+              followers: 624,
+              stars: data.github?.stars_earned || 0,
+              pullRequests: data.github?.total_prs || 0,
+              issuesClosed: data.github?.total_issues || 0,
+              hackathons: 8,
+              wins: 2,
+              certificates: data.achievements?.length || 0,
+            });
+          }
+
+          if (data.projects && data.projects.length > 0) {
+            const mappedProjects = data.projects.map((proj: any) => ({
+              id: proj.id.toString(),
+              name: proj.name,
+              creator: `${data.profile.first_name || ''} ${data.profile.last_name || ''}`.trim() || data.profile.username,
+              stack: proj.tech_stack ? proj.tech_stack.join(', ') : '',
+              platform: 'GitHub',
+              date: new Date(proj.created_at).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+              status: 'Live',
+              statusColor: '#005c58',
+              views: 120,
+              likes: 15,
+              stars: 5,
+            }));
+            setProjectsList(mappedProjects);
+          }
+
+          if (data.coding_profiles && data.coding_profiles.length > 0) {
+            const mappedPlatforms = data.coding_profiles.map((cp: any) => {
+              const platformName = cp.platform.charAt(0).toUpperCase() + cp.platform.slice(1);
+              let color = '#3b82f6';
+              let logo = '';
+              if (cp.platform.toLowerCase() === 'leetcode') {
+                color = '#f59e0b';
+                logo = 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg';
+              } else if (cp.platform.toLowerCase() === 'codeforces') {
+                color = '#3b82f6';
+                logo = 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg';
+              }
+              return {
+                name: platformName,
+                rating: cp.rating || 0,
+                rank: cp.global_ranking ? `#${cp.global_ranking}` : 'Member',
+                solved: cp.problems_solved || 0,
+                color,
+                streak: 10,
+                history: [1, 2, 1, 3, 2],
+                logo,
+              };
+            });
+            setPlatformsList(mappedPlatforms);
+          }
+
+          if (data.recruiterChecklist) {
+            setChecklist(data.recruiterChecklist);
+          }
+
+          if (data.timeline && data.timeline.length > 0) {
+            setTimeline(data.timeline);
+          }
+
+          if (data.notifications && data.notifications.length > 0) {
+            setNotifications(data.notifications);
+          }
+
+          if (data.careerRings) {
+            setRings(data.careerRings);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load aggregated dashboard data:", err);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   const handleSort = (field: "name" | "views" | "likes" | "stars") => {
     if (sortField === field) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -946,7 +1046,7 @@ export default function DashboardPage() {
                 Dev Score
               </p>
               <p className="text-[18px] font-black text-black mt-1">
-                {initialDevStats.score}
+                {devStats.score}
               </p>
             </div>
             <div className="bg-white rounded-xl p-3">
@@ -954,7 +1054,7 @@ export default function DashboardPage() {
                 Contributions
               </p>
               <p className="text-[18px] font-black text-black mt-1">
-                {initialDevStats.contributions}
+                {devStats.contributions}
               </p>
             </div>
             <div className="bg-white rounded-xl p-3">
@@ -962,7 +1062,7 @@ export default function DashboardPage() {
                 Problems
               </p>
               <p className="text-[18px] font-black text-black mt-1">
-                {initialDevStats.problemsSolved}
+                {devStats.problemsSolved}
               </p>
             </div>
             <div className="bg-white rounded-xl p-3">
@@ -970,7 +1070,7 @@ export default function DashboardPage() {
                 Streak
               </p>
               <p className="text-[18px] font-black text-black mt-1">
-                {initialDevStats.streak} Days
+                {devStats.streak} Days
               </p>
             </div>
           </div>
@@ -993,15 +1093,15 @@ export default function DashboardPage() {
           <div className="space-y-2">
             <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
               <span className="text-[12px] font-semibold text-zinc-700">
-                {initialDevStats.projects} Projects (
-                {initialDevStats.liveProjects} Live)
+                {devStats.projects} Projects (
+                {devStats.liveProjects} Live)
               </span>
               <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
             </button>
             <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
               <span className="text-[12px] font-semibold text-zinc-700">
-                {initialDevStats.repositories} Repos (
-                {initialDevStats.publicRepos} Public)
+                {devStats.repositories} Repos (
+                {devStats.publicRepos} Public)
               </span>
               <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
             </button>
@@ -2007,7 +2107,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {codingPlatforms.map((plat) => (
+              {platformsList.map((plat) => (
                 <div
                   key={plat.name}
                   className="bg-white rounded-xl p-4 border border-transparent hover:border-zinc-200 hover:bg-zinc-50 hover:shadow-md transition-all duration-300 text-left flex flex-col justify-between gap-3"
@@ -2134,7 +2234,7 @@ export default function DashboardPage() {
                 Career Progress
               </h3>
               <div className="grid grid-cols-3 gap-3 text-center">
-                {careerRings.map((r) => (
+                {rings.map((r) => (
                   <div
                     key={r.label}
                     className="bg-white rounded-xl p-3 flex flex-col items-center justify-between gap-2"
@@ -2292,7 +2392,7 @@ export default function DashboardPage() {
               </h3>
               <div className="relative pl-6 space-y-4">
                 <div className="absolute left-1.75 top-2 bottom-2 w-0.5 bg-zinc-200" />
-                {timelineMilestones.map((item, idx) => (
+                {timeline.map((item, idx) => (
                   <div key={idx} className="relative space-y-1">
                     <div
                       className="absolute -left-5.75 top-1.5 w-3.5 h-3.5 rounded-full bg-white border-2"
