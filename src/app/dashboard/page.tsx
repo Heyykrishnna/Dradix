@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   ArrowRightIcon,
@@ -67,6 +67,7 @@ interface GitHubRepoItem {
   id: number;
   name: string;
   full_name: string;
+  private: boolean;
   description: string | null;
   html_url: string;
   homepage: string | null;
@@ -585,6 +586,87 @@ interface DashboardResponseData {
   }>;
 }
 
+const REPO_FILTER_OPTIONS: Array<"all" | "public" | "private"> = ["all", "public", "private"];
+
+function RepoVisibilitySlider({
+  filter,
+  setFilter,
+  repos,
+}: {
+  filter: "all" | "public" | "private";
+  setFilter: (f: "all" | "public" | "private") => void;
+  repos: GitHubRepoItem[];
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [sliderStyle, setSliderStyle] = useState<{ left: number; width: number }>({
+    left: 0,
+    width: 0,
+  });
+
+  const updatePosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const index = REPO_FILTER_OPTIONS.indexOf(filter);
+    const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>("button");
+    const targetButton = buttons[index];
+
+    if (targetButton) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const targetRect = targetButton.getBoundingClientRect();
+
+      setSliderStyle({
+        left: targetRect.left - containerRect.left,
+        width: targetRect.width,
+      });
+    }
+  }, [filter]);
+
+  useEffect(() => {
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, [updatePosition]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative inline-flex items-center p-1 bg-zinc-100 border border-zinc-200/80 rounded-xl select-none"
+    >
+      {sliderStyle.width > 0 && (
+        <div
+          className="absolute top-1 bottom-1 bg-zinc-900 rounded-lg shadow-xs transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          style={{
+            left: `${sliderStyle.left}px`,
+            width: `${sliderStyle.width}px`,
+          }}
+        />
+      )}
+
+      {REPO_FILTER_OPTIONS.map((opt) => {
+        const isActive = opt === filter;
+        const count =
+          opt === "all"
+            ? repos.length
+            : opt === "public"
+            ? repos.filter((r) => !r.private).length
+            : repos.filter((r) => r.private).length;
+
+        return (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => setFilter(opt)}
+            className={`relative z-10 px-3 py-1 text-[11px] font-bold tracking-tight capitalize transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+              isActive ? "text-white" : "text-zinc-500 hover:text-zinc-900"
+            }`}
+          >
+            {opt} ({count})
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [projectsList, setProjectsList] = useState<Project[]>([]);
   const [devStats, setDevStats] = useState(initialDevStats);
@@ -633,40 +715,111 @@ export default function DashboardPage() {
     };
   }, [projectModalType]);
 
-  const [userGithubUsername, setUserGithubUsername] = useState<string>("");
-  const [githubUsernameInput, setGithubUsernameInput] = useState<string>("");
+  const [isGitHubConnected, setIsGitHubConnected] = useState<boolean>(false);
+  const [connectedGitHubUsername, setConnectedGitHubUsername] =
+    useState<string>("");
+  const [isConnectingToken, setIsConnectingToken] = useState<boolean>(false);
+  const [repoVisibilityFilter, setRepoVisibilityFilter] = useState<
+    "all" | "public" | "private"
+  >("all");
+
   const [githubRepos, setGithubRepos] = useState<GitHubRepoItem[]>([]);
   const [isFetchingRepos, setIsFetchingRepos] = useState<boolean>(false);
   const [repoFetchError, setRepoFetchError] = useState<string | null>(null);
   const [selectedRepoName, setSelectedRepoName] = useState<string | null>(null);
-  const [addProjectStep, setAddProjectStep] = useState<"github_select" | "form">(
-    "github_select",
-  );
+  const [addProjectStep, setAddProjectStep] = useState<
+    "github_select" | "form"
+  >("github_select");
 
-  const fetchGitHubRepos = async (usernameToFetch: string) => {
-    if (!usernameToFetch.trim()) return;
+  const fetchAuthenticatedGitHubRepos = async () => {
     setIsFetchingRepos(true);
     setRepoFetchError(null);
     try {
-      const res = await fetch(
-        `https://api.github.com/users/${encodeURIComponent(usernameToFetch.trim())}/repos?sort=updated&per_page=30`,
-      );
-      if (!res.ok) {
-        throw new Error(`GitHub user "${usernameToFetch}" not found or rate limited.`);
+      const res = await apiFetch<{
+        data: {
+          connected: boolean;
+          username?: string;
+          repos: GitHubRepoItem[];
+          error?: string;
+        };
+      }>("/projects/github/repos");
+
+      if (res && res.data) {
+        setIsGitHubConnected(res.data.connected);
+        if (res.data.username) {
+          setConnectedGitHubUsername(res.data.username);
+        }
+        setGithubRepos(res.data.repos || []);
+        if (res.data.error) setRepoFetchError(res.data.error);
       }
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setGithubRepos(data);
-      } else {
-        setGithubRepos([]);
+    } catch (err: unknown) {
+      console.error("Error loading GitHub repos:", err);
+      setRepoFetchError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load GitHub repositories.",
+      );
+    } finally {
+      setIsFetchingRepos(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleOAuthMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === "GITHUB_OAUTH_SUCCESS") {
+        fetchAuthenticatedGitHubRepos();
+      }
+    };
+    window.addEventListener("message", handleOAuthMessage);
+    return () => window.removeEventListener("message", handleOAuthMessage);
+  }, []);
+
+  const handleStartGitHubOAuth = async () => {
+    setIsConnectingToken(true);
+    setRepoFetchError(null);
+    try {
+      const res = await apiFetch<{
+        data: {
+          authUrl: string;
+          configured: boolean;
+        };
+      }>("/projects/github/auth");
+
+      if (res && res.data && res.data.authUrl) {
+        const width = 600;
+        const height = 700;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
+
+        const popup = window.open(
+          res.data.authUrl,
+          "GitHubOAuth",
+          `width=${width},height=${height},top=${top},left=${left}`,
+        );
+
+        if (!popup) {
+          window.location.href = res.data.authUrl;
+        }
       }
     } catch (err: unknown) {
       setRepoFetchError(
-        err instanceof Error ? err.message : "Failed to fetch repositories.",
+        err instanceof Error
+          ? err.message
+          : "Failed to initiate GitHub OAuth Sign-In.",
       );
-      setGithubRepos([]);
     } finally {
-      setIsFetchingRepos(false);
+      setIsConnectingToken(false);
+    }
+  };
+
+  const handleDisconnectGitHub = async () => {
+    try {
+      await apiFetch("/projects/github/disconnect", { method: "POST" });
+      setIsGitHubConnected(false);
+      setConnectedGitHubUsername("");
+      setGithubRepos([]);
+    } catch (err) {
+      console.error("Failed to disconnect GitHub:", err);
     }
   };
 
@@ -684,7 +837,10 @@ export default function DashboardPage() {
       githubUrl: repo.html_url || prev.githubUrl,
       demoUrl: repo.homepage || prev.demoUrl,
       stack: techStack || prev.stack,
-      stars: repo.stargazers_count !== undefined ? repo.stargazers_count : prev.stars,
+      stars:
+        repo.stargazers_count !== undefined
+          ? repo.stargazers_count
+          : prev.stars,
       platform: "GitHub",
       status: "Live",
     }));
@@ -714,11 +870,7 @@ export default function DashboardPage() {
     setAddProjectStep("github_select");
     setProjectModalType("add");
 
-    const initialHandle = userGithubUsername || "Heyykrishnna";
-    setGithubUsernameInput(initialHandle);
-    if (initialHandle && githubRepos.length === 0) {
-      fetchGitHubRepos(initialHandle);
-    }
+    fetchAuthenticatedGitHubRepos();
   };
 
   const handleOpenEditModal = (proj: Project) => {
@@ -1106,11 +1258,6 @@ export default function DashboardPage() {
         );
         if (response && response.data) {
           const data = response.data;
-
-          const ghUser = data.github?.username || data.profile?.username || "";
-          if (ghUser) {
-            setUserGithubUsername(ghUser);
-          }
 
           if (data.profile) {
             setDevStats({
@@ -2907,15 +3054,20 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-zinc-900 text-white flex items-center justify-center shadow-xs shrink-0">
                   <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                    />
                   </svg>
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold text-zinc-900 tracking-tight font-heading">
-                    Import from GitHub Repository
+                    GitHub Authentication & Repository Sync
                   </h3>
                   <p className="text-xs text-zinc-500 font-medium">
-                    Select a public repository to pre-fill project information automatically.
+                    Authenticate to manage both your Public and Private
+                    repositories securely.
                   </p>
                 </div>
               </div>
@@ -2929,34 +3081,95 @@ export default function DashboardPage() {
             </div>
 
             <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
-              <div className="flex items-center gap-2.5">
-                <div className="relative flex-1">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-xs">
-                    @
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Enter GitHub handle (e.g. octocat)..."
-                    value={githubUsernameInput}
-                    onChange={(e) => setGithubUsernameInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        fetchGitHubRepos(githubUsernameInput);
-                      }
-                    }}
-                    className="w-full pl-8 pr-4 py-2.5 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs font-semibold text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
-                  />
+              {!isGitHubConnected ? (
+                /* Unauthenticated Direct GitHub OAuth Sign-In View */
+                <div className="py-6 space-y-4 text-center bg-zinc-50 border border-zinc-200/80 rounded-2xl p-6">
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-900 text-white flex items-center justify-center mx-auto shadow-xs">
+                    <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                      />
+                    </svg>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-extrabold text-zinc-900">
+                      Connect Your GitHub Account
+                    </h4>
+                    <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
+                      Sign in with GitHub to automatically list and manage your{" "}
+                      <strong>Public and Private</strong> repositories. Zero
+                      manual token entry required.
+                    </p>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={handleStartGitHubOAuth}
+                      disabled={isConnectingToken}
+                      className="px-6 py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-white font-extrabold text-xs transition-all cursor-pointer inline-flex items-center justify-center gap-2.5 shadow-md disabled:opacity-50"
+                    >
+                      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                        />
+                      </svg>
+                      <span>
+                        {isConnectingToken
+                          ? "Connecting..."
+                          : "Sign in with GitHub"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => fetchGitHubRepos(githubUsernameInput)}
-                  disabled={isFetchingRepos || !githubUsernameInput.trim()}
-                  className="px-5 py-2.5 rounded-2xl bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-white font-bold text-xs transition-all cursor-pointer disabled:opacity-50 shrink-0"
-                >
-                  {isFetchingRepos ? "Fetching..." : "Fetch Repositories"}
-                </button>
-              </div>
+              ) : (
+                /* Connected Status & Repositories View */
+                <div className="space-y-4">
+                  <div className="p-3.5 rounded-2xl bg-zinc-900 text-white flex items-center justify-between shadow-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <div>
+                        <span className="text-xs font-extrabold text-white block">
+                          Connected as @{connectedGitHubUsername}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 font-medium">
+                          Public & Private Repositories Sync Active
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDisconnectGitHub}
+                      className="px-2.5 py-1 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-[10px] font-bold text-zinc-300 transition-colors cursor-pointer"
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+
+                  {/* Filter Pills with Animated Sliding Indicator */}
+                  <div className="flex items-center justify-between">
+                    <RepoVisibilitySlider
+                      filter={repoVisibilityFilter}
+                      setFilter={setRepoVisibilityFilter}
+                      repos={githubRepos}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={fetchAuthenticatedGitHubRepos}
+                      disabled={isFetchingRepos}
+                      className="text-[11px] font-semibold text-zinc-500 hover:text-zinc-900 transition-colors cursor-pointer"
+                    >
+                      {isFetchingRepos ? "Syncing..." : "↻ Refresh List"}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {repoFetchError && (
                 <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium">
@@ -2964,14 +3177,18 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {githubRepos.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                    <span>Public Repositories ({githubRepos.length})</span>
-                    <span>Click any repo to select</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[45vh] overflow-y-auto pr-1">
-                    {githubRepos.map((repo) => {
+              {/* Repos Grid */}
+              {isGitHubConnected && githubRepos.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[42vh] overflow-y-auto pr-1">
+                  {githubRepos
+                    .filter((repo) => {
+                      if (repoVisibilityFilter === "public")
+                        return !repo.private;
+                      if (repoVisibilityFilter === "private")
+                        return repo.private;
+                      return true;
+                    })
+                    .map((repo) => {
                       const isSelected = selectedRepoName === repo.name;
                       return (
                         <div
@@ -2985,12 +3202,25 @@ export default function DashboardPage() {
                         >
                           <div>
                             <div className="flex items-center justify-between gap-2">
-                              <span className="font-extrabold text-xs truncate">
+                              <span className="font-extrabold text-xs truncate flex items-center gap-1.5">
                                 {repo.name}
+                                {repo.private && (
+                                  <span
+                                    className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                      isSelected
+                                        ? "bg-zinc-800 text-amber-300 border border-zinc-700"
+                                        : "bg-amber-100 text-amber-800 border border-amber-200"
+                                    }`}
+                                  >
+                                    Private
+                                  </span>
+                                )}
                               </span>
                               <span
                                 className={`text-[10px] font-bold shrink-0 ${
-                                  isSelected ? "text-amber-300" : "text-amber-600"
+                                  isSelected
+                                    ? "text-amber-300"
+                                    : "text-amber-600"
                                 }`}
                               >
                                 ★ {repo.stargazers_count}
@@ -3025,22 +3255,23 @@ export default function DashboardPage() {
                                 isSelected ? "text-white" : "text-zinc-900"
                               }`}
                             >
-                              Select & Continue →
+                              Select & Auto-fill →
                             </span>
                           </div>
                         </div>
                       );
                     })}
-                  </div>
                 </div>
               ) : (
+                isGitHubConnected &&
                 !isFetchingRepos && (
                   <div className="py-10 text-center space-y-2 bg-zinc-50 rounded-2xl border border-zinc-200/80">
                     <p className="text-xs font-bold text-zinc-600">
-                      No repositories loaded yet
+                      No repositories found under this filter
                     </p>
                     <p className="text-[11px] text-zinc-400">
-                      Enter your GitHub handle above to load public repos, or skip to fill manually.
+                      Try selecting &quot;All&quot; or click refresh to sync
+                      your latest GitHub repositories.
                     </p>
                   </div>
                 )
@@ -3106,7 +3337,10 @@ export default function DashboardPage() {
                 <div className="p-3 rounded-2xl bg-zinc-900 text-white flex items-center justify-between text-xs font-medium shadow-xs">
                   <span className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    Auto-filled from GitHub repo: <strong className="font-bold text-white">{selectedRepoName}</strong>
+                    Auto-filled from GitHub repo:{" "}
+                    <strong className="font-bold text-white">
+                      {selectedRepoName}
+                    </strong>
                   </span>
                   <button
                     type="button"
