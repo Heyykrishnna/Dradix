@@ -294,7 +294,7 @@ function AuthFormContent() {
         </div>
 
         <div className="relative flex-1 w-full h-full flex items-center justify-center overflow-y-auto py-16">
-          <div className="relative max-w-[420px] w-full mx-auto px-8 sm:px-0">
+          <div className="relative max-w-105 w-full mx-auto px-8 sm:px-0">
             {errorMsg && !showVerifyNotice && (
               <div className="mb-6 px-4 py-3 bg-red-950/40 border border-red-900/60 text-red-200 rounded-lg text-sm flex justify-between items-center">
                 <span>{errorMsg}</span>
@@ -504,7 +504,7 @@ function AuthFormContent() {
                         </label>
                         <input
                           type="text"
-                          placeholder="Yatharth"
+                          placeholder="Gauri"
                           required
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
@@ -517,7 +517,7 @@ function AuthFormContent() {
                         </label>
                         <input
                           type="text"
-                          placeholder="Khandelwal"
+                          placeholder="Dangra"
                           required
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
@@ -532,7 +532,7 @@ function AuthFormContent() {
                       </label>
                       <input
                         type="email"
-                        placeholder="yatharthkhandelwal@gmail.com"
+                        placeholder="name@example.com"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -559,9 +559,9 @@ function AuthFormContent() {
                           className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
                         >
                           {showPassword ? (
-                            <EyeOpenIcon className="w-[18px] h-[18px]" />
+                            <EyeOpenIcon className="w-4.5 h-4.5" />
                           ) : (
-                            <EyeClosedIcon className="w-[18px] h-[18px]" />
+                            <EyeClosedIcon className="w-4.5 h-4.5" />
                           )}
                         </button>
                       </div>
@@ -636,7 +636,7 @@ function AuthFormContent() {
                       </label>
                       <input
                         type="email"
-                        placeholder="yatharthkhandelwal@gmail.com"
+                        placeholder="name@example.com"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -672,9 +672,9 @@ function AuthFormContent() {
                           className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
                         >
                           {showPassword ? (
-                            <EyeOpenIcon className="w-[18px] h-[18px]" />
+                            <EyeOpenIcon className="w-4.5 h-4.5" />
                           ) : (
-                            <EyeClosedIcon className="w-[18px] h-[18px]" />
+                            <EyeClosedIcon className="w-4.5 h-4.5" />
                           )}
                         </button>
                       </div>
