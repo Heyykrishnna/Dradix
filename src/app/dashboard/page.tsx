@@ -63,6 +63,19 @@ import {
   MessageScrollerButton,
 } from "@/components/ui/message-scroller";
 
+interface GitHubRepoItem {
+  id: number;
+  name: string;
+  full_name: string;
+  description: string | null;
+  html_url: string;
+  homepage: string | null;
+  language: string | null;
+  stargazers_count: number;
+  topics?: string[];
+  updated_at: string;
+}
+
 interface BackendProject {
   id?: number | string;
   title?: string;
@@ -520,6 +533,7 @@ interface DashboardResponseData {
   };
   developer_score?: number;
   github?: {
+    username?: string;
     total_commits?: number;
     stars_earned?: number;
     total_prs?: number;
@@ -619,6 +633,65 @@ export default function DashboardPage() {
     };
   }, [projectModalType]);
 
+  const [userGithubUsername, setUserGithubUsername] = useState<string>("");
+  const [githubUsernameInput, setGithubUsernameInput] = useState<string>("");
+  const [githubRepos, setGithubRepos] = useState<GitHubRepoItem[]>([]);
+  const [isFetchingRepos, setIsFetchingRepos] = useState<boolean>(false);
+  const [repoFetchError, setRepoFetchError] = useState<string | null>(null);
+  const [selectedRepoName, setSelectedRepoName] = useState<string | null>(null);
+  const [addProjectStep, setAddProjectStep] = useState<"github_select" | "form">(
+    "github_select",
+  );
+
+  const fetchGitHubRepos = async (usernameToFetch: string) => {
+    if (!usernameToFetch.trim()) return;
+    setIsFetchingRepos(true);
+    setRepoFetchError(null);
+    try {
+      const res = await fetch(
+        `https://api.github.com/users/${encodeURIComponent(usernameToFetch.trim())}/repos?sort=updated&per_page=30`,
+      );
+      if (!res.ok) {
+        throw new Error(`GitHub user "${usernameToFetch}" not found or rate limited.`);
+      }
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setGithubRepos(data);
+      } else {
+        setGithubRepos([]);
+      }
+    } catch (err: unknown) {
+      setRepoFetchError(
+        err instanceof Error ? err.message : "Failed to fetch repositories.",
+      );
+      setGithubRepos([]);
+    } finally {
+      setIsFetchingRepos(false);
+    }
+  };
+
+  const handleSelectGitHubRepo = (repo: GitHubRepoItem) => {
+    setSelectedRepoName(repo.name);
+    const techStack =
+      repo.topics && repo.topics.length > 0
+        ? repo.topics.join(", ")
+        : repo.language || "";
+
+    setProjectFormState((prev) => ({
+      ...prev,
+      name: repo.name || prev.name,
+      description: repo.description || prev.description,
+      githubUrl: repo.html_url || prev.githubUrl,
+      demoUrl: repo.homepage || prev.demoUrl,
+      stack: techStack || prev.stack,
+      stars: repo.stargazers_count !== undefined ? repo.stargazers_count : prev.stars,
+      platform: "GitHub",
+      status: "Live",
+    }));
+
+    setAddProjectStep("form");
+  };
+
   const handleOpenAddModal = () => {
     setProjectFormState({
       name: "",
@@ -636,7 +709,16 @@ export default function DashboardPage() {
       screenshot1: "",
       screenshot2: "",
     });
+    setSelectedRepoName(null);
+    setRepoFetchError(null);
+    setAddProjectStep("github_select");
     setProjectModalType("add");
+
+    const initialHandle = userGithubUsername || "Heyykrishnna";
+    setGithubUsernameInput(initialHandle);
+    if (initialHandle && githubRepos.length === 0) {
+      fetchGitHubRepos(initialHandle);
+    }
   };
 
   const handleOpenEditModal = (proj: Project) => {
@@ -658,6 +740,7 @@ export default function DashboardPage() {
       screenshot1: proj.screenshots?.[0] || "",
       screenshot2: proj.screenshots?.[1] || "",
     });
+    setAddProjectStep("form");
     setProjectModalType("edit");
   };
 
@@ -1023,6 +1106,11 @@ export default function DashboardPage() {
         );
         if (response && response.data) {
           const data = response.data;
+
+          const ghUser = data.github?.username || data.profile?.username || "";
+          if (ghUser) {
+            setUserGithubUsername(ghUser);
+          }
 
           if (data.profile) {
             setDevStats({
@@ -2811,20 +2899,189 @@ export default function DashboardPage() {
         </footer>
       </div>
 
-      {/* Add / Edit Project Modal */}
-      {(projectModalType === "add" || projectModalType === "edit") && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out text-left animate-fade-in">
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in text-left max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
+      {/* Step 1: GitHub Repositories Selector Modal */}
+      {projectModalType === "add" && addProjectStep === "github_select" && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-all duration-300 ease-in-out text-left animate-fade-in">
+          <div className="bg-white rounded-3xl border border-zinc-200 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col animate-scale-in text-left max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/60">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-zinc-900 text-white flex items-center justify-center shadow-xs shrink-0">
+                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-zinc-900 tracking-tight font-heading">
+                    Import from GitHub Repository
+                  </h3>
+                  <p className="text-xs text-zinc-500 font-medium">
+                    Select a public repository to pre-fill project information automatically.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProjectModalType(null)}
+                className="p-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-xl transition-all cursor-pointer"
+              >
+                <Cross2Icon className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
+              <div className="flex items-center gap-2.5">
+                <div className="relative flex-1">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-xs">
+                    @
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Enter GitHub handle (e.g. octocat)..."
+                    value={githubUsernameInput}
+                    onChange={(e) => setGithubUsernameInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        fetchGitHubRepos(githubUsernameInput);
+                      }
+                    }}
+                    className="w-full pl-8 pr-4 py-2.5 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs font-semibold text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fetchGitHubRepos(githubUsernameInput)}
+                  disabled={isFetchingRepos || !githubUsernameInput.trim()}
+                  className="px-5 py-2.5 rounded-2xl bg-zinc-900 hover:bg-zinc-800 active:scale-95 text-white font-bold text-xs transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                >
+                  {isFetchingRepos ? "Fetching..." : "Fetch Repositories"}
+                </button>
+              </div>
+
+              {repoFetchError && (
+                <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium">
+                  {repoFetchError}
+                </div>
+              )}
+
+              {githubRepos.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                    <span>Public Repositories ({githubRepos.length})</span>
+                    <span>Click any repo to select</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[45vh] overflow-y-auto pr-1">
+                    {githubRepos.map((repo) => {
+                      const isSelected = selectedRepoName === repo.name;
+                      return (
+                        <div
+                          key={repo.id}
+                          onClick={() => handleSelectGitHubRepo(repo)}
+                          className={`p-4 rounded-2xl border text-left cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2 ${
+                            isSelected
+                              ? "bg-zinc-900 text-white border-zinc-900 shadow-md"
+                              : "bg-zinc-50/70 border-zinc-200 hover:border-zinc-400 hover:bg-white hover:shadow-xs"
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-extrabold text-xs truncate">
+                                {repo.name}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold shrink-0 ${
+                                  isSelected ? "text-amber-300" : "text-amber-600"
+                                }`}
+                              >
+                                ★ {repo.stargazers_count}
+                              </span>
+                            </div>
+                            {repo.description && (
+                              <p
+                                className={`text-[11px] line-clamp-2 mt-1 ${
+                                  isSelected ? "text-zinc-300" : "text-zinc-500"
+                                }`}
+                              >
+                                {repo.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between pt-1 text-[10px]">
+                            {repo.language ? (
+                              <span
+                                className={`px-2 py-0.5 rounded-lg font-semibold ${
+                                  isSelected
+                                    ? "bg-zinc-800 text-zinc-300"
+                                    : "bg-zinc-200/80 text-zinc-700"
+                                }`}
+                              >
+                                {repo.language}
+                              </span>
+                            ) : (
+                              <span />
+                            )}
+                            <span
+                              className={`font-bold ${
+                                isSelected ? "text-white" : "text-zinc-900"
+                              }`}
+                            >
+                              Select & Continue →
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                !isFetchingRepos && (
+                  <div className="py-10 text-center space-y-2 bg-zinc-50 rounded-2xl border border-zinc-200/80">
+                    <p className="text-xs font-bold text-zinc-600">
+                      No repositories loaded yet
+                    </p>
+                    <p className="text-[11px] text-zinc-400">
+                      Enter your GitHub handle above to load public repos, or skip to fill manually.
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+
+            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setAddProjectStep("form")}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200/70 border border-zinc-200 transition-all cursor-pointer"
+              >
+                Skip / Create Manually →
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjectModalType(null)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-zinc-400 hover:text-zinc-700 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: Main Project Form Modal */}
+      {((projectModalType === "add" && addProjectStep === "form") ||
+        projectModalType === "edit") && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-all duration-300 ease-in-out text-left animate-fade-in">
+          <div className="bg-white rounded-3xl border border-zinc-200 shadow-2xl w-full max-w-2xl sm:max-w-3xl overflow-hidden flex flex-col animate-scale-in text-left max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/60">
               <div>
-                <h3 className="text-[16px] font-extrabold text-black tracking-tight font-heading">
+                <h3 className="text-[17px] font-extrabold text-zinc-900 tracking-tight font-heading">
                   {projectModalType === "add"
                     ? "Add New Project"
                     : "Edit Project"}
                 </h3>
                 <p className="text-[11px] text-zinc-400 font-medium">
                   {projectModalType === "add"
-                    ? "Fill in all project details and screenshots below."
+                    ? "Review and complete project details below."
                     : "Update project metadata, links, and system architecture."}
                 </p>
               </div>
@@ -2843,44 +3100,62 @@ export default function DashboardPage() {
 
             <form
               onSubmit={handleSaveProject}
-              className="p-6 space-y-4 overflow-y-auto"
+              className="p-6 sm:p-8 space-y-5 overflow-y-auto"
             >
-              <div>
-                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
-                  Project Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Dradix Portfolio"
-                  value={projectFormState.name}
-                  onChange={(e) =>
-                    setProjectFormState({
-                      ...projectFormState,
-                      name: e.target.value,
-                    })
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
-                />
-              </div>
+              {selectedRepoName && projectModalType === "add" && (
+                <div className="p-3 rounded-2xl bg-zinc-900 text-white flex items-center justify-between text-xs font-medium shadow-xs">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    Auto-filled from GitHub repo: <strong className="font-bold text-white">{selectedRepoName}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAddProjectStep("github_select")}
+                    className="text-[11px] font-bold text-zinc-300 hover:text-white underline cursor-pointer"
+                  >
+                    Change Repo
+                  </button>
+                </div>
+              )}
 
-              <div>
-                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
-                  Tech Stack *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Next.js, TypeScript, PostgreSQL, Tailwind"
-                  value={projectFormState.stack}
-                  onChange={(e) =>
-                    setProjectFormState({
-                      ...projectFormState,
-                      stack: e.target.value,
-                    })
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-semibold transition-all"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    Project Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dradix Portfolio"
+                    value={projectFormState.name}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        name: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    Tech Stack *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Next.js, TypeScript, PostgreSQL"
+                    value={projectFormState.stack}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        stack: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-semibold transition-all"
+                  />
+                </div>
               </div>
 
               <div>
@@ -2889,7 +3164,7 @@ export default function DashboardPage() {
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="Comprehensive project overview and features..."
+                  placeholder="Comprehensive project overview and key features..."
                   value={projectFormState.description}
                   onChange={(e) =>
                     setProjectFormState({
@@ -2897,7 +3172,7 @@ export default function DashboardPage() {
                       description: e.target.value,
                     })
                   }
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all resize-none"
+                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all resize-none"
                 />
               </div>
 
@@ -2908,7 +3183,7 @@ export default function DashboardPage() {
                   </label>
                   <input
                     type="url"
-                    placeholder="https://demo.app"
+                    placeholder="https://example.com"
                     value={projectFormState.demoUrl}
                     onChange={(e) =>
                       setProjectFormState({
@@ -2916,7 +3191,7 @@ export default function DashboardPage() {
                         demoUrl: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all"
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all"
                   />
                 </div>
 
@@ -2926,7 +3201,7 @@ export default function DashboardPage() {
                   </label>
                   <input
                     type="url"
-                    placeholder="https://github.com/user/project"
+                    placeholder="https://github.com/username/repo"
                     value={projectFormState.githubUrl}
                     onChange={(e) =>
                       setProjectFormState({
@@ -2934,45 +3209,47 @@ export default function DashboardPage() {
                         githubUrl: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all"
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
-                  Architecture Details
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="System design, microservices, cloud infrastructure, DB schemas..."
-                  value={projectFormState.architectureDetails}
-                  onChange={(e) =>
-                    setProjectFormState({
-                      ...projectFormState,
-                      architectureDetails: e.target.value,
-                    })
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all resize-none"
-                />
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    Architecture Details
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="System design, cloud infrastructure, DB schemas..."
+                    value={projectFormState.architectureDetails}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        architectureDetails: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all resize-none"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
-                  Challenges Solved
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Key technical hurdles, performance optimizations, trade-offs..."
-                  value={projectFormState.challengesSolved}
-                  onChange={(e) =>
-                    setProjectFormState({
-                      ...projectFormState,
-                      challengesSolved: e.target.value,
-                    })
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all resize-none"
-                />
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    Challenges Solved
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Technical hurdles, performance optimizations..."
+                    value={projectFormState.challengesSolved}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        challengesSolved: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all resize-none"
+                  />
+                </div>
               </div>
 
               <div>
@@ -2990,7 +3267,7 @@ export default function DashboardPage() {
                         screenshot1: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
                   />
                   <input
                     type="url"
@@ -3002,7 +3279,7 @@ export default function DashboardPage() {
                         screenshot2: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
                   />
                 </div>
               </div>
@@ -3023,7 +3300,7 @@ export default function DashboardPage() {
                         platform: e.target.value,
                       })
                     }
-                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-semibold transition-all"
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-semibold transition-all"
                   />
                 </div>
 
@@ -3048,82 +3325,40 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 pt-1">
-                <div>
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                    Views
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={projectFormState.views}
-                    onChange={(e) =>
-                      setProjectFormState({
-                        ...projectFormState,
-                        views: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
-                  />
-                </div>
+              <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
+                {projectModalType === "add" ? (
+                  <button
+                    type="button"
+                    onClick={() => setAddProjectStep("github_select")}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-zinc-600 hover:text-zinc-900 border border-zinc-200 transition-all cursor-pointer"
+                  >
+                    ← Select GitHub Repo
+                  </button>
+                ) : (
+                  <span />
+                )}
 
-                <div>
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                    Likes
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={projectFormState.likes}
-                    onChange={(e) =>
-                      setProjectFormState({
-                        ...projectFormState,
-                        likes: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
-                  />
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProjectModalType(null);
+                      setSelectedProject(null);
+                      setEditingProjectId(null);
+                    }}
+                    className="px-4 py-2.5 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 bg-black text-white hover:bg-zinc-800 rounded-xl text-[12px] font-bold shadow-md cursor-pointer transition-all active:scale-95"
+                  >
+                    {projectModalType === "add"
+                      ? "Create Project"
+                      : "Save Changes"}
+                  </button>
                 </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                    Stars
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={projectFormState.stars}
-                    onChange={(e) =>
-                      setProjectFormState({
-                        ...projectFormState,
-                        stars: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-zinc-100 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProjectModalType(null);
-                    setSelectedProject(null);
-                    setEditingProjectId(null);
-                  }}
-                  className="px-4 py-2.5 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-black text-white hover:bg-zinc-800 rounded-xl text-[12px] font-bold shadow-md cursor-pointer transition-all active:scale-95"
-                >
-                  {projectModalType === "add"
-                    ? "Create Project"
-                    : "Save Changes"}
-                </button>
               </div>
             </form>
           </div>
