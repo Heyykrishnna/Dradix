@@ -63,6 +63,22 @@ import {
   MessageScrollerButton,
 } from "@/components/ui/message-scroller";
 
+interface BackendProject {
+  id?: number | string;
+  title?: string;
+  name?: string;
+  description?: string;
+  tech_stack?: string[];
+  demo_url?: string;
+  github_url?: string;
+  status?: string;
+  platform?: string;
+  views?: number;
+  likes?: number;
+  stars?: number;
+  created_at?: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -508,10 +524,16 @@ interface DashboardResponseData {
   }>;
   projects?: Array<{
     id: number | string;
-    name: string;
+    name?: string;
+    title?: string;
     description?: string;
     tech_stack?: string[];
-    created_at: string | Date;
+    platform?: string;
+    status?: string;
+    views?: number;
+    likes?: number;
+    stars?: number;
+    created_at?: string | Date;
   }>;
   achievements?: Array<{
     id: number;
@@ -591,80 +613,160 @@ export default function DashboardPage() {
     });
   };
 
-  const handleSaveProject = (e: React.FormEvent) => {
+  const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!projectFormState.name.trim()) return;
 
-    const statusColors: Record<string, string> = {
+    const statusColorsMap: Record<string, string> = {
       Live: "#005c58",
       "In Progress": "#f59e0b",
       Archived: "#ef4444",
     };
 
     if (projectModalType === "add") {
-      const randomArray = new Uint32Array(1);
-      window.crypto.getRandomValues(randomArray);
-      const secureIdNum = 100000000 + (randomArray[0] % 900000000);
-      const newProj = {
-        id: `#${secureIdNum}`,
-        name: projectFormState.name,
-        creator: "Yatharth K.",
-        stack: projectFormState.stack || "HTML, CSS",
-        platform: projectFormState.platform || "GitHub",
-        date: new Date().toLocaleDateString("en-US", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }),
-        status: projectFormState.status,
-        statusColor: statusColors[projectFormState.status] || "#005c58",
-        views: Number(projectFormState.views) || 0,
-        likes: Number(projectFormState.likes) || 0,
-        stars: Number(projectFormState.stars) || 0,
-      };
-      setProjectsList([newProj, ...projectsList]);
+      try {
+        const res = await apiFetch<{ data: BackendProject }>("/projects", {
+          method: "POST",
+          body: JSON.stringify({
+            title: projectFormState.name,
+            stack: projectFormState.stack,
+            platform: projectFormState.platform || "GitHub",
+            status: projectFormState.status,
+            views: Number(projectFormState.views) || 0,
+            likes: Number(projectFormState.likes) || 0,
+            stars: Number(projectFormState.stars) || 0,
+          }),
+        });
+
+        const pData = res.data;
+        const newProj: Project = {
+          id: pData.id ? pData.id.toString() : `#${Date.now()}`,
+          name: pData.title || projectFormState.name,
+          creator: "Developer",
+          stack: Array.isArray(pData.tech_stack)
+            ? pData.tech_stack.join(", ")
+            : projectFormState.stack || "",
+          platform: pData.platform || projectFormState.platform || "GitHub",
+          date: pData.created_at
+            ? new Date(pData.created_at).toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
+            : new Date().toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }),
+          status:
+            (pData.status as "Live" | "In Progress" | "Archived") ||
+            projectFormState.status ||
+            "Live",
+          statusColor:
+            statusColorsMap[pData.status || projectFormState.status] ||
+            "#005c58",
+          views: Number(pData.views) || 0,
+          likes: Number(pData.likes) || 0,
+          stars: Number(pData.stars) || 0,
+        };
+
+        setProjectsList([newProj, ...projectsList]);
+        setDevStats((prev) => ({
+          ...prev,
+          projects: prev.projects + 1,
+          liveProjects:
+            (pData.status || projectFormState.status) === "Live"
+              ? prev.liveProjects + 1
+              : prev.liveProjects,
+        }));
+      } catch (err: unknown) {
+        console.error("Failed to create project:", err);
+      }
     }
     setProjectModalType(null);
     setSelectedProject(null);
   };
 
-  const handleInlineSave = () => {
-    if (!projectFormState.name.trim()) return;
+  const handleInlineSave = async () => {
+    if (!projectFormState.name.trim() || !editingProjectId) return;
 
-    const statusColors: Record<string, string> = {
+    const statusColorsMap: Record<string, string> = {
       Live: "#005c58",
       "In Progress": "#f59e0b",
       Archived: "#ef4444",
     };
 
-    setProjectsList(
-      projectsList.map((p) =>
-        p.id === editingProjectId
-          ? {
-              ...p,
-              name: projectFormState.name,
-              stack: projectFormState.stack,
-              platform: projectFormState.platform,
-              status: projectFormState.status,
-              statusColor:
-                statusColors[projectFormState.status] || p.statusColor,
-              views: Number(projectFormState.views),
-              likes: Number(projectFormState.likes),
-              stars: Number(projectFormState.stars),
-            }
-          : p,
-      ),
-    );
-    setEditingProjectId(null);
+    try {
+      const res = await apiFetch<{ data: BackendProject }>(
+        `/projects/${editingProjectId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            title: projectFormState.name,
+            stack: projectFormState.stack,
+            platform: projectFormState.platform,
+            status: projectFormState.status,
+            views: Number(projectFormState.views),
+            likes: Number(projectFormState.likes),
+            stars: Number(projectFormState.stars),
+          }),
+        },
+      );
+
+      const pData = res.data;
+      setProjectsList(
+        projectsList.map((p) =>
+          p.id === editingProjectId
+            ? {
+                ...p,
+                name: pData?.title || projectFormState.name,
+                stack: Array.isArray(pData?.tech_stack)
+                  ? pData.tech_stack.join(", ")
+                  : projectFormState.stack,
+                platform: pData?.platform || projectFormState.platform,
+                status: pData?.status || projectFormState.status,
+                statusColor:
+                  statusColorsMap[pData?.status || projectFormState.status] ||
+                  p.statusColor,
+                views: Number(pData?.views ?? projectFormState.views),
+                likes: Number(pData?.likes ?? projectFormState.likes),
+                stars: Number(pData?.stars ?? projectFormState.stars),
+              }
+            : p,
+        ),
+      );
+    } catch (err: unknown) {
+      console.error("Failed to update project:", err);
+    } finally {
+      setEditingProjectId(null);
+    }
   };
 
   const handleCancelEdit = () => {
     setEditingProjectId(null);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (selectedProject) {
-      setProjectsList(projectsList.filter((p) => p.id !== selectedProject.id));
+      try {
+        await apiFetch(`/projects/${selectedProject.id}`, {
+          method: "DELETE",
+        });
+
+        setProjectsList(
+          projectsList.filter((p) => p.id !== selectedProject.id),
+        );
+        setDevStats((prev) => ({
+          ...prev,
+          projects: Math.max(0, prev.projects - 1),
+          liveProjects:
+            selectedProject.status === "Live"
+              ? Math.max(0, prev.liveProjects - 1)
+              : prev.liveProjects,
+        }));
+      } catch (err: unknown) {
+        console.error("Failed to delete project:", err);
+      }
     }
     setProjectModalType(null);
     setSelectedProject(null);
@@ -816,25 +918,35 @@ export default function DashboardPage() {
           }
 
           if (data.projects && data.projects.length > 0) {
+            const statusColorsMap: Record<string, string> = {
+              Live: "#005c58",
+              "In Progress": "#f59e0b",
+              Archived: "#ef4444",
+            };
             const mappedProjects = data.projects.map((proj) => ({
               id: proj.id.toString(),
-              name: proj.name,
+              name: proj.name || proj.title || "",
               creator:
                 `${data.profile?.first_name || ""} ${data.profile?.last_name || ""}`.trim() ||
                 data.profile?.username ||
                 "",
-              stack: proj.tech_stack ? proj.tech_stack.join(", ") : "",
-              platform: "GitHub",
-              date: new Date(proj.created_at).toLocaleDateString("en-US", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              }),
-              status: "Live",
-              statusColor: "#005c58",
-              views: 120,
-              likes: 15,
-              stars: 5,
+              stack: Array.isArray(proj.tech_stack)
+                ? proj.tech_stack.join(", ")
+                : proj.tech_stack || "",
+              platform: proj.platform || "GitHub",
+              date: proj.created_at
+                ? new Date(proj.created_at).toLocaleDateString("en-US", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "",
+              status:
+                (proj.status as "Live" | "In Progress" | "Archived") || "Live",
+              statusColor: statusColorsMap[proj.status || "Live"] || "#005c58",
+              views: Number(proj.views) || 0,
+              likes: Number(proj.likes) || 0,
+              stars: Number(proj.stars) || 0,
             }));
             setProjectsList(mappedProjects);
           }
