@@ -71,6 +71,9 @@ interface BackendProject {
   tech_stack?: string[];
   demo_url?: string;
   github_url?: string;
+  architecture_details?: string;
+  challenges_solved?: string;
+  screenshots?: string[];
   status?: string;
   platform?: string;
   views?: number;
@@ -91,6 +94,12 @@ export interface Project {
   views: number;
   likes: number;
   stars: number;
+  description?: string;
+  demoUrl?: string;
+  githubUrl?: string;
+  architectureDetails?: string;
+  challengesSolved?: string;
+  screenshots?: string[];
 }
 
 export interface MonthlyStats {
@@ -528,6 +537,11 @@ interface DashboardResponseData {
     title?: string;
     description?: string;
     tech_stack?: string[];
+    demo_url?: string;
+    github_url?: string;
+    architecture_details?: string;
+    challenges_solved?: string;
+    screenshots?: string[];
     platform?: string;
     status?: string;
     views?: number;
@@ -580,37 +594,71 @@ export default function DashboardPage() {
   const [projectFormState, setProjectFormState] = useState({
     name: "",
     stack: "",
-    platform: "",
+    platform: "GitHub",
     status: "Live",
     views: 0,
     likes: 0,
     stars: 0,
+    description: "",
+    demoUrl: "",
+    githubUrl: "",
+    architectureDetails: "",
+    challengesSolved: "",
+    screenshot1: "",
+    screenshot2: "",
   });
+
+  useEffect(() => {
+    if (projectModalType) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [projectModalType]);
 
   const handleOpenAddModal = () => {
     setProjectFormState({
       name: "",
       stack: "",
-      platform: "",
+      platform: "GitHub",
       status: "Live",
       views: 0,
       likes: 0,
       stars: 0,
+      description: "",
+      demoUrl: "",
+      githubUrl: "",
+      architectureDetails: "",
+      challengesSolved: "",
+      screenshot1: "",
+      screenshot2: "",
     });
     setProjectModalType("add");
   };
 
   const handleOpenEditModal = (proj: Project) => {
     setEditingProjectId(proj.id);
+    setSelectedProject(proj);
     setProjectFormState({
       name: proj.name,
       stack: proj.stack,
-      platform: proj.platform,
-      status: proj.status,
-      views: proj.views,
-      likes: proj.likes,
-      stars: proj.stars,
+      platform: proj.platform || "GitHub",
+      status: proj.status || "Live",
+      views: proj.views || 0,
+      likes: proj.likes || 0,
+      stars: proj.stars || 0,
+      description: proj.description || "",
+      demoUrl: proj.demoUrl || "",
+      githubUrl: proj.githubUrl || "",
+      architectureDetails: proj.architectureDetails || "",
+      challengesSolved: proj.challengesSolved || "",
+      screenshot1: proj.screenshots?.[0] || "",
+      screenshot2: proj.screenshots?.[1] || "",
     });
+    setProjectModalType("edit");
   };
 
   const handleSaveProject = async (e: React.FormEvent) => {
@@ -622,6 +670,14 @@ export default function DashboardPage() {
       "In Progress": "#f59e0b",
       Archived: "#ef4444",
     };
+
+    const screenshots = [
+      projectFormState.screenshot1,
+      projectFormState.screenshot2,
+    ]
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 2);
 
     if (projectModalType === "add") {
       try {
@@ -635,6 +691,12 @@ export default function DashboardPage() {
             views: Number(projectFormState.views) || 0,
             likes: Number(projectFormState.likes) || 0,
             stars: Number(projectFormState.stars) || 0,
+            description: projectFormState.description,
+            demoUrl: projectFormState.demoUrl,
+            githubUrl: projectFormState.githubUrl,
+            architectureDetails: projectFormState.architectureDetails,
+            challengesSolved: projectFormState.challengesSolved,
+            screenshots,
           }),
         });
 
@@ -668,6 +730,14 @@ export default function DashboardPage() {
           views: Number(pData.views) || 0,
           likes: Number(pData.likes) || 0,
           stars: Number(pData.stars) || 0,
+          description: pData.description || projectFormState.description,
+          demoUrl: pData.demo_url || projectFormState.demoUrl,
+          githubUrl: pData.github_url || projectFormState.githubUrl,
+          architectureDetails:
+            pData.architecture_details || projectFormState.architectureDetails,
+          challengesSolved:
+            pData.challenges_solved || projectFormState.challengesSolved,
+          screenshots: pData.screenshots || screenshots,
         };
 
         setProjectsList([newProj, ...projectsList]);
@@ -682,8 +752,69 @@ export default function DashboardPage() {
       } catch (err: unknown) {
         console.error("Failed to create project:", err);
       }
+    } else if (projectModalType === "edit" && editingProjectId) {
+      try {
+        const res = await apiFetch<{ data: BackendProject }>(
+          `/projects/${editingProjectId}`,
+          {
+            method: "PUT",
+            body: JSON.stringify({
+              title: projectFormState.name,
+              stack: projectFormState.stack,
+              platform: projectFormState.platform,
+              status: projectFormState.status,
+              views: Number(projectFormState.views),
+              likes: Number(projectFormState.likes),
+              stars: Number(projectFormState.stars),
+              description: projectFormState.description,
+              demoUrl: projectFormState.demoUrl,
+              githubUrl: projectFormState.githubUrl,
+              architectureDetails: projectFormState.architectureDetails,
+              challengesSolved: projectFormState.challengesSolved,
+              screenshots,
+            }),
+          },
+        );
+
+        const pData = res.data;
+        setProjectsList(
+          projectsList.map((p) =>
+            p.id === editingProjectId
+              ? {
+                  ...p,
+                  name: pData?.title || projectFormState.name,
+                  stack: Array.isArray(pData?.tech_stack)
+                    ? pData.tech_stack.join(", ")
+                    : projectFormState.stack,
+                  platform: pData?.platform || projectFormState.platform,
+                  status: pData?.status || projectFormState.status,
+                  statusColor:
+                    statusColorsMap[pData?.status || projectFormState.status] ||
+                    p.statusColor,
+                  views: Number(pData?.views ?? projectFormState.views),
+                  likes: Number(pData?.likes ?? projectFormState.likes),
+                  stars: Number(pData?.stars ?? projectFormState.stars),
+                  description:
+                    pData?.description ?? projectFormState.description,
+                  demoUrl: pData?.demo_url ?? projectFormState.demoUrl,
+                  githubUrl: pData?.github_url ?? projectFormState.githubUrl,
+                  architectureDetails:
+                    pData?.architecture_details ??
+                    projectFormState.architectureDetails,
+                  challengesSolved:
+                    pData?.challenges_solved ??
+                    projectFormState.challengesSolved,
+                  screenshots: pData?.screenshots ?? screenshots,
+                }
+              : p,
+          ),
+        );
+      } catch (err: unknown) {
+        console.error("Failed to update project:", err);
+      }
     }
     setProjectModalType(null);
+    setEditingProjectId(null);
     setSelectedProject(null);
   };
 
@@ -947,6 +1078,12 @@ export default function DashboardPage() {
               views: Number(proj.views) || 0,
               likes: Number(proj.likes) || 0,
               stars: Number(proj.stars) || 0,
+              description: proj.description || "",
+              demoUrl: proj.demo_url || "",
+              githubUrl: proj.github_url || "",
+              architectureDetails: proj.architecture_details || "",
+              challengesSolved: proj.challenges_solved || "",
+              screenshots: proj.screenshots || [],
             }));
             setProjectsList(mappedProjects);
           }
@@ -2674,21 +2811,31 @@ export default function DashboardPage() {
         </footer>
       </div>
 
-      {/* Add Project Modal */}
-      {projectModalType === "add" && (
+      {/* Add / Edit Project Modal */}
+      {(projectModalType === "add" || projectModalType === "edit") && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out text-left animate-fade-in">
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-scale-in text-left max-h-[90vh]">
-            <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
-              <h3 className="text-[16px] font-extrabold text-black tracking-tight font-heading">
-                Add New Project
-              </h3>
+          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in text-left max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
+              <div>
+                <h3 className="text-[16px] font-extrabold text-black tracking-tight font-heading">
+                  {projectModalType === "add"
+                    ? "Add New Project"
+                    : "Edit Project"}
+                </h3>
+                <p className="text-[11px] text-zinc-400 font-medium">
+                  {projectModalType === "add"
+                    ? "Fill in all project details and screenshots below."
+                    : "Update project metadata, links, and system architecture."}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => {
                   setProjectModalType(null);
                   setSelectedProject(null);
+                  setEditingProjectId(null);
                 }}
-                className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-50 rounded-xl transition-all duration-300 ease-in-out hover:scale-110 active:scale-90 cursor-pointer"
+                className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-100 rounded-xl transition-all duration-300 ease-in-out hover:scale-110 active:scale-90 cursor-pointer"
               >
                 <Cross2Icon className="w-5 h-5" />
               </button>
@@ -2700,12 +2847,12 @@ export default function DashboardPage() {
             >
               <div>
                 <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
-                  Project Name
+                  Project Name *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. dradix"
+                  placeholder="e.g. Dradix Portfolio"
                   value={projectFormState.name}
                   onChange={(e) =>
                     setProjectFormState({
@@ -2719,12 +2866,12 @@ export default function DashboardPage() {
 
               <div>
                 <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
-                  Tech Stack
+                  Tech Stack *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Next.js, TS, Tailwind"
+                  placeholder="e.g. Next.js, TypeScript, PostgreSQL, Tailwind"
                   value={projectFormState.stack}
                   onChange={(e) =>
                     setProjectFormState({
@@ -2736,7 +2883,131 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Comprehensive project overview and features..."
+                  value={projectFormState.description}
+                  onChange={(e) =>
+                    setProjectFormState({
+                      ...projectFormState,
+                      description: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    Demo URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://demo.app"
+                    value={projectFormState.demoUrl}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        demoUrl: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                    GitHub URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://github.com/user/project"
+                    value={projectFormState.githubUrl}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        githubUrl: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  Architecture Details
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="System design, microservices, cloud infrastructure, DB schemas..."
+                  value={projectFormState.architectureDetails}
+                  onChange={(e) =>
+                    setProjectFormState({
+                      ...projectFormState,
+                      architectureDetails: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  Challenges Solved
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Key technical hurdles, performance optimizations, trade-offs..."
+                  value={projectFormState.challengesSolved}
+                  onChange={(e) =>
+                    setProjectFormState({
+                      ...projectFormState,
+                      challengesSolved: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-normal transition-all resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                  Screenshots (Max 2 URLs)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input
+                    type="url"
+                    placeholder="Screenshot 1 URL"
+                    value={projectFormState.screenshot1}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        screenshot1: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                  />
+                  <input
+                    type="url"
+                    placeholder="Screenshot 2 URL"
+                    value={projectFormState.screenshot2}
+                    onChange={(e) =>
+                      setProjectFormState({
+                        ...projectFormState,
+                        screenshot2: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[11px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-1">
                 <div>
                   <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                     Platform
@@ -2777,7 +3048,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 pt-2">
+              <div className="grid grid-cols-3 gap-3 pt-1">
                 <div>
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
                     Views
@@ -2839,6 +3110,7 @@ export default function DashboardPage() {
                   onClick={() => {
                     setProjectModalType(null);
                     setSelectedProject(null);
+                    setEditingProjectId(null);
                   }}
                   className="px-4 py-2.5 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
                 >
@@ -2848,7 +3120,9 @@ export default function DashboardPage() {
                   type="submit"
                   className="px-5 py-2.5 bg-black text-white hover:bg-zinc-800 rounded-xl text-[12px] font-bold shadow-md cursor-pointer transition-all active:scale-95"
                 >
-                  Create Project
+                  {projectModalType === "add"
+                    ? "Create Project"
+                    : "Save Changes"}
                 </button>
               </div>
             </form>

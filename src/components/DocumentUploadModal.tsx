@@ -174,7 +174,9 @@ export default function DocumentUploadModal({
     const fileArray = Array.from(files);
     fileArray.forEach((file) => {
       const newItem: UploadedFileItem = {
-        id: Math.random().toString(36).substring(2, 9),
+        id: typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         name: file.name,
         size: file.size,
         uploadedSize: 0,
@@ -238,6 +240,14 @@ export default function DocumentUploadModal({
         </div>
 
         <div
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
