@@ -54,6 +54,39 @@ const ErrorQuestionTooltip = ({ message }: { message: string }) => {
   );
 };
 
+const DevScoreTooltip = () => {
+  return (
+    <div className="relative group inline-flex items-center z-40">
+      <span
+        className="w-4 h-4 rounded-full bg-red-500/10 text-red-600 border border-red-500/30 flex items-center justify-center text-[10px] font-black cursor-pointer hover:bg-red-600 hover:text-white transition-all shadow-xs"
+      >
+        ?
+      </span>
+      <div className="absolute left-0 top-full mt-2 hidden group-hover:flex flex-col w-56 p-3 bg-zinc-900 text-white text-[11px] rounded-2xl shadow-2xl border border-zinc-800 z-50 pointer-events-none">
+        <div className="absolute left-2 bottom-full w-0 h-0 border-x-4 border-x-transparent border-b-4 border-b-zinc-900" />
+        <span className="font-extrabold text-white mb-2 text-center text-xs">How Dev Score is Calculated</span>
+        <div className="space-y-1.5">
+          {([
+            { label: "GitHub Commits", weight: "30%" },
+            { label: "Problems Solved", weight: "25%" },
+            { label: "Coding Streak", weight: "20%" },
+            { label: "Platform Ratings", weight: "15%" },
+            { label: "Projects & Links", weight: "10%" },
+          ] as { label: string; weight: string }[]).map(({ label, weight }) => (
+            <div key={label} className="flex items-center justify-between gap-2">
+              <span className="text-zinc-400 text-[10px]">{label}</span>
+              <span className="text-emerald-400 font-bold text-[10px]">{weight}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 pt-2 border-t border-zinc-700/60 text-[10px] text-zinc-400 text-center">
+          Score refreshes every 30 min
+        </div>
+      </div>
+    </div>
+  );
+};
+
 import {
   MessageScrollerProvider,
   MessageScroller,
@@ -1529,9 +1562,12 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white rounded-xl p-3">
-              <p className="text-[10px] text-zinc-400 font-semibold uppercase">
-                Dev Score
-              </p>
+              <div className="flex items-center justify-between gap-1">
+                <p className="text-[10px] text-zinc-400 font-semibold uppercase">
+                  Dev Score
+                </p>
+                <DevScoreTooltip />
+              </div>
               <p className="text-[18px] font-black text-black mt-1">
                 {devStats.score}
               </p>
