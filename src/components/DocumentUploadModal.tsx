@@ -174,9 +174,7 @@ export default function DocumentUploadModal({
     const fileArray = Array.from(files);
     fileArray.forEach((file) => {
       const newItem: UploadedFileItem = {
-        id: typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        id: crypto.randomUUID(),
         name: file.name,
         size: file.size,
         uploadedSize: 0,

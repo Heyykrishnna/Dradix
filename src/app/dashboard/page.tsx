@@ -586,7 +586,11 @@ interface DashboardResponseData {
   }>;
 }
 
-const REPO_FILTER_OPTIONS: Array<"all" | "public" | "private"> = ["all", "public", "private"];
+const REPO_FILTER_OPTIONS: Array<"all" | "public" | "private"> = [
+  "all",
+  "public",
+  "private",
+];
 
 function RepoVisibilitySlider({
   filter,
@@ -598,7 +602,10 @@ function RepoVisibilitySlider({
   repos: GitHubRepoItem[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [sliderStyle, setSliderStyle] = useState<{ left: number; width: number }>({
+  const [sliderStyle, setSliderStyle] = useState<{
+    left: number;
+    width: number;
+  }>({
     left: 0,
     width: 0,
   });
@@ -606,7 +613,8 @@ function RepoVisibilitySlider({
   const updatePosition = useCallback(() => {
     if (!containerRef.current) return;
     const index = REPO_FILTER_OPTIONS.indexOf(filter);
-    const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>("button");
+    const buttons =
+      containerRef.current.querySelectorAll<HTMLButtonElement>("button");
     const targetButton = buttons[index];
 
     if (targetButton) {
@@ -647,8 +655,8 @@ function RepoVisibilitySlider({
           opt === "all"
             ? repos.length
             : opt === "public"
-            ? repos.filter((r) => !r.private).length
-            : repos.filter((r) => r.private).length;
+              ? repos.filter((r) => !r.private).length
+              : repos.filter((r) => r.private).length;
 
         return (
           <button
@@ -3191,10 +3199,17 @@ export default function DashboardPage() {
                     .map((repo) => {
                       const isSelected = selectedRepoName === repo.name;
                       return (
-                        <div
+                        <button
                           key={repo.id}
+                          type="button"
                           onClick={() => handleSelectGitHubRepo(repo)}
-                          className={`p-4 rounded-2xl border text-left cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2 ${
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              handleSelectGitHubRepo(repo);
+                            }
+                          }}
+                          className={`w-full p-4 rounded-2xl border text-left cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2 ${
                             isSelected
                               ? "bg-zinc-900 text-white border-zinc-900 shadow-md"
                               : "bg-zinc-50/70 border-zinc-200 hover:border-zinc-400 hover:bg-white hover:shadow-xs"
@@ -3258,7 +3273,7 @@ export default function DashboardPage() {
                               Select & Auto-fill →
                             </span>
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                 </div>
