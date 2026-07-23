@@ -1,6 +1,10 @@
 "use client";
 
-import { ArrowRightIcon, MagicWandIcon, LightningBoltIcon } from "@radix-ui/react-icons";
+import {
+  ArrowRightIcon,
+  MagicWandIcon,
+  LightningBoltIcon,
+} from "@radix-ui/react-icons";
 
 const focusAreas = [
   { label: "React", color: "#3b82f6" },
@@ -20,10 +24,10 @@ export default function AIInsightsCard() {
     <div className="flex flex-col gap-4 h-full">
       <div className="relative overflow-hidden bg-[#161616] rounded-2xl p-5 flex-1">
         {/* Noise overlay */}
-        <div 
+        <div
           className="absolute inset-0 pointer-events-none opacity-[0.035] mix-blend-overlay"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           }}
         />
         <div className="flex items-center gap-2 mb-5">
@@ -31,7 +35,9 @@ export default function AIInsightsCard() {
             <MagicWandIcon className="w-4 h-4 text-[#00c9a7]" />
           </div>
           <p className="text-[13px] font-bold text-white">AI Insights</p>
-          <span className="ml-auto text-[9px] font-semibold text-[#00c9a7] bg-[#00c9a7]/10 rounded-md px-2 py-0.5">LIVE</span>
+          <span className="ml-auto text-[9px] font-semibold text-[#00c9a7] bg-[#00c9a7]/10 rounded-md px-2 py-0.5">
+            LIVE
+          </span>
         </div>
 
         <div className="mb-5 p-4 bg-[#1c1c1c] rounded-xl">
@@ -44,7 +50,9 @@ export default function AIInsightsCard() {
         </div>
 
         <div className="mb-5">
-          <p className="text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-2.5">Focus On</p>
+          <p className="text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-2.5">
+            Focus On
+          </p>
           <div className="flex flex-wrap gap-2">
             {focusAreas.map((f) => (
               <span
@@ -60,8 +68,13 @@ export default function AIInsightsCard() {
         </div>
 
         <div className="mb-5 p-3.5 bg-[#1c1c1c] rounded-xl">
-          <p className="text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-1">AI Recommendation</p>
-          <p className="text-[13px] text-[#ccc]">Build one backend project this week to strengthen your full-stack presence.</p>
+          <p className="text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-1">
+            AI Recommendation
+          </p>
+          <p className="text-[13px] text-[#ccc]">
+            Build one backend project this week to strengthen your full-stack
+            presence.
+          </p>
         </div>
 
         <div className="flex gap-2">
@@ -77,17 +90,22 @@ export default function AIInsightsCard() {
 
       <div className="relative overflow-hidden bg-[#161616] rounded-2xl p-5">
         {/* Noise overlay */}
-        <div 
+        <div
           className="absolute inset-0 pointer-events-none opacity-[0.035] mix-blend-overlay"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           }}
         />
-        <p className="text-[11px] font-semibold text-[#555] uppercase tracking-wider mb-3">Recent Activity</p>
+        <p className="text-[11px] font-semibold text-[#555] uppercase tracking-wider mb-3">
+          Recent Activity
+        </p>
         <div className="space-y-3">
           {recentActivity.map((a, i) => (
             <div key={i} className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: a.color }} />
+              <div
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: a.color }}
+              />
               <p className="text-[12px] text-[#aaa] flex-1">{a.text}</p>
               <p className="text-[10px] text-[#444] shrink-0">{a.time}</p>
             </div>

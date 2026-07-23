@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import SegmentedSlider from "./SegmentedSlider";
 
 const dailyData = [
@@ -54,17 +62,21 @@ export default function WeeklyActivity() {
     activeToggle === "Daily"
       ? dailyData
       : activeToggle === "Weekly"
-      ? weeklyData
-      : activeToggle === "Monthly"
-      ? monthlyData
-      : yearlyData;
+        ? weeklyData
+        : activeToggle === "Monthly"
+          ? monthlyData
+          : yearlyData;
 
   return (
     <div className="bg-[#161616] rounded-2xl p-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <p className="text-[11px] font-semibold text-[#555] uppercase tracking-wider">Activity</p>
-          <p className="text-[17px] font-black text-white mt-0.5">Coding Overview</p>
+          <p className="text-[11px] font-semibold text-[#555] uppercase tracking-wider">
+            Activity
+          </p>
+          <p className="text-[17px] font-black text-white mt-0.5">
+            Coding Overview
+          </p>
         </div>
         <SegmentedSlider
           options={toggles}
@@ -76,7 +88,10 @@ export default function WeeklyActivity() {
 
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+          <AreaChart
+            data={data}
+            margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
+          >
             <defs>
               <linearGradient id="hoursGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#00c9a7" stopOpacity={0.25} />
@@ -91,16 +106,58 @@ export default function WeeklyActivity() {
                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" vertical={false} />
-            <XAxis dataKey="day" tick={{ fill: "#444", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "#444", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#1e1e1e"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="day"
+              tick={{ fill: "#444", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fill: "#444", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
             <Tooltip
-              contentStyle={{ backgroundColor: "#1c1c1c", border: "none", borderRadius: "12px", fontSize: 12 }}
+              contentStyle={{
+                backgroundColor: "#1c1c1c",
+                border: "none",
+                borderRadius: "12px",
+                fontSize: 12,
+              }}
               labelStyle={{ color: "#888" }}
             />
-            <Area type="monotone" dataKey="hours" stroke="#00c9a7" strokeWidth={2.5} fill="url(#hoursGrad)" name="Hours" dot={false} />
-            <Area type="monotone" dataKey="commits" stroke="#3b82f6" strokeWidth={2} fill="url(#commitsGrad)" name="Commits" dot={false} />
-            <Area type="monotone" dataKey="problems" stroke="#f59e0b" strokeWidth={2} fill="url(#problemsGrad)" name="Problems" dot={false} />
+            <Area
+              type="monotone"
+              dataKey="hours"
+              stroke="#00c9a7"
+              strokeWidth={2.5}
+              fill="url(#hoursGrad)"
+              name="Hours"
+              dot={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="commits"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              fill="url(#commitsGrad)"
+              name="Commits"
+              dot={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="problems"
+              stroke="#f59e0b"
+              strokeWidth={2}
+              fill="url(#problemsGrad)"
+              name="Problems"
+              dot={false}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -108,8 +165,19 @@ export default function WeeklyActivity() {
       <div className="mt-4 pt-4">
         <div className="grid grid-cols-4 gap-3">
           {summary.map((s) => (
-            <div key={s.label} className="bg-[#1c1c1c] rounded-xl p-3 text-center">
-              <p className="text-xl font-black text-white">{s.value}<span className="text-[11px] font-medium ml-0.5" style={{ color: s.color }}>{s.unit}</span></p>
+            <div
+              key={s.label}
+              className="bg-[#1c1c1c] rounded-xl p-3 text-center"
+            >
+              <p className="text-xl font-black text-white">
+                {s.value}
+                <span
+                  className="text-[11px] font-medium ml-0.5"
+                  style={{ color: s.color }}
+                >
+                  {s.unit}
+                </span>
+              </p>
               <p className="text-[10px] text-[#444] mt-0.5">{s.label}</p>
             </div>
           ))}

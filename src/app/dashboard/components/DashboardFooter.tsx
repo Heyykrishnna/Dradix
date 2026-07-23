@@ -16,10 +16,18 @@ export default function DashboardFooter() {
           <span>Storage: 2.4 MB / 100 MB</span>
         </div>
         <div className="flex items-center gap-4">
-          <a href="#" className="hover:text-zinc-400 transition-colors">Privacy</a>
-          <a href="#" className="hover:text-zinc-400 transition-colors">Support</a>
-          <a href="#" className="hover:text-zinc-400 transition-colors">Feedback</a>
-          <a href="#" className="hover:text-zinc-400 transition-colors">Docs</a>
+          <a href="#" className="hover:text-zinc-400 transition-colors">
+            Privacy
+          </a>
+          <a href="#" className="hover:text-zinc-400 transition-colors">
+            Support
+          </a>
+          <a href="#" className="hover:text-zinc-400 transition-colors">
+            Feedback
+          </a>
+          <a href="#" className="hover:text-zinc-400 transition-colors">
+            Docs
+          </a>
           <div className="flex items-center gap-1.5 text-zinc-700">
             <UpdateIcon className="w-3 h-3" /> Auto-syncing
           </div>

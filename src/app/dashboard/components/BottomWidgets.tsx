@@ -25,14 +25,16 @@ const upcoming = [
 
 export default function BottomWidgets() {
   const [query, setQuery] = useState("");
-  const done = todayGoals.filter(g => g.done).length;
+  const done = todayGoals.filter((g) => g.done).length;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="bg-[#161616] border border-zinc-800/60 rounded-2xl p-5 hover:border-zinc-700/80 transition-all">
         <div className="flex items-center gap-2 mb-4">
           <MagicWandIcon className="w-4 h-4 text-zinc-400" />
-          <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">AI Career Coach</p>
+          <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+            AI Career Coach
+          </p>
         </div>
 
         <div className="space-y-2 mb-4">
@@ -51,7 +53,7 @@ export default function BottomWidgets() {
           <input
             type="text"
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Ask anything..."
             className="flex-1 bg-transparent text-[12px] text-zinc-300 placeholder:text-zinc-600 outline-none"
           />
@@ -68,10 +70,18 @@ export default function BottomWidgets() {
         <div className="space-y-3 mb-4">
           {todayGoals.map((g) => (
             <div key={g.label} className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${g.done ? "bg-zinc-400 border-zinc-400" : "border-zinc-700"}`}>
-                {g.done && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
+              <div
+                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${g.done ? "bg-zinc-400 border-zinc-400" : "border-zinc-700"}`}
+              >
+                {g.done && (
+                  <div className="w-1.5 h-1.5 bg-black rounded-full" />
+                )}
               </div>
-              <p className={`text-[13px] ${g.done ? "line-through text-zinc-600" : "text-zinc-300"}`}>{g.label}</p>
+              <p
+                className={`text-[13px] ${g.done ? "line-through text-zinc-600" : "text-zinc-300"}`}
+              >
+                {g.label}
+              </p>
             </div>
           ))}
         </div>
@@ -90,13 +100,22 @@ export default function BottomWidgets() {
       </div>
 
       <div className="bg-[#161616] border border-zinc-800/60 rounded-2xl p-5 hover:border-zinc-700/80 transition-all">
-        <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-4">Upcoming Events</p>
+        <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-4">
+          Upcoming Events
+        </p>
         <div className="space-y-3">
           {upcoming.map((e) => (
-            <div key={e.title} className="flex items-start gap-3 p-3 bg-zinc-900/60 border border-zinc-800/60 rounded-xl hover:border-zinc-700 transition-all">
-              <div className={`w-2 h-2 rounded-full mt-1 shrink-0 ${e.type === "contest" ? "bg-zinc-400" : e.type === "hackathon" ? "bg-zinc-500" : "bg-zinc-600"}`} />
+            <div
+              key={e.title}
+              className="flex items-start gap-3 p-3 bg-zinc-900/60 border border-zinc-800/60 rounded-xl hover:border-zinc-700 transition-all"
+            >
+              <div
+                className={`w-2 h-2 rounded-full mt-1 shrink-0 ${e.type === "contest" ? "bg-zinc-400" : e.type === "hackathon" ? "bg-zinc-500" : "bg-zinc-600"}`}
+              />
               <div>
-                <p className="text-[12px] font-medium text-zinc-300">{e.title}</p>
+                <p className="text-[12px] font-medium text-zinc-300">
+                  {e.title}
+                </p>
                 <p className="text-[10px] text-zinc-600 mt-0.5">{e.time}</p>
               </div>
             </div>

@@ -18,7 +18,10 @@ export function SegmentedSlider<T extends string>({
   className = "",
 }: SegmentedSliderProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [sliderStyle, setSliderStyle] = useState<{ left: number; width: number }>({
+  const [sliderStyle, setSliderStyle] = useState<{
+    left: number;
+    width: number;
+  }>({
     left: 0,
     width: 0,
   });
@@ -26,7 +29,8 @@ export function SegmentedSlider<T extends string>({
   const updatePosition = useCallback(() => {
     if (!containerRef.current) return;
     const index = options.indexOf(value);
-    const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>("button");
+    const buttons =
+      containerRef.current.querySelectorAll<HTMLButtonElement>("button");
     const targetButton = buttons[index];
 
     if (targetButton) {
@@ -86,8 +90,8 @@ export function SegmentedSlider<T extends string>({
                   ? "text-black font-bold"
                   : "text-white font-bold"
                 : isDark
-                ? "text-zinc-400 hover:text-zinc-100"
-                : "text-zinc-600 hover:text-zinc-900"
+                  ? "text-zinc-400 hover:text-zinc-100"
+                  : "text-zinc-600 hover:text-zinc-900"
             }`}
           >
             {option}
