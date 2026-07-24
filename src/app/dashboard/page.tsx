@@ -1294,9 +1294,17 @@ export default function DashboardPage() {
       setIsLoading(true);
       setDashboardError(null);
       try {
-        const response = await apiFetch<{ data: DashboardResponseData }>(
-          "/dashboard",
-        );
+        let response;
+        try {
+          response = await apiFetch<{ data: DashboardResponseData }>("/dashboard");
+        } catch (err: unknown) {
+          const msg = (err as Error)?.message || "";
+          if (msg.includes("Not Found") || msg.includes("404")) {
+            response = await apiFetch<{ data: DashboardResponseData }>("/users/dashboard");
+          } else {
+            throw err;
+          }
+        }
         if (response && response.data) {
           const data = response.data;
 
