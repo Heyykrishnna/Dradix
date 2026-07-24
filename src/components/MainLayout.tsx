@@ -580,6 +580,7 @@ export default function MainLayout({
                     height={36}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
+                    referrerPolicy="no-referrer"
                     unoptimized
                   />
                 ) : (

@@ -1458,6 +1458,10 @@ export default function ProfilePage() {
               src={isEditing ? formState.avatarUrl : profile.avatarUrl}
               alt={isEditing ? formState.name : profile.name}
               className="w-full h-full object-cover rounded-2xl"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.src = "/assets/images/avatar/Avatar.jpg";
+              }}
             />
 
             <div className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 cursor-pointer">
@@ -1639,6 +1643,10 @@ export default function ProfilePage() {
                   src={isEditing ? formState.avatarUrl : profile.avatarUrl}
                   alt={isEditing ? formState.name : profile.name}
                   className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = "/assets/images/avatar/Avatar.jpg";
+                  }}
                 />
               </div>
               <div className="text-left leading-none">
