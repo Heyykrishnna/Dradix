@@ -747,18 +747,20 @@ export default function DashboardPage() {
     }
     return initialDevStats;
   });
-  const [platformsList, setPlatformsList] = useState<CodingPlatformItem[]>(() => {
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("dradix_dashboard_data");
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (parsed.platformsList) return parsed.platformsList;
-        } catch {}
+  const [platformsList, setPlatformsList] = useState<CodingPlatformItem[]>(
+    () => {
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem("dradix_dashboard_data");
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (parsed.platformsList) return parsed.platformsList;
+          } catch {}
+        }
       }
-    }
-    return [];
-  });
+      return [];
+    },
+  );
   const [timeline, setTimeline] = useState<TimelineItem[]>(() => {
     if (typeof window !== "undefined") {
       const cached = localStorage.getItem("dradix_dashboard_data");
@@ -1389,7 +1391,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (typeof window !== "undefined" && !localStorage.getItem("dradix_dashboard_data")) {
+      if (
+        typeof window !== "undefined" &&
+        !localStorage.getItem("dradix_dashboard_data")
+      ) {
         setIsLoading(true);
       }
       setDashboardError(null);
@@ -2564,15 +2569,32 @@ export default function DashboardPage() {
                       paddingAngle={3}
                       dataKey="value"
                     >
-                      {languagesList.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.color}
-                          className="cursor-pointer transition-all duration-200 hover:opacity-80"
-                          onMouseEnter={() => setHoveredLanguage(entry)}
-                          onMouseLeave={() => setHoveredLanguage(null)}
-                        />
-                      ))}
+                      {languagesList.map((entry, index) => {
+                        const isSelected = hoveredLanguage?.name === entry.name;
+                        const isAnyHovered = !!hoveredLanguage;
+                        return (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.color}
+                            className="cursor-pointer outline-none"
+                            style={{
+                              opacity: isAnyHovered
+                                ? isSelected
+                                  ? 1
+                                  : 0.35
+                                : 1,
+                              transform: isSelected
+                                ? "scale(1.05)"
+                                : "scale(1)",
+                              transformOrigin: "center center",
+                              transition:
+                                "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                            }}
+                            onMouseEnter={() => setHoveredLanguage(entry)}
+                            onMouseLeave={() => setHoveredLanguage(null)}
+                          />
+                        );
+                      })}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
@@ -2580,13 +2602,27 @@ export default function DashboardPage() {
                   const activeLang = hoveredLanguage ||
                     languagesList[0] || { name: "TypeScript", value: 42 };
                   return (
-                    <div className="absolute bottom-2 flex flex-col items-center pointer-events-none transition-all duration-200">
-                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-extrabold">
-                        {activeLang.name}
-                      </p>
-                      <p className="text-[20px] font-black text-white leading-none mt-0.5">
-                        {activeLang.value}%
-                      </p>
+                    <div className="absolute bottom-2 flex flex-col items-center pointer-events-none h-10 justify-center">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={activeLang.name}
+                          initial={{ opacity: 0, y: 5, scale: 0.94 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -5, scale: 0.94 }}
+                          transition={{
+                            duration: 0.22,
+                            ease: [0.16, 1, 0.3, 1],
+                          }}
+                          className="flex flex-col items-center"
+                        >
+                          <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-extrabold">
+                            {activeLang.name}
+                          </p>
+                          <p className="text-[20px] font-black text-white leading-none mt-0.5 tracking-tight">
+                            {activeLang.value}%
+                          </p>
+                        </motion.div>
+                      </AnimatePresence>
                     </div>
                   );
                 })()}
