@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRightIcon,
   ChevronRightIcon,
@@ -730,8 +731,10 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
 
-  const [selectedVelocityMonth, setSelectedVelocityMonth] = useState<string>("May");
-  const [velocityData, setVelocityData] = useState<Array<{ month: string; commits: number }>>(fulfillmentData);
+  const [selectedVelocityMonth, setSelectedVelocityMonth] =
+    useState<string>("May");
+  const [velocityData, setVelocityData] =
+    useState<Array<{ month: string; commits: number }>>(fulfillmentData);
 
   const [projectModalType, setProjectModalType] = useState<
     "add" | "edit" | "delete" | "analytics" | null
@@ -1359,15 +1362,27 @@ export default function DashboardPage() {
 
             if (Array.isArray(monthlyList) && monthlyList.length > 0) {
               setVelocityData(monthlyList);
-              const currM = new Date().toLocaleDateString("en-US", { month: "short" });
+              const currM = new Date().toLocaleDateString("en-US", {
+                month: "short",
+              });
               if (monthlyList.some((m) => m.month === currM)) {
                 setSelectedVelocityMonth(currM);
               }
             } else if (data.github.contribution_graph?.dailyContributions) {
               const daily = data.github.contribution_graph.dailyContributions;
               const monthNames = [
-                "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
               ];
               const sums: Record<string, number> = {};
               Object.entries(daily).forEach(([dStr, count]) => {
@@ -1377,7 +1392,10 @@ export default function DashboardPage() {
                   sums[m] = (sums[m] || 0) + Number(count);
                 }
               });
-              const built = monthNames.map((m) => ({ month: m, commits: sums[m] || 0 }));
+              const built = monthNames.map((m) => ({
+                month: m,
+                commits: sums[m] || 0,
+              }));
               setVelocityData(built);
             }
           }
@@ -1451,7 +1469,8 @@ export default function DashboardPage() {
                 logo =
                   "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg";
               }
-              const effectiveRating = cp.rating && cp.rating > 0 ? cp.rating : (cp.global_ranking || 0);
+              const effectiveRating =
+                cp.rating && cp.rating > 0 ? cp.rating : cp.global_ranking || 0;
               const formattedRank = cp.global_ranking
                 ? `#${Number(cp.global_ranking).toLocaleString()}`
                 : "Member";
@@ -1549,7 +1568,9 @@ export default function DashboardPage() {
       try {
         res = await apiFetch<{ data: DashboardResponseData }>("/dashboard");
       } catch {
-        res = await apiFetch<{ data: DashboardResponseData }>("/users/dashboard");
+        res = await apiFetch<{ data: DashboardResponseData }>(
+          "/users/dashboard",
+        );
       }
       if (res && res.data) {
         const data = res.data;
@@ -1573,25 +1594,32 @@ export default function DashboardPage() {
             const platformName =
               cp.platform.charAt(0).toUpperCase() + cp.platform.slice(1);
             let color = "#3b82f6";
-            let logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg";
+            let logo =
+              "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg";
             const lower = cp.platform.toLowerCase();
             if (lower === "leetcode") {
               color = "#f59e0b";
-              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg";
+              logo =
+                "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg";
             } else if (lower === "codeforces") {
               color = "#3b82f6";
-              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg";
+              logo =
+                "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg";
             } else if (lower === "hackerrank") {
               color = "#2ec4b6";
-              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/hackerrank.svg";
+              logo =
+                "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/hackerrank.svg";
             } else if (lower === "codechef") {
               color = "#5b4638";
-              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codechef.svg";
+              logo =
+                "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codechef.svg";
             } else if (lower === "geeksforgeeks") {
               color = "#2f9d58";
-              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg";
+              logo =
+                "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg";
             }
-            const effectiveRating = cp.rating && cp.rating > 0 ? cp.rating : (cp.global_ranking || 0);
+            const effectiveRating =
+              cp.rating && cp.rating > 0 ? cp.rating : cp.global_ranking || 0;
             const formattedRank = cp.global_ranking
               ? `#${Number(cp.global_ranking).toLocaleString()}`
               : "Member";
@@ -1939,7 +1967,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="lg:col-span-3 space-y-8">
-        {/* Category 1: Development Velocity & Analytics */}
         <div className="space-y-6">
           <div className="bg-[#18181b] text-white rounded-[28px] p-6 lg:p-8 grid grid-cols-1 md:grid-cols-5 gap-6">
             <div className="md:col-span-3 space-y-4">
@@ -1947,28 +1974,40 @@ export default function DashboardPage() {
                 <div>
                   <h3 className="text-[16px] font-bold text-white tracking-tight flex items-center gap-2">
                     Coding Velocity
-                    <span className="text-[9px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                      Live Synced
-                    </span>
                   </h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
-                    {velocityData.find((d) => d.month === selectedVelocityMonth)?.commits || 0} commits in {selectedVelocityMonth}
-                  </p>
+                  <motion.p
+                    key={selectedVelocityMonth}
+                    initial={{ opacity: 0, y: 3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-[11px] text-zinc-400 mt-0.5 font-medium"
+                  >
+                    <span className="text-white font-extrabold">
+                      {velocityData.find(
+                        (d) => d.month === selectedVelocityMonth,
+                      )?.commits || 0}{" "}
+                      commits
+                    </span>{" "}
+                    in {selectedVelocityMonth}
+                  </motion.p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleSyncAll}
                     disabled={isSyncing}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#27272a] hover:bg-zinc-700 text-xs font-semibold text-zinc-200 transition-all cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#27272a] hover:bg-zinc-700 text-[10px] font-semibold text-zinc-200 transition-all cursor-pointer"
                     title="Sync Velocity & Profiles"
                   >
-                    <UpdateIcon className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin text-emerald-400" : "text-zinc-300"}`} />
+                    <UpdateIcon
+                      className={`w-2.5 h-2.5 ${isSyncing ? "animate-spin text-emerald-400" : "text-zinc-300"}`}
+                    />
                     <span>{isSyncing ? "Syncing..." : "Sync Velocity"}</span>
                   </button>
                 </div>
               </div>
 
-              <div className="flex gap-1.5 text-[11px] overflow-x-auto pb-1.5 pt-1 scrollbar-none">
+              {/* Month Selector Buttons with Framer Motion layoutId */}
+              <div className="flex gap-1.5 text-[11px] overflow-x-auto pb-1.5 pt-1 scrollbar-none relative">
                 {[
                   "Jan",
                   "Feb",
@@ -1984,96 +2023,132 @@ export default function DashboardPage() {
                   "Dec",
                 ].map((m) => {
                   const isSelected = selectedVelocityMonth === m;
-                  const monthCommits = velocityData.find((d) => d.month === m)?.commits || 0;
+                  const monthCommits =
+                    velocityData.find((d) => d.month === m)?.commits || 0;
                   return (
                     <button
                       key={m}
                       type="button"
                       onClick={() => setSelectedVelocityMonth(m)}
-                      className={`px-2.5 py-1 rounded-lg transition-all duration-200 text-[11px] font-semibold cursor-pointer shrink-0 ${
+                      className={`relative px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer shrink-0 transition-colors ${
                         isSelected
-                          ? "bg-[#005c58] text-white font-extrabold shadow-md scale-105"
-                          : "bg-[#27272a] text-zinc-400 hover:text-white hover:bg-zinc-700"
+                          ? "text-white font-extrabold"
+                          : "text-zinc-400 hover:text-white hover:bg-zinc-800/60"
                       }`}
                       title={`${m}: ${monthCommits} commits`}
                     >
-                      {m}
+                      {isSelected && (
+                        <motion.div
+                          layoutId="activeVelocityMonthPill"
+                          className="absolute inset-0 bg-[#005c58] rounded-lg shadow-md z-0"
+                          transition={{
+                            type: "spring",
+                            stiffness: 450,
+                            damping: 32,
+                          }}
+                        />
+                      )}
+                      <span className="relative z-10">{m}</span>
                     </button>
                   );
                 })}
               </div>
 
-              <div className="h-44 relative mt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ReChartsBarChart
-                    data={velocityData}
-                    margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
-                    onMouseMove={(state: Record<string, unknown>) => {
-                      const activePayload = state?.activePayload as
-                        | Array<{ payload: { month: string; commits: number } }>
-                        | undefined;
-                      if (activePayload && activePayload[0]) {
-                        setHoveredBar(activePayload[0].payload);
-                      }
-                    }}
-                    onMouseLeave={() => setHoveredBar(null)}
-                  >
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fill: "#71717a", fontSize: 10 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: "#71717a", fontSize: 10 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip
-                      cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
-                      content={({
-                        active,
-                        payload,
-                      }: {
-                        active?: boolean;
-                        payload?: readonly {
-                          payload?: { month: string; commits: number };
-                        }[];
-                      }) => {
-                        if (
-                          active &&
-                          payload &&
-                          payload.length &&
-                          payload[0].payload
-                        ) {
-                          const cellData = payload[0].payload;
-                          return (
-                            <div className="bg-[#18181b] border border-zinc-800 text-white p-2.5 rounded-xl shadow-lg text-[11px] font-bold">
-                              <p className="text-zinc-400">{cellData.month}</p>
-                              <p className="text-emerald-400 text-[13px] font-black">
-                                {cellData.commits} commits
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar dataKey="commits" fill="#3f3f46" radius={[4, 4, 0, 0]}>
-                      {velocityData.map((entry, index) => {
-                        const isHighlighted =
-                          entry.month === selectedVelocityMonth ||
-                          (hoveredBar && hoveredBar.month === entry.month);
-                        return (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={isHighlighted ? "#005c58" : "#27272a"}
+              {/* Ultra Smooth Framer Motion Animated Bar Chart */}
+              <div className="h-44 relative mt-3 flex flex-col justify-between pt-6 pb-1">
+                {/* Horizontal Grid Lines */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 z-0">
+                  <div className="border-b border-zinc-700 w-full" />
+                  <div className="border-b border-zinc-700 w-full" />
+                  <div className="border-b border-zinc-700 w-full" />
+                </div>
+
+                {/* Bars Container */}
+                <div className="relative w-full h-36 flex items-end justify-between px-1 z-10 gap-1.5">
+                  {(() => {
+                    const maxCommits = Math.max(
+                      ...velocityData.map((d) => d.commits),
+                      1,
+                    );
+                    return velocityData.map((entry) => {
+                      const isSelected = selectedVelocityMonth === entry.month;
+                      const isHovered = hoveredBar?.month === entry.month;
+                      const heightPercent = Math.max(
+                        12,
+                        Math.round((entry.commits / maxCommits) * 100),
+                      );
+
+                      return (
+                        <div
+                          key={entry.month}
+                          onClick={() => setSelectedVelocityMonth(entry.month)}
+                          onMouseEnter={() => setHoveredBar(entry)}
+                          onMouseLeave={() => setHoveredBar(null)}
+                          className="flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group"
+                        >
+                          {/* Floating Commit Badge smoothly sliding right above selected bar */}
+                          {(isSelected || isHovered) && (
+                            <motion.div
+                              layoutId="floatingVelocityBadge"
+                              className="absolute -top-7 z-30 bg-[#18181b] border border-emerald-500/30 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xl whitespace-nowrap pointer-events-none"
+                              transition={{
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 28,
+                              }}
+                            >
+                              <span className="text-emerald-400 font-bold">
+                                {entry.commits}
+                              </span>{" "}
+                              commits
+                            </motion.div>
+                          )}
+
+                          {/* Glowing Beam behind active column */}
+                          {isSelected && (
+                            <motion.div
+                              layoutId="glowingVelocityBeam"
+                              className="absolute inset-x-0 bottom-0 top-0 bg-emerald-500/10 rounded-t-lg z-0"
+                              transition={{
+                                type: "spring",
+                                stiffness: 350,
+                                damping: 30,
+                              }}
+                            />
+                          )}
+
+                          {/* Smooth Spring Animated Bar */}
+                          <motion.div
+                            className="w-full rounded-t-md relative z-10"
+                            initial={false}
+                            animate={{
+                              height: `${heightPercent}%`,
+                              backgroundColor:
+                                isSelected || isHovered ? "#005c58" : "#27272a",
+                              scaleY: isSelected ? 1.03 : 1,
+                            }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 25,
+                            }}
                           />
-                        );
-                      })}
-                    </Bar>
-                  </ReChartsBarChart>
-                </ResponsiveContainer>
+
+                          {/* Month Label */}
+                          <span
+                            className={`text-[10px] mt-1.5 transition-colors font-medium ${
+                              isSelected
+                                ? "text-emerald-400 font-bold"
+                                : "text-zinc-500 group-hover:text-zinc-300"
+                            }`}
+                          >
+                            {entry.month}
+                          </span>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
               </div>
             </div>
 
@@ -2834,11 +2909,13 @@ export default function DashboardPage() {
                         <p className="text-[18px] font-black text-black">
                           {typeof plat.rating === "number" && plat.rating > 0
                             ? plat.rating.toLocaleString()
-                            : (plat.rating || 0)}
+                            : plat.rating || 0}
                         </p>
                         <p className="text-[9px] text-zinc-400">
                           {plat.name.toLowerCase() === "leetcode"
-                            ? (plat.rating > 5000 ? "Global Rank" : "Rating / Rank")
+                            ? plat.rating > 5000
+                              ? "Global Rank"
+                              : "Rating / Rank"
                             : "Rating"}
                         </p>
                       </div>
