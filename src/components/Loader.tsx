@@ -16,9 +16,14 @@ const Loader = () => {
 };
 
 const StyledWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   .loader {
     width: 112px;
     height: 112px;
+    position: relative;
   }
 
   .box1,

@@ -4,12 +4,20 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { SafeUser, ApiResponse } from "../types/auth";
 import { apiFetch, setAccessToken, setRefreshToken } from "../lib/api";
+import Loader from "@/components/Loader";
 
 interface AuthContextType {
   user: SafeUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ require2FA?: boolean; twoFactorToken?: string } | void>;
-  verify2FA: (twoFactorToken: string, otp?: string, recoveryCode?: string) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ require2FA?: boolean; twoFactorToken?: string } | void>;
+  verify2FA: (
+    twoFactorToken: string,
+    otp?: string,
+    recoveryCode?: string,
+  ) => Promise<void>;
   register: (data: {
     email: string;
     username: string;
@@ -32,21 +40,53 @@ const PUBLIC_ROUTES = [
 ];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<SafeUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<SafeUser | null>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("dradix_auth_user");
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch {}
+      }
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("dradix_auth_user");
+      if (cached) return false;
+    }
+    return true;
+  });
   const router = useRouter();
   const pathname = usePathname();
+
+  const updateCachedUser = (userData: SafeUser | null) => {
+    setUser(userData);
+    if (typeof window !== "undefined") {
+      if (userData) {
+        localStorage.setItem("dradix_auth_user", JSON.stringify(userData));
+      } else {
+        localStorage.removeItem("dradix_auth_user");
+      }
+    }
+  };
 
   const checkAuth = async () => {
     try {
       const res = await apiFetch<ApiResponse<SafeUser>>("/auth/me");
       if (res.success && res.data) {
-        setUser(res.data);
+        updateCachedUser(res.data);
       } else {
-        setUser(null);
+        updateCachedUser(null);
       }
     } catch {
-      setUser(null);
+      if (
+        typeof window !== "undefined" &&
+        !localStorage.getItem("dradix_auth_user")
+      ) {
+        updateCachedUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -59,13 +99,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const res = await apiFetch<ApiResponse<SafeUser>>("/auth/me");
         if (active) {
           if (res.success && res.data) {
-            setUser(res.data);
+            updateCachedUser(res.data);
           } else {
-            setUser(null);
+            updateCachedUser(null);
           }
         }
       } catch {
-        if (active) setUser(null);
+        if (active) {
+          if (
+            typeof window !== "undefined" &&
+            !localStorage.getItem("dradix_auth_user")
+          ) {
+            updateCachedUser(null);
+          }
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -152,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRefreshToken(res.data.refreshToken);
       }
       if (res.data?.user) {
-        setUser(res.data.user);
+        updateCachedUser(res.data.user);
       }
       router.push("/dashboard");
     } catch (err) {
@@ -186,16 +233,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setAccessToken(null);
       setRefreshToken(null);
-      setUser(null);
+      updateCachedUser(null);
       if (typeof window !== "undefined") {
         localStorage.removeItem("isOnboarded");
         localStorage.removeItem("userProfile");
+        localStorage.removeItem("dradix_dashboard_data");
+        localStorage.removeItem("dradix_profile_avatar");
+        localStorage.removeItem("dradix_profile_banner");
       }
       setLoading(false);
       router.push("/auth");
     }
   };
-  const verify2FA = async (twoFactorToken: string, otp?: string, recoveryCode?: string) => {
+  const verify2FA = async (
+    twoFactorToken: string,
+    otp?: string,
+    recoveryCode?: string,
+  ) => {
     try {
       const res = await apiFetch<
         ApiResponse<{
@@ -214,7 +268,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRefreshToken(res.data.refreshToken);
       }
       if (res.data?.user) {
-        setUser(res.data.user);
+        updateCachedUser(res.data.user);
       }
       router.push("/dashboard");
     } catch (err) {
@@ -224,8 +278,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#101010] flex items-center justify-center text-zinc-500 font-sans text-sm tracking-wider">
-        Loading
+      <div className="fixed inset-0 min-h-screen bg-white flex items-center justify-center z-50">
+        <Loader />
       </div>
     );
   }

@@ -723,12 +723,73 @@ function RepoVisibilitySlider({
 }
 
 export default function DashboardPage() {
-  const [projectsList, setProjectsList] = useState<Project[]>([]);
-  const [devStats, setDevStats] = useState(initialDevStats);
-  const [platformsList, setPlatformsList] = useState<CodingPlatformItem[]>([]);
-  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
-  const [rings, setRings] = useState<CareerRingItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [projectsList, setProjectsList] = useState<Project[]>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("dradix_dashboard_data");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed.projectsList) return parsed.projectsList;
+        } catch {}
+      }
+    }
+    return [];
+  });
+  const [devStats, setDevStats] = useState(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("dradix_dashboard_data");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed.devStats) return parsed.devStats;
+        } catch {}
+      }
+    }
+    return initialDevStats;
+  });
+  const [platformsList, setPlatformsList] = useState<CodingPlatformItem[]>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("dradix_dashboard_data");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed.platformsList) return parsed.platformsList;
+        } catch {}
+      }
+    }
+    return [];
+  });
+  const [timeline, setTimeline] = useState<TimelineItem[]>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("dradix_dashboard_data");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed.timeline) return parsed.timeline;
+        } catch {}
+      }
+    }
+    return [];
+  });
+  const [rings, setRings] = useState<CareerRingItem[]>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("dradix_dashboard_data");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed.rings) return parsed.rings;
+        } catch {}
+      }
+    }
+    return [];
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("dradix_dashboard_data");
+      if (cached) return false;
+    }
+    return true;
+  });
   const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   const [selectedVelocityMonth, setSelectedVelocityMonth] =
@@ -736,9 +797,10 @@ export default function DashboardPage() {
   const [velocityData, setVelocityData] =
     useState<Array<{ month: string; commits: number }>>(fulfillmentData);
   const [isAvgHovered, setIsAvgHovered] = useState<boolean>(false);
-  const [languagesList, setLanguagesList] = useState<
-    Array<{ name: string; value: number; color: string }>
-  >(languageData);
+  const [languagesList, setLanguagesList] =
+    useState<Array<{ name: string; value: number; color: string }>>(
+      languageData,
+    );
   const [hoveredLanguage, setHoveredLanguage] = useState<{
     name: string;
     value: number;
@@ -1044,7 +1106,7 @@ export default function DashboardPage() {
         };
 
         setProjectsList([newProj, ...projectsList]);
-        setDevStats((prev) => ({
+        setDevStats((prev: typeof initialDevStats) => ({
           ...prev,
           projects: prev.projects + 1,
           liveProjects:
@@ -1190,7 +1252,7 @@ export default function DashboardPage() {
         setProjectsList(
           projectsList.filter((p) => p.id !== selectedProject.id),
         );
-        setDevStats((prev) => ({
+        setDevStats((prev: typeof initialDevStats) => ({
           ...prev,
           projects: Math.max(0, prev.projects - 1),
           liveProjects:
@@ -1261,10 +1323,6 @@ export default function DashboardPage() {
     totalProblems: 42,
     newRepos: 2,
   });
-  const [trafficTooltipPos, setTrafficTooltipPos] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
 
   const [sortField, setSortField] = useState<
     "name" | "views" | "likes" | "stars" | null
@@ -1331,7 +1389,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      setIsLoading(true);
+      if (typeof window !== "undefined" && !localStorage.getItem("dradix_dashboard_data")) {
+        setIsLoading(true);
+      }
       setDashboardError(null);
       try {
         let response;
@@ -1731,6 +1791,19 @@ export default function DashboardPage() {
           if (data.careerRings) {
             setRings(data.careerRings);
           }
+
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem(
+                "dradix_dashboard_data",
+                JSON.stringify({
+                  timeline: data.timeline || [],
+                  rings: data.careerRings || [],
+                  projectsList: data.projects || [],
+                }),
+              );
+            } catch {}
+          }
         }
       } catch (err) {
         console.error("Failed to load aggregated dashboard data:", err);
@@ -1803,7 +1876,7 @@ export default function DashboardPage() {
       if (res && res.data) {
         const data = res.data;
         if (data.github) {
-          setDevStats((prev) => ({
+          setDevStats((prev: typeof initialDevStats) => ({
             ...prev,
             contributions: data.github?.total_commits || prev.contributions,
             stars: data.github?.stars_earned || prev.stars,
@@ -1905,7 +1978,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] w-full gap-4 py-30">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] w-full my-auto">
         <Loader />
       </div>
     );
@@ -2479,22 +2552,7 @@ export default function DashboardPage() {
 
               <div className="h-32 relative flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart
-                    onMouseMove={(e: Record<string, unknown>) => {
-                      const chartX = e?.chartX;
-                      const chartY = e?.chartY;
-                      if (
-                        typeof chartX === "number" &&
-                        typeof chartY === "number"
-                      ) {
-                        setTrafficTooltipPos({
-                          x: chartX + 15,
-                          y: chartY + 15,
-                        });
-                      }
-                    }}
-                    onMouseLeave={() => setTrafficTooltipPos(null)}
-                  >
+                  <PieChart>
                     <Pie
                       data={languagesList}
                       cx="50%"
@@ -2516,32 +2574,10 @@ export default function DashboardPage() {
                         />
                       ))}
                     </Pie>
-                    <Tooltip
-                      position={trafficTooltipPos || undefined}
-                      content={({ active, payload }) => {
-                        if (
-                          active &&
-                          payload &&
-                          payload.length &&
-                          payload[0].payload
-                        ) {
-                          const cellData = payload[0].payload;
-                          return (
-                            <div className="bg-[#18181b] border border-zinc-800 text-white p-2 rounded-xl shadow-lg text-[11px] font-bold">
-                              <p className="text-white">
-                                {cellData.name}: {cellData.value}%
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
                   </PieChart>
                 </ResponsiveContainer>
                 {(() => {
-                  const activeLang =
-                    hoveredLanguage ||
+                  const activeLang = hoveredLanguage ||
                     languagesList[0] || { name: "TypeScript", value: 42 };
                   return (
                     <div className="absolute bottom-2 flex flex-col items-center pointer-events-none transition-all duration-200">
