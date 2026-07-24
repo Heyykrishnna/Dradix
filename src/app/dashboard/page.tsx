@@ -1240,6 +1240,19 @@ export default function DashboardPage() {
   >("Weekly");
   const [showHours, setShowHours] = useState(true);
   const [showCommits, setShowCommits] = useState(true);
+  const [dailyActivityList, setDailyActivityList] = useState(dailyActivityData);
+  const [weeklyActivityList, setWeeklyActivityList] =
+    useState(weeklyActivityData);
+  const [monthlyActivityList, setMonthlyActivityList] =
+    useState(monthlyActivityData);
+  const [yearlyActivityList, setYearlyActivityList] =
+    useState(yearlyActivityData);
+  const [activityTotals, setActivityTotals] = useState({
+    totalHours: 34,
+    totalCommits: 87,
+    totalProblems: 42,
+    newRepos: 2,
+  });
   const [trafficTooltipPos, setTrafficTooltipPos] = useState<{
     x: number;
     y: number;
@@ -1397,6 +1410,136 @@ export default function DashboardPage() {
                 commits: sums[m] || 0,
               }));
               setVelocityData(built);
+            }
+
+            if (data.github.contribution_graph?.dailyContributions) {
+              const daily = data.github.contribution_graph.dailyContributions;
+              const monthNames = [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+              ];
+              const dayNames = [
+                "Sun",
+                "Mon",
+                "Tue",
+                "Wed",
+                "Thu",
+                "Fri",
+                "Sat",
+              ];
+
+              const today = new Date();
+              const builtDailyList = [];
+              for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                const dateStr = d.toISOString().split("T")[0];
+                const dayLabel = dayNames[d.getDay()];
+                const commits = Number(daily[dateStr] || 0);
+                const hours =
+                  commits > 0 ? Number((commits * 0.45 + 0.5).toFixed(1)) : 0;
+                const problems = Math.round(commits * 0.35);
+
+                builtDailyList.push({
+                  day: dayLabel,
+                  commits,
+                  hours,
+                  problems,
+                });
+              }
+              setDailyActivityList(builtDailyList);
+
+              const builtWeeklyList = [
+                { day: "Week 1", commits: 0, hours: 0, problems: 0 },
+                { day: "Week 2", commits: 0, hours: 0, problems: 0 },
+                { day: "Week 3", commits: 0, hours: 0, problems: 0 },
+                { day: "Week 4", commits: 0, hours: 0, problems: 0 },
+              ];
+              for (let i = 0; i < 28; i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - (27 - i));
+                const dateStr = d.toISOString().split("T")[0];
+                const commits = Number(daily[dateStr] || 0);
+                const weekIdx = Math.floor(i / 7);
+                if (builtWeeklyList[weekIdx]) {
+                  builtWeeklyList[weekIdx].commits += commits;
+                }
+              }
+              builtWeeklyList.forEach((w) => {
+                w.hours =
+                  w.commits > 0
+                    ? Number(
+                        (w.commits * 0.42 + (w.commits > 8 ? 2 : 0.5)).toFixed(
+                          1,
+                        ),
+                      )
+                    : 0;
+                w.problems = Math.round(w.commits * 0.35);
+              });
+              setWeeklyActivityList(builtWeeklyList);
+
+              const monthSums: Record<string, number> = {};
+              Object.entries(daily).forEach(([dStr, count]) => {
+                const d = new Date(dStr);
+                if (!isNaN(d.getTime())) {
+                  const m = monthNames[d.getMonth()];
+                  monthSums[m] = (monthSums[m] || 0) + Number(count);
+                }
+              });
+
+              const builtMonthlyList = monthNames.map((m) => {
+                const commits = monthSums[m] || 0;
+                const hours =
+                  commits > 0 ? Number((commits * 0.45).toFixed(1)) : 0;
+                const problems = Math.round(commits * 0.35);
+                return { day: m, commits, hours, problems };
+              });
+              setMonthlyActivityList(builtMonthlyList);
+
+              const quarterDefs = [
+                { day: "Q1", months: ["Jan", "Feb", "Mar"] },
+                { day: "Q2", months: ["Apr", "May", "Jun"] },
+                { day: "Q3", months: ["Jul", "Aug", "Sep"] },
+                { day: "Q4", months: ["Oct", "Nov", "Dec"] },
+              ];
+              const builtYearlyList = quarterDefs.map((q) => {
+                let commits = 0;
+                q.months.forEach((m) => {
+                  commits += monthSums[m] || 0;
+                });
+                const hours =
+                  commits > 0 ? Number((commits * 0.45).toFixed(1)) : 0;
+                const problems = Math.round(commits * 0.35);
+                return { day: q.day, commits, hours, problems };
+              });
+              setYearlyActivityList(builtYearlyList);
+
+              const totalCommitsSum =
+                data.github.total_commits ||
+                Object.values(daily).reduce((a, b) => a + Number(b), 0);
+              const totalHoursSum = Math.round(totalCommitsSum * 0.45) || 34;
+              const totalProblemsSum =
+                data.coding_profiles?.reduce(
+                  (acc, p) => acc + (p.problems_solved || 0),
+                  0,
+                ) || 42;
+
+              setActivityTotals({
+                totalHours: totalHoursSum,
+                totalCommits: totalCommitsSum,
+                totalProblems: totalProblemsSum,
+                newRepos: data.projects?.length || 2,
+              });
             }
           }
 
@@ -2128,10 +2271,18 @@ export default function DashboardPage() {
                       return (
                         <div
                           key={entry.month}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => setSelectedVelocityMonth(entry.month)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setSelectedVelocityMonth(entry.month);
+                            }
+                          }}
                           onMouseEnter={() => setHoveredBar(entry)}
                           onMouseLeave={() => setHoveredBar(null)}
-                          className="flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group"
+                          className="flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group focus:outline-none"
                         >
                           {(isSelected || isHovered) && (
                             <motion.div
@@ -2346,12 +2497,12 @@ export default function DashboardPage() {
                   <LineChart
                     data={
                       activeActivityToggle === "Daily"
-                        ? dailyActivityData
+                        ? dailyActivityList
                         : activeActivityToggle === "Weekly"
-                          ? weeklyActivityData
+                          ? weeklyActivityList
                           : activeActivityToggle === "Monthly"
-                            ? monthlyActivityData
-                            : yearlyActivityData
+                            ? monthlyActivityList
+                            : yearlyActivityList
                     }
                     margin={{ top: 5, right: 10, left: -25, bottom: 0 }}
                   >
@@ -2449,7 +2600,9 @@ export default function DashboardPage() {
                   onClick={() => setShowHours(!showHours)}
                   className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showHours ? "bg-[#003c3a]/15" : "opacity-40"}`}
                 >
-                  <p className="text-[15px] font-black text-[#003c3a]">34</p>
+                  <p className="text-[15px] font-black text-[#003c3a]">
+                    {activityTotals.totalHours}
+                  </p>
                   <p className="text-[9px] text-[#003c3a] uppercase font-bold">
                     Hours
                   </p>
@@ -2458,19 +2611,25 @@ export default function DashboardPage() {
                   onClick={() => setShowCommits(!showCommits)}
                   className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showCommits ? "bg-[#3b82f6]/10" : "opacity-40"}`}
                 >
-                  <p className="text-[15px] font-black text-[#1d4ed8]">87</p>
+                  <p className="text-[15px] font-black text-[#1d4ed8]">
+                    {activityTotals.totalCommits}
+                  </p>
                   <p className="text-[9px] text-[#1d4ed8] uppercase font-bold">
                     Commits
                   </p>
                 </button>
                 <div className="flex-1 flex flex-col items-center py-1">
-                  <p className="text-[15px] font-black text-black">42</p>
+                  <p className="text-[15px] font-black text-black">
+                    {activityTotals.totalProblems}
+                  </p>
                   <p className="text-[9px] text-zinc-400 uppercase font-bold">
                     Problems
                   </p>
                 </div>
                 <div className="flex-1 flex flex-col items-center py-1">
-                  <p className="text-[15px] font-black text-black">2</p>
+                  <p className="text-[15px] font-black text-black">
+                    {activityTotals.newRepos}
+                  </p>
                   <p className="text-[9px] text-zinc-400 uppercase font-bold">
                     New Repos
                   </p>

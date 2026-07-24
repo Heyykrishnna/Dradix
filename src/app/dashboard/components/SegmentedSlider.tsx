@@ -55,16 +55,15 @@ export function SegmentedSlider<T extends string>({
   return (
     <div
       ref={containerRef}
-      className={`relative inline-flex items-center p-1 rounded-xl select-none ${
+      className={`relative inline-flex items-center p-1 rounded-lg select-none ${
         isDark
           ? "bg-[#1c1c1e] border border-white/10 shadow-inner"
           : "bg-zinc-200/80 border border-zinc-300/60 shadow-inner"
       } ${className}`}
     >
-      {/* Smooth Animated Sliding Pill */}
       {sliderStyle.width > 0 && (
         <div
-          className={`absolute top-1 bottom-1 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`absolute top-1 bottom-1 rounded-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             isDark
               ? "bg-[#00c9a7] text-black shadow-md shadow-[#00c9a7]/20"
               : "bg-black text-white shadow-md"
@@ -76,7 +75,6 @@ export function SegmentedSlider<T extends string>({
         />
       )}
 
-      {/* Option Buttons */}
       {options.map((option) => {
         const isActive = option === value;
         return (
@@ -84,7 +82,7 @@ export function SegmentedSlider<T extends string>({
             key={option}
             type="button"
             onClick={() => onChange(option)}
-            className={`relative z-10 px-3 py-1.5 text-[11px] font-semibold tracking-tight transition-colors duration-200 cursor-pointer rounded-lg flex-1 text-center whitespace-nowrap ${
+            className={`relative z-10 px-2.5 py-1.5 text-[9px] font-medium tracking-tight transition-colors duration-200 cursor-pointer rounded-md flex-1 text-center whitespace-nowrap ${
               isActive
                 ? isDark
                   ? "text-black font-bold"
