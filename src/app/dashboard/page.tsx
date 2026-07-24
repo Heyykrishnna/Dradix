@@ -57,25 +57,32 @@ const ErrorQuestionTooltip = ({ message }: { message: string }) => {
 const DevScoreTooltip = () => {
   return (
     <div className="relative group inline-flex items-center z-40">
-      <span
-        className="w-4 h-4 rounded-full bg-red-500/10 text-red-600 border border-red-500/30 flex items-center justify-center text-[10px] font-black cursor-pointer hover:bg-red-600 hover:text-white transition-all shadow-xs"
-      >
+      <span className="w-4 h-4 rounded-full bg-red-500/10 text-red-600 border border-red-500/30 flex items-center justify-center text-[10px] font-black cursor-pointer hover:bg-red-600 hover:text-white transition-all shadow-xs">
         ?
       </span>
       <div className="absolute left-0 top-full mt-2 hidden group-hover:flex flex-col w-56 p-3 bg-zinc-900 text-white text-[11px] rounded-2xl shadow-2xl border border-zinc-800 z-50 pointer-events-none">
         <div className="absolute left-2 bottom-full w-0 h-0 border-x-4 border-x-transparent border-b-4 border-b-zinc-900" />
-        <span className="font-extrabold text-white mb-2 text-center text-xs">How Dev Score is Calculated</span>
+        <span className="font-extrabold text-white mb-2 text-center text-xs">
+          How Dev Score is Calculated
+        </span>
         <div className="space-y-1.5">
-          {([
-            { label: "GitHub Commits", weight: "30%" },
-            { label: "Problems Solved", weight: "25%" },
-            { label: "Coding Streak", weight: "20%" },
-            { label: "Platform Ratings", weight: "15%" },
-            { label: "Projects & Links", weight: "10%" },
-          ] as { label: string; weight: string }[]).map(({ label, weight }) => (
-            <div key={label} className="flex items-center justify-between gap-2">
+          {(
+            [
+              { label: "GitHub Commits", weight: "30%" },
+              { label: "Problems Solved", weight: "25%" },
+              { label: "Coding Streak", weight: "20%" },
+              { label: "Platform Ratings", weight: "15%" },
+              { label: "Projects & Links", weight: "10%" },
+            ] as { label: string; weight: string }[]
+          ).map(({ label, weight }) => (
+            <div
+              key={label}
+              className="flex items-center justify-between gap-2"
+            >
               <span className="text-zinc-400 text-[10px]">{label}</span>
-              <span className="text-emerald-400 font-bold text-[10px]">{weight}</span>
+              <span className="text-emerald-400 font-bold text-[10px]">
+                {weight}
+              </span>
             </div>
           ))}
         </div>
@@ -1296,11 +1303,15 @@ export default function DashboardPage() {
       try {
         let response;
         try {
-          response = await apiFetch<{ data: DashboardResponseData }>("/dashboard");
+          response = await apiFetch<{ data: DashboardResponseData }>(
+            "/dashboard",
+          );
         } catch (err: unknown) {
           const msg = (err as Error)?.message || "";
           if (msg.includes("Not Found") || msg.includes("404")) {
-            response = await apiFetch<{ data: DashboardResponseData }>("/users/dashboard");
+            response = await apiFetch<{ data: DashboardResponseData }>(
+              "/users/dashboard",
+            );
           } else {
             throw err;
           }
@@ -1401,10 +1412,14 @@ export default function DashboardPage() {
                 logo =
                   "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg";
               }
+              const effectiveRating = cp.rating && cp.rating > 0 ? cp.rating : (cp.global_ranking || 0);
+              const formattedRank = cp.global_ranking
+                ? `#${Number(cp.global_ranking).toLocaleString()}`
+                : "Member";
               return {
                 name: platformName,
-                rating: cp.rating || 0,
-                rank: cp.global_ranking ? `#${cp.global_ranking}` : "Member",
+                rating: effectiveRating,
+                rank: formattedRank,
                 solved: cp.problems_solved || 0,
                 color,
                 streak: 10,
@@ -2715,10 +2730,14 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-end">
                       <div>
                         <p className="text-[18px] font-black text-black">
-                          {plat.rating}
+                          {typeof plat.rating === "number" && plat.rating > 0
+                            ? plat.rating.toLocaleString()
+                            : (plat.rating || 0)}
                         </p>
                         <p className="text-[9px] text-zinc-400">
-                          Contest Rating
+                          {plat.name.toLowerCase() === "leetcode"
+                            ? (plat.rating > 5000 ? "Global Rank" : "Rating / Rank")
+                            : "Rating"}
                         </p>
                       </div>
                       <div className="flex gap-0.5 items-end h-6">
