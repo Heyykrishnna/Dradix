@@ -785,13 +785,7 @@ export default function DashboardPage() {
     }
     return [];
   });
-  const [isLoading, setIsLoading] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("dradix_dashboard_data");
-      if (cached) return false;
-    }
-    return true;
-  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   const [selectedVelocityMonth, setSelectedVelocityMonth] =
@@ -1391,12 +1385,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (
-        typeof window !== "undefined" &&
-        !localStorage.getItem("dradix_dashboard_data")
-      ) {
-        setIsLoading(true);
-      }
+      setIsLoading(true);
       setDashboardError(null);
       try {
         let response;
@@ -1983,8 +1972,11 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] w-full my-auto">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] w-full my-auto py-20">
         <Loader />
+        <p className="mt-6 text-sm font-medium text-zinc-400 animate-pulse tracking-wide">
+          Fetching Dashboard Data...
+        </p>
       </div>
     );
   }
