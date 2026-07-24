@@ -52,7 +52,6 @@ import {
   FaChevronDown,
   FaList,
   FaRotate,
-  FaCode,
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -1461,7 +1460,7 @@ export default function ProfilePage() {
             <div className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 cursor-pointer">
               <button
                 onClick={() => openImageModal("avatar")}
-                className="flex items-center gap-1.5 bg-white text-black px-2 py-1.5 rounded-xl text-[9px] font-semibold hover:bg-zinc-50 transition-colors shadow-md cursor-pointer"
+                className="flex items-center gap-1.5 bg-white text-black px-2 py-1.5 rounded-xl text-[9px] font-light hover:bg-zinc-50 transition-colors shadow-md cursor-pointer"
               >
                 <FaCamera className="w-2.5 h-2.5" />
                 <span>Update Photo</span>
@@ -1851,7 +1850,6 @@ export default function ProfilePage() {
           <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-6 space-y-5 text-left">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <div className="flex items-center gap-2">
-                <FaCode className="w-4 h-4 text-[#005c58]" />
                 <span className="text-[14px] font-bold text-zinc-900 font-heading">
                   Coding Platforms Sync
                 </span>
