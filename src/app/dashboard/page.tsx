@@ -579,6 +579,12 @@ interface DashboardResponseData {
     stars_earned?: number;
     total_prs?: number;
     total_issues?: number;
+    contribution_graph?: {
+      activeDays?: number;
+      dailyContributions?: Record<string, number>;
+      monthlyCommits?: Array<{ month: string; commits: number }>;
+    };
+    monthly_commits?: Array<{ month: string; commits: number }>;
   };
   coding_profiles?: Array<{
     platform: string;
@@ -723,6 +729,9 @@ export default function DashboardPage() {
   const [rings, setRings] = useState<CareerRingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
+
+  const [selectedVelocityMonth, setSelectedVelocityMonth] = useState<string>("May");
+  const [velocityData, setVelocityData] = useState<Array<{ month: string; commits: number }>>(fulfillmentData);
 
   const [projectModalType, setProjectModalType] = useState<
     "add" | "edit" | "delete" | "analytics" | null
@@ -1343,6 +1352,36 @@ export default function DashboardPage() {
             });
           }
 
+          if (data.github) {
+            const monthlyList =
+              data.github.monthly_commits ||
+              data.github.contribution_graph?.monthlyCommits;
+
+            if (Array.isArray(monthlyList) && monthlyList.length > 0) {
+              setVelocityData(monthlyList);
+              const currM = new Date().toLocaleDateString("en-US", { month: "short" });
+              if (monthlyList.some((m) => m.month === currM)) {
+                setSelectedVelocityMonth(currM);
+              }
+            } else if (data.github.contribution_graph?.dailyContributions) {
+              const daily = data.github.contribution_graph.dailyContributions;
+              const monthNames = [
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+              ];
+              const sums: Record<string, number> = {};
+              Object.entries(daily).forEach(([dStr, count]) => {
+                const d = new Date(dStr);
+                if (!isNaN(d.getTime())) {
+                  const m = monthNames[d.getMonth()];
+                  sums[m] = (sums[m] || 0) + Number(count);
+                }
+              });
+              const built = monthNames.map((m) => ({ month: m, commits: sums[m] || 0 }));
+              setVelocityData(built);
+            }
+          }
+
           if (data.projects && data.projects.length > 0) {
             const statusColorsMap: Record<string, string> = {
               Live: "#005c58",
@@ -1502,31 +1541,79 @@ export default function DashboardPage() {
     }, 600);
   };
 
-  const handleSyncAll = () => {
+  const handleSyncAll = async () => {
     setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-      const newNotif = {
-        text: "Dynamic sync check completed: All systems normal",
-        time: "Just now",
-        type: "sync",
-      };
-
-      const saved = localStorage.getItem("dradix_notifications");
-      let currentNotifs = [];
-      if (saved) {
-        try {
-          currentNotifs = JSON.parse(saved);
-        } catch (e) {
-          console.error(e);
+    try {
+      await apiFetch("/coding-profiles/sync", { method: "POST" });
+      let res;
+      try {
+        res = await apiFetch<{ data: DashboardResponseData }>("/dashboard");
+      } catch {
+        res = await apiFetch<{ data: DashboardResponseData }>("/users/dashboard");
+      }
+      if (res && res.data) {
+        const data = res.data;
+        if (data.github) {
+          setDevStats((prev) => ({
+            ...prev,
+            contributions: data.github?.total_commits || prev.contributions,
+            stars: data.github?.stars_earned || prev.stars,
+            pullRequests: data.github?.total_prs || prev.pullRequests,
+            issuesClosed: data.github?.total_issues || prev.issuesClosed,
+          }));
+          const monthlyList =
+            data.github.monthly_commits ||
+            data.github.contribution_graph?.monthlyCommits;
+          if (Array.isArray(monthlyList) && monthlyList.length > 0) {
+            setVelocityData(monthlyList);
+          }
+        }
+        if (data.coding_profiles && data.coding_profiles.length > 0) {
+          const mappedPlatforms = data.coding_profiles.map((cp) => {
+            const platformName =
+              cp.platform.charAt(0).toUpperCase() + cp.platform.slice(1);
+            let color = "#3b82f6";
+            let logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg";
+            const lower = cp.platform.toLowerCase();
+            if (lower === "leetcode") {
+              color = "#f59e0b";
+              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/leetcode.svg";
+            } else if (lower === "codeforces") {
+              color = "#3b82f6";
+              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codeforces.svg";
+            } else if (lower === "hackerrank") {
+              color = "#2ec4b6";
+              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/hackerrank.svg";
+            } else if (lower === "codechef") {
+              color = "#5b4638";
+              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/codechef.svg";
+            } else if (lower === "geeksforgeeks") {
+              color = "#2f9d58";
+              logo = "https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/geeksforgeeks.svg";
+            }
+            const effectiveRating = cp.rating && cp.rating > 0 ? cp.rating : (cp.global_ranking || 0);
+            const formattedRank = cp.global_ranking
+              ? `#${Number(cp.global_ranking).toLocaleString()}`
+              : "Member";
+            return {
+              name: platformName,
+              rating: effectiveRating,
+              rank: formattedRank,
+              solved: cp.problems_solved || 0,
+              color,
+              streak: 10,
+              history: [1, 2, 1, 3, 2],
+              logo,
+            };
+          });
+          setPlatformsList(mappedPlatforms);
         }
       }
-      const updated = [newNotif, ...currentNotifs];
-
-      localStorage.setItem("dradix_notifications", JSON.stringify(updated));
-      window.dispatchEvent(new Event("storage"));
-      setNotifications(updated);
-    }, 1500);
+    } catch (err) {
+      console.error("Sync error:", err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleClearNotifications = () => {
@@ -1857,20 +1944,31 @@ export default function DashboardPage() {
           <div className="bg-[#18181b] text-white rounded-[28px] p-6 lg:p-8 grid grid-cols-1 md:grid-cols-5 gap-6">
             <div className="md:col-span-3 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-[16px] font-bold text-white tracking-tight">
-                  Coding Velocity
-                </h3>
+                <div>
+                  <h3 className="text-[16px] font-bold text-white tracking-tight flex items-center gap-2">
+                    Coding Velocity
+                    <span className="text-[9px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                      Live Synced
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    {velocityData.find((d) => d.month === selectedVelocityMonth)?.commits || 0} commits in {selectedVelocityMonth}
+                  </p>
+                </div>
                 <div className="flex items-center gap-2">
-                  <button className="w-8 h-8 rounded-lg bg-[#27272a] flex items-center justify-center">
-                    <CalendarIcon className="w-4 h-4 text-zinc-300" />
-                  </button>
-                  <button className="w-8 h-8 rounded-lg bg-[#27272a] flex items-center justify-center">
-                    <ArrowRightIcon className="w-4 h-4 text-zinc-300 -rotate-45" />
+                  <button
+                    onClick={handleSyncAll}
+                    disabled={isSyncing}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#27272a] hover:bg-zinc-700 text-xs font-semibold text-zinc-200 transition-all cursor-pointer"
+                    title="Sync Velocity & Profiles"
+                  >
+                    <UpdateIcon className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin text-emerald-400" : "text-zinc-300"}`} />
+                    <span>{isSyncing ? "Syncing..." : "Sync Velocity"}</span>
                   </button>
                 </div>
               </div>
 
-              <div className="flex gap-2 text-[10px] text-zinc-500 overflow-x-auto pb-1">
+              <div className="flex gap-1.5 text-[11px] overflow-x-auto pb-1.5 pt-1 scrollbar-none">
                 {[
                   "Jan",
                   "Feb",
@@ -1884,20 +1982,31 @@ export default function DashboardPage() {
                   "Oct",
                   "Nov",
                   "Dec",
-                ].map((m) => (
-                  <span
-                    key={m}
-                    className={`px-2 py-0.5 rounded ${m === "May" ? "text-white font-bold" : ""}`}
-                  >
-                    {m}
-                  </span>
-                ))}
+                ].map((m) => {
+                  const isSelected = selectedVelocityMonth === m;
+                  const monthCommits = velocityData.find((d) => d.month === m)?.commits || 0;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setSelectedVelocityMonth(m)}
+                      className={`px-2.5 py-1 rounded-lg transition-all duration-200 text-[11px] font-semibold cursor-pointer shrink-0 ${
+                        isSelected
+                          ? "bg-[#005c58] text-white font-extrabold shadow-md scale-105"
+                          : "bg-[#27272a] text-zinc-400 hover:text-white hover:bg-zinc-700"
+                      }`}
+                      title={`${m}: ${monthCommits} commits`}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="h-44 relative mt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <ReChartsBarChart
-                    data={fulfillmentData}
+                    data={velocityData}
                     margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
                     onMouseMove={(state: Record<string, unknown>) => {
                       const activePayload = state?.activePayload as
@@ -1911,12 +2020,12 @@ export default function DashboardPage() {
                   >
                     <XAxis
                       dataKey="month"
-                      tick={{ fill: "#52525b", fontSize: 10 }}
+                      tick={{ fill: "#71717a", fontSize: 10 }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fill: "#52525b", fontSize: 10 }}
+                      tick={{ fill: "#71717a", fontSize: 10 }}
                       axisLine={false}
                       tickLine={false}
                     />
@@ -1940,8 +2049,8 @@ export default function DashboardPage() {
                           const cellData = payload[0].payload;
                           return (
                             <div className="bg-[#18181b] border border-zinc-800 text-white p-2.5 rounded-xl shadow-lg text-[11px] font-bold">
-                              <p className="text-zinc-500">{cellData.month}</p>
-                              <p className="text-white text-[13px] font-black">
+                              <p className="text-zinc-400">{cellData.month}</p>
+                              <p className="text-emerald-400 text-[13px] font-black">
                                 {cellData.commits} commits
                               </p>
                             </div>
@@ -1951,27 +2060,20 @@ export default function DashboardPage() {
                       }}
                     />
                     <Bar dataKey="commits" fill="#3f3f46" radius={[4, 4, 0, 0]}>
-                      {fulfillmentData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={
-                            entry.month === "May" ||
-                            (hoveredBar && hoveredBar.month === entry.month)
-                              ? "#005c58"
-                              : "#27272a"
-                          }
-                        />
-                      ))}
+                      {velocityData.map((entry, index) => {
+                        const isHighlighted =
+                          entry.month === selectedVelocityMonth ||
+                          (hoveredBar && hoveredBar.month === entry.month);
+                        return (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={isHighlighted ? "#005c58" : "#27272a"}
+                          />
+                        );
+                      })}
                     </Bar>
                   </ReChartsBarChart>
                 </ResponsiveContainer>
-
-                <div className="absolute top-2 left-[36%] pointer-events-none flex flex-col items-center">
-                  <div className="bg-white text-black text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow">
-                    87%
-                  </div>
-                  <div className="w-0.5 h-32 bg-white/40 border-dashed border-white mt-1" />
-                </div>
               </div>
             </div>
 
