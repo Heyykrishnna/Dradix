@@ -1,7 +1,19 @@
 export const cleanUrl = (url: string): string => {
+  if (!url) return 'http://localhost:5001/api/v1';
   let cleaned = url.trim();
   cleaned = cleaned.replace(/^(https?:?\/\/+)+/i, '');
   cleaned = cleaned.replace(/^(https?\/+)+/i, '');
+
+  cleaned = cleaned.replace(/\/+$/, '');
+
+  if (!cleaned.endsWith('/api/v1')) {
+    if (cleaned.endsWith('/api')) {
+      cleaned = `${cleaned}/v1`;
+    } else {
+      cleaned = `${cleaned}/api/v1`;
+    }
+  }
+
   const isLocal = cleaned.includes('localhost') || cleaned.includes('127.0.0.1');
   const protocol = isLocal ? 'http://' : 'https://';
   return protocol + cleaned;
@@ -83,7 +95,8 @@ interface FetchOptions extends RequestInit {
 
 export async function apiFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
   const { skipAuth = false, headers = {}, ...rest } = options;
-  const url = `${API_URL}${path}`;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const url = `${API_URL}${normalizedPath}`;
 
   const buildHeaders = (overrideToken?: string): Headers => {
     const h = new Headers(headers);
