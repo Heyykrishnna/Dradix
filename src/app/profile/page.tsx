@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import DocumentUploadModal from "@/components/DocumentUploadModal";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
@@ -52,6 +53,8 @@ import {
   FaChevronDown,
   FaList,
   FaRotate,
+  FaGear,
+  FaRightFromBracket,
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -603,7 +606,7 @@ const ActivityStatsChart = () => {
 };
 
 export default function ProfilePage() {
-  const { user, checkAuth } = useAuth();
+  const { user, checkAuth, logout } = useAuth();
   const { userSkills, addSkill, removeSkill, updateSkillPct } = useSkills();
   const [profile, setProfile] = useState<Omit<ProfileState, "skills">>(() => {
     if (typeof window !== "undefined") {
@@ -1585,6 +1588,14 @@ export default function ProfilePage() {
 
           <div className="flex items-center gap-3 self-start md:self-end">
             <button
+              type="button"
+              onClick={() => logout()}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-200/80 transition-all shadow-xs cursor-pointer"
+            >
+              <FaRightFromBracket className="w-3.5 h-3.5" />
+              <span>Log Out</span>
+            </button>
+            <button
               onClick={() => {
                 if (!isEditing) {
                   setFormState({ ...profile });
@@ -1609,6 +1620,12 @@ export default function ProfilePage() {
                 </>
               )}
             </button>
+            <Link
+              href="/dashboard/settings"
+              className="flex items-center gap-2 px-2 text-zinc-800 transition-all shadow-xs cursor-pointer"
+            >
+              <FaGear className="w-3.5 h-3.5 text-zinc-600" />
+            </Link>
           </div>
         </div>
       </div>
