@@ -585,6 +585,7 @@ interface DashboardResponseData {
       monthlyCommits?: Array<{ month: string; commits: number }>;
     };
     monthly_commits?: Array<{ month: string; commits: number }>;
+    languages_used?: Record<string, number>;
   };
   coding_profiles?: Array<{
     platform: string;
@@ -735,6 +736,13 @@ export default function DashboardPage() {
   const [velocityData, setVelocityData] =
     useState<Array<{ month: string; commits: number }>>(fulfillmentData);
   const [isAvgHovered, setIsAvgHovered] = useState<boolean>(false);
+  const [languagesList, setLanguagesList] = useState<
+    Array<{ name: string; value: number; color: string }>
+  >(languageData);
+  const [hoveredLanguage, setHoveredLanguage] = useState<{
+    name: string;
+    value: number;
+  } | null>(null);
 
   const [projectModalType, setProjectModalType] = useState<
     "add" | "edit" | "delete" | "analytics" | null
@@ -1540,6 +1548,83 @@ export default function DashboardPage() {
                 totalProblems: totalProblemsSum,
                 newRepos: data.projects?.length || 2,
               });
+            }
+
+            const DEFAULT_LANG_COLORS: Record<string, string> = {
+              TypeScript: "#3b82f6",
+              JavaScript: "#f7df1e",
+              Python: "#f59e0b",
+              Rust: "#f43f5e",
+              Go: "#005c58",
+              Java: "#b07219",
+              "C++": "#f34b7d",
+              C: "#555555",
+              HTML: "#e34c26",
+              CSS: "#563d7c",
+              PHP: "#4f5d95",
+              Ruby: "#701516",
+              Swift: "#ffac45",
+              Kotlin: "#A97BFF",
+              Shell: "#89e051",
+            };
+            const FALLBACK_COLORS = [
+              "#3b82f6",
+              "#f59e0b",
+              "#f43f5e",
+              "#005c58",
+              "#a855f7",
+              "#ec4899",
+              "#14b8a6",
+            ];
+
+            const counts: Record<string, number> = {};
+            if (
+              data.github?.languages_used &&
+              Object.keys(data.github.languages_used).length > 0
+            ) {
+              Object.entries(data.github.languages_used).forEach(
+                ([lang, count]) => {
+                  if (lang && typeof count === "number" && count > 0) {
+                    counts[lang] = (counts[lang] || 0) + count;
+                  }
+                },
+              );
+            }
+
+            if (
+              Object.keys(counts).length === 0 &&
+              data.projects &&
+              data.projects.length > 0
+            ) {
+              data.projects.forEach((p) => {
+                let stackList: string[] = [];
+                if (Array.isArray(p.tech_stack)) {
+                  stackList = p.tech_stack;
+                } else if (typeof p.tech_stack === "string") {
+                  stackList = (p.tech_stack as string)
+                    .split(",")
+                    .map((s: string) => s.trim());
+                }
+                stackList.forEach((s: string) => {
+                  if (s) counts[s] = (counts[s] || 0) + 1;
+                });
+              });
+            }
+
+            const langEntries = Object.entries(counts);
+            if (langEntries.length > 0) {
+              const total = langEntries.reduce((acc, [, c]) => acc + c, 0);
+              const sorted = langEntries
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 4);
+              const builtLangs = sorted.map(([name, count], idx) => ({
+                name,
+                value: Math.round((count / total) * 100),
+                color:
+                  DEFAULT_LANG_COLORS[name] ||
+                  FALLBACK_COLORS[idx % FALLBACK_COLORS.length],
+              }));
+              setLanguagesList(builtLangs);
             }
           }
 
@@ -2411,18 +2496,24 @@ export default function DashboardPage() {
                     onMouseLeave={() => setTrafficTooltipPos(null)}
                   >
                     <Pie
-                      data={languageData}
+                      data={languagesList}
                       cx="50%"
                       cy="85%"
                       startAngle={180}
                       endAngle={0}
                       innerRadius={50}
                       outerRadius={65}
-                      paddingAngle={2}
+                      paddingAngle={3}
                       dataKey="value"
                     >
-                      {languageData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      {languagesList.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color}
+                          className="cursor-pointer transition-all duration-200 hover:opacity-80"
+                          onMouseEnter={() => setHoveredLanguage(entry)}
+                          onMouseLeave={() => setHoveredLanguage(null)}
+                        />
                       ))}
                     </Pie>
                     <Tooltip
@@ -2436,7 +2527,7 @@ export default function DashboardPage() {
                         ) {
                           const cellData = payload[0].payload;
                           return (
-                            <div className="bg-[#18181b] border border-zinc-800 text-white p-2.5 rounded-xl shadow-lg text-[11px] font-bold">
+                            <div className="bg-[#18181b] border border-zinc-800 text-white p-2 rounded-xl shadow-lg text-[11px] font-bold">
                               <p className="text-white">
                                 {cellData.name}: {cellData.value}%
                               </p>
@@ -2448,27 +2539,48 @@ export default function DashboardPage() {
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute bottom-2 flex flex-col items-center">
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
-                    TypeScript
-                  </p>
-                  <p className="text-[18px] font-black text-white">42%</p>
-                </div>
+                {(() => {
+                  const activeLang =
+                    hoveredLanguage ||
+                    languagesList[0] || { name: "TypeScript", value: 42 };
+                  return (
+                    <div className="absolute bottom-2 flex flex-col items-center pointer-events-none transition-all duration-200">
+                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-extrabold">
+                        {activeLang.name}
+                      </p>
+                      <p className="text-[20px] font-black text-white leading-none mt-0.5">
+                        {activeLang.value}%
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-[10px] text-zinc-400">
-                {languageData.map((lang) => (
-                  <div key={lang.name} className="flex items-center gap-1.5">
+              <div className="grid grid-cols-2 gap-2 text-[10px] text-zinc-400 pt-1">
+                {languagesList.map((lang) => {
+                  const isHovered = hoveredLanguage?.name === lang.name;
+                  return (
                     <div
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: lang.color }}
-                    />
-                    <span className="truncate">{lang.name}</span>
-                    <span className="ml-auto font-bold text-white">
-                      {lang.value}%
-                    </span>
-                  </div>
-                ))}
+                      key={lang.name}
+                      onMouseEnter={() => setHoveredLanguage(lang)}
+                      onMouseLeave={() => setHoveredLanguage(null)}
+                      className={`flex items-center gap-1.5 p-1 rounded-md transition-all cursor-pointer ${
+                        isHovered
+                          ? "bg-zinc-800/80 text-white"
+                          : "hover:text-zinc-200"
+                      }`}
+                    >
+                      <div
+                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+                        style={{ backgroundColor: lang.color }}
+                      />
+                      <span className="truncate font-medium">{lang.name}</span>
+                      <span className="ml-auto font-black text-white">
+                        {lang.value}%
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
