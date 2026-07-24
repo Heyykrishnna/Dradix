@@ -81,12 +81,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updateCachedUser(null);
       }
     } catch {
-      if (
-        typeof window !== "undefined" &&
-        !localStorage.getItem("dradix_auth_user")
-      ) {
-        updateCachedUser(null);
-      }
+      updateCachedUser(null);
+      setAccessToken(null);
+      setRefreshToken(null);
     } finally {
       setLoading(false);
     }
@@ -106,12 +103,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch {
         if (active) {
-          if (
-            typeof window !== "undefined" &&
-            !localStorage.getItem("dradix_auth_user")
-          ) {
-            updateCachedUser(null);
-          }
+          updateCachedUser(null);
+          setAccessToken(null);
+          setRefreshToken(null);
         }
       } finally {
         if (active) setLoading(false);
