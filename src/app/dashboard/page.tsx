@@ -734,6 +734,7 @@ export default function DashboardPage() {
     useState<string>("May");
   const [velocityData, setVelocityData] =
     useState<Array<{ month: string; commits: number }>>(fulfillmentData);
+  const [isAvgHovered, setIsAvgHovered] = useState<boolean>(false);
 
   const [projectModalType, setProjectModalType] = useState<
     "add" | "edit" | "delete" | "analytics" | null
@@ -2058,6 +2059,57 @@ export default function DashboardPage() {
                   <div className="border-b border-zinc-700 w-full" />
                   <div className="border-b border-zinc-700 w-full" />
                 </div>
+
+                {(() => {
+                  const totalCommits = velocityData.reduce(
+                    (acc, curr) => acc + curr.commits,
+                    0,
+                  );
+                  const avgCommits =
+                    velocityData.length > 0
+                      ? Math.round(totalCommits / velocityData.length)
+                      : 0;
+                  const maxCommits = Math.max(
+                    ...velocityData.map((d) => d.commits),
+                    1,
+                  );
+                  const avgPercent = Math.min(
+                    90,
+                    Math.max(15, Math.round((avgCommits / maxCommits) * 100)),
+                  );
+
+                  return (
+                    <div
+                      onMouseEnter={() => setIsAvgHovered(true)}
+                      onMouseLeave={() => setIsAvgHovered(false)}
+                      style={{ bottom: `${avgPercent}%` }}
+                      className="absolute left-0 right-0 z-20 group cursor-pointer flex items-center"
+                    >
+                      <div className="absolute -top-3 -bottom-3 inset-x-0 z-10" />
+
+                      <div className="w-full border-b-2 border-dashed border-[#003c3a] opacity-90" />
+
+                      <AnimatePresence>
+                        {isAvgHovered && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 3, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 3, scale: 0.96 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute left-1/2 -translate-x-1/2 -top-8 z-40 bg-[#18181b] border border-zinc-800 text-white px-2 py-0.5 rounded-md shadow-md text-[9px] font-medium whitespace-nowrap pointer-events-none flex items-center gap-1.5"
+                          >
+                            <span className="text-zinc-400">
+                              Avg Monthly Commits:
+                            </span>
+                            <span className="text-emerald-400 font-bold">
+                              {avgCommits}
+                            </span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })()}
 
                 <div className="relative w-full h-36 flex items-end justify-between px-1 z-10 gap-1.5">
                   {(() => {
