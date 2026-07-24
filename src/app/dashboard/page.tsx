@@ -429,7 +429,6 @@ function SkillsSection({ projectsList }: { projectsList: Project[] }) {
                 {skill.name}
               </span>
 
-              {/* Level badge */}
               <span
                 className={`text-[8px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}
               >
@@ -2006,7 +2005,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Month Selector Buttons with Framer Motion layoutId */}
               <div className="flex gap-1.5 text-[11px] overflow-x-auto pb-1.5 pt-1 scrollbar-none relative">
                 {[
                   "Jan",
@@ -2054,16 +2052,13 @@ export default function DashboardPage() {
                 })}
               </div>
 
-              {/* Ultra Smooth Framer Motion Animated Bar Chart */}
               <div className="h-44 relative mt-3 flex flex-col justify-between pt-6 pb-1">
-                {/* Horizontal Grid Lines */}
                 <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 z-0">
                   <div className="border-b border-zinc-700 w-full" />
                   <div className="border-b border-zinc-700 w-full" />
                   <div className="border-b border-zinc-700 w-full" />
                 </div>
 
-                {/* Bars Container */}
                 <div className="relative w-full h-36 flex items-end justify-between px-1 z-10 gap-1.5">
                   {(() => {
                     const maxCommits = Math.max(
@@ -2086,7 +2081,6 @@ export default function DashboardPage() {
                           onMouseLeave={() => setHoveredBar(null)}
                           className="flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group"
                         >
-                          {/* Floating Commit Badge smoothly sliding right above selected bar */}
                           {(isSelected || isHovered) && (
                             <motion.div
                               layoutId="floatingVelocityBadge"
@@ -2104,7 +2098,6 @@ export default function DashboardPage() {
                             </motion.div>
                           )}
 
-                          {/* Glowing Beam behind active column */}
                           {isSelected && (
                             <motion.div
                               layoutId="glowingVelocityBeam"
@@ -2117,7 +2110,6 @@ export default function DashboardPage() {
                             />
                           )}
 
-                          {/* Smooth Spring Animated Bar */}
                           <motion.div
                             className="w-full rounded-t-md relative z-10"
                             initial={false}
@@ -2134,7 +2126,6 @@ export default function DashboardPage() {
                             }}
                           />
 
-                          {/* Month Label */}
                           <span
                             className={`text-[10px] mt-1.5 transition-colors font-medium ${
                               isSelected
@@ -2483,7 +2474,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Category 2: Projects & Tech Profiles */}
         <div className="space-y-6">
           <div id="projects" className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -2950,7 +2940,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Category 3: Skills & Academic Roadmap */}
         <div className="space-y-6">
           <SkillsSection projectsList={projectsList} />
 
@@ -3073,7 +3062,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Category 4: Achievements & Timeline */}
         <div className="space-y-6">
           <div
             id="achievements"
@@ -3243,7 +3231,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Smooth bottom fade-out overlay when not hovered */}
               <div className="absolute bottom-0 left-0 right-0 h-16 bg-linear-to-t from-[#f4f4f5] to-transparent pointer-events-none transition-all duration-500 ease-in-out group-hover/notif-card:opacity-0 group-hover/notif-card:pointer-events-none" />
             </div>
           </div>
@@ -3296,7 +3283,6 @@ export default function DashboardPage() {
         </footer>
       </div>
 
-      {/* Step 1: GitHub Repositories Selector Modal */}
       {projectModalType === "add" && addProjectStep === "github_select" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-all duration-300 ease-in-out text-left animate-fade-in">
           <div className="bg-white rounded-3xl border border-zinc-200 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col animate-scale-in text-left max-h-[90vh]">
@@ -3332,7 +3318,6 @@ export default function DashboardPage() {
 
             <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
               {!isGitHubConnected ? (
-                /* Unauthenticated Direct GitHub OAuth Sign-In View */
                 <div className="py-6 space-y-4 text-center bg-zinc-50 border border-zinc-200/80 rounded-2xl p-6">
                   <div className="w-12 h-12 rounded-2xl bg-zinc-900 text-white flex items-center justify-center mx-auto shadow-xs">
                     <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -3378,7 +3363,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                /* Connected Status & Repositories View */
                 <div className="space-y-4">
                   <div className="p-3.5 rounded-2xl bg-zinc-900 text-white flex items-center justify-between shadow-xs">
                     <div className="flex items-center gap-2.5">
@@ -3401,7 +3385,6 @@ export default function DashboardPage() {
                     </button>
                   </div>
 
-                  {/* Filter Pills with Animated Sliding Indicator */}
                   <div className="flex items-center justify-between">
                     <RepoVisibilitySlider
                       filter={repoVisibilityFilter}
@@ -3427,7 +3410,6 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* Repos Grid */}
               {isGitHubConnected && githubRepos.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[42vh] overflow-y-auto pr-1">
                   {githubRepos
@@ -3555,7 +3537,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Step 2: Main Project Form Modal */}
       {((projectModalType === "add" && addProjectStep === "form") ||
         projectModalType === "edit") && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-all duration-300 ease-in-out text-left animate-fade-in">
@@ -3856,7 +3837,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {projectModalType === "delete" && selectedProject && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out text-left animate-fade-in">
           <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-sm overflow-hidden flex flex-col animate-scale-in text-left">
@@ -3901,7 +3881,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Project Analytics Modal */}
       {projectModalType === "analytics" &&
         selectedProject &&
         (() => {
@@ -4042,7 +4021,6 @@ export default function DashboardPage() {
                           </linearGradient>
                         </defs>
 
-                        {/* Grid Lines */}
                         {[0, 1, 2, 3].map((g) => {
                           const y = 30 + g * 50;
                           return (
@@ -4059,7 +4037,6 @@ export default function DashboardPage() {
                           );
                         })}
 
-                        {/* Vertical Hover Guideline */}
                         {hoveredDataPoint &&
                           (() => {
                             const hp = points.find(
@@ -4080,7 +4057,6 @@ export default function DashboardPage() {
                             );
                           })()}
 
-                        {/* Area Fill */}
                         {areaD && (
                           <path
                             d={areaD}
@@ -4089,7 +4065,6 @@ export default function DashboardPage() {
                           />
                         )}
 
-                        {/* Line Path */}
                         {pathD && (
                           <path
                             d={pathD}
@@ -4102,7 +4077,6 @@ export default function DashboardPage() {
                           />
                         )}
 
-                        {/* Data Point Circles */}
                         {points.map((p, idx) => {
                           const isHovered =
                             hoveredDataPoint?.month === p.data.month;
@@ -4120,7 +4094,6 @@ export default function DashboardPage() {
                           );
                         })}
 
-                        {/* Tooltip Popup */}
                         {hoveredDataPoint &&
                           (() => {
                             const hp = points.find(
@@ -4133,7 +4106,6 @@ export default function DashboardPage() {
                               ].toLocaleString();
                             return (
                               <g className="pointer-events-none transition-all duration-200">
-                                {/* Drop shadow indicator */}
                                 <rect
                                   x={hp.x - 45}
                                   y={hp.y - 37}
@@ -4160,7 +4132,6 @@ export default function DashboardPage() {
                             );
                           })()}
 
-                        {/* Invisible Hover overlay bars */}
                         {points.map((p, idx) => (
                           <rect
                             key={`hover-col-${idx}`}
@@ -4174,7 +4145,6 @@ export default function DashboardPage() {
                           />
                         ))}
 
-                        {/* X Axis Labels */}
                         {points.map((p, idx) => (
                           <text
                             key={idx}
