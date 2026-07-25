@@ -435,10 +435,11 @@ export default function AdminNotificationStudio({
                         filteredUsersForSelect.map((u) => {
                           const isSel = selectedUserIds.includes(u.id);
                           return (
-                            <div
+                            <button
+                              type="button"
                               key={u.id}
                               onClick={() => handleSelectUser(u.id)}
-                              className={`flex items-center justify-between p-1.5 rounded cursor-pointer ${
+                              className={`w-full text-left flex items-center justify-between p-1.5 rounded cursor-pointer ${
                                 isSel
                                   ? "bg-zinc-200 font-semibold text-zinc-900"
                                   : "hover:bg-zinc-50 text-zinc-700"
@@ -450,7 +451,7 @@ export default function AdminNotificationStudio({
                               <span className="font-mono text-zinc-400">
                                 #{u.id}
                               </span>
-                            </div>
+                            </button>
                           );
                         })
                       )}
