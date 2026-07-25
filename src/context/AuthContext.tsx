@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { SafeUser, ApiResponse } from "../types/auth";
 import { apiFetch, setAccessToken, setRefreshToken } from "../lib/api";
 import Loader from "@/components/Loader";
+import VideoLoaderBackground from "@/components/VideoLoaderBackground";
 
 interface AuthContextType {
   user: SafeUser | null;
@@ -272,9 +273,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 min-h-screen bg-white flex items-center justify-center z-50">
+      <VideoLoaderBackground className="fixed inset-0 min-h-screen z-50">
         <Loader />
-      </div>
+      </VideoLoaderBackground>
     );
   }
 

@@ -34,6 +34,7 @@ import { useSkills } from "@/context/SkillsContext";
 import SegmentedSlider from "./components/SegmentedSlider";
 import { apiFetch } from "@/lib/api";
 import Loader from "@/components/Loader";
+import VideoLoaderBackground from "@/components/VideoLoaderBackground";
 
 const ErrorQuestionTooltip = ({ message }: { message: string }) => {
   return (
@@ -1972,12 +1973,9 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] w-full my-auto py-20">
+      <VideoLoaderBackground className="min-h-[calc(100vh-140px)] rounded-3xl py-20 my-auto">
         <Loader />
-        <p className="mt-6 text-sm font-medium text-zinc-400 animate-pulse tracking-wide">
-          Fetching Dashboard Data...
-        </p>
-      </div>
+      </VideoLoaderBackground>
     );
   }
 
