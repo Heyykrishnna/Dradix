@@ -96,10 +96,10 @@ export default function PrivacyPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-zinc-50 border border-zinc-200/80 rounded-2xl p-5">
-              <h4 className="font-bold text-zinc-900 text-sm mb-2">
+              <h4 className="font-bold text-zinc-900 text-sm mb-3">
                 Account & Identity Information
               </h4>
-              <ul className="text-xs text-zinc-600 space-y-2 list-disc list-inside leading-relaxed">
+              <ul className="text-xs text-zinc-600 space-y-2.5 list-disc list-outside pl-4 leading-relaxed marker:text-[#015451]">
                 <li>
                   Full name, display username, and email address (
                   <span className="text-[#015451] font-medium">
@@ -119,10 +119,10 @@ export default function PrivacyPage() {
             </div>
 
             <div className="bg-zinc-50 border border-zinc-200/80 rounded-2xl p-5">
-              <h4 className="font-bold text-zinc-900 text-sm mb-2">
+              <h4 className="font-bold text-zinc-900 text-sm mb-3">
                 Connected Developer Platforms
               </h4>
-              <ul className="text-xs text-zinc-600 space-y-2 list-disc list-inside leading-relaxed">
+              <ul className="text-xs text-zinc-600 space-y-2.5 list-disc list-outside pl-4 leading-relaxed marker:text-[#015451]">
                 <li>
                   <strong>GitHub:</strong> Repository metadata, commit counts,
                   pull requests, language breakdowns, star counts, and
@@ -141,10 +141,10 @@ export default function PrivacyPage() {
             </div>
 
             <div className="bg-zinc-50 border border-zinc-200/80 rounded-2xl p-5">
-              <h4 className="font-bold text-zinc-900 text-sm mb-2">
+              <h4 className="font-bold text-zinc-900 text-sm mb-3">
                 AI Career Coach & Interactions
               </h4>
-              <ul className="text-xs text-zinc-600 space-y-2 list-disc list-inside leading-relaxed">
+              <ul className="text-xs text-zinc-600 space-y-2.5 list-disc list-outside pl-4 leading-relaxed marker:text-[#015451]">
                 <li>Prompts and questions submitted to the AI Career Coach.</li>
                 <li>
                   Uploaded resume snippets or text formatted for AI feedback.
@@ -157,10 +157,10 @@ export default function PrivacyPage() {
             </div>
 
             <div className="bg-zinc-50 border border-zinc-200/80 rounded-2xl p-5">
-              <h4 className="font-bold text-zinc-900 text-sm mb-2">
+              <h4 className="font-bold text-zinc-900 text-sm mb-3">
                 Technical & Device Telemetry
               </h4>
-              <ul className="text-xs text-zinc-600 space-y-2 list-disc list-inside leading-relaxed">
+              <ul className="text-xs text-zinc-600 space-y-2.5 list-disc list-outside pl-4 leading-relaxed marker:text-[#015451]">
                 <li>
                   IP address, browser type, user-agent string, and operating
                   system.
@@ -371,7 +371,7 @@ export default function PrivacyPage() {
           </p>
 
           <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 space-y-3">
-            <h5 className="text-xs font-bold text-zinc-900 uppercase tracking-wider text-[#015451]">
+            <h5 className="text-xs font-bold uppercase tracking-wider text-[#015451]">
               How Permission Revocation Works
             </h5>
             <p className="text-xs text-zinc-600 leading-relaxed">
@@ -381,7 +381,7 @@ export default function PrivacyPage() {
               authorization within the respective provider settings:
             </p>
 
-            <ul className="text-xs text-zinc-600 space-y-2 list-disc list-inside pl-2">
+            <ul className="text-xs text-zinc-600 space-y-2.5 list-disc list-outside pl-4 leading-relaxed marker:text-[#015451]">
               <li>
                 <strong>GitHub OAuth:</strong> Revoke via{" "}
                 <a
@@ -430,7 +430,7 @@ export default function PrivacyPage() {
               </a>
               ):
             </p>
-            <ul className="text-xs text-[#003c3a]/90 space-y-1.5 list-disc list-inside">
+            <ul className="text-xs text-[#003c3a]/90 space-y-2 list-disc list-outside pl-4 leading-relaxed marker:text-[#015451]">
               <li>
                 Your profile access and public showcase page are immediately
                 disabled.
@@ -669,23 +669,6 @@ export default function PrivacyPage() {
                   {contactEmail}
                 </a>
               </div>
-
-              <button
-                onClick={handleCopyEmail}
-                className="bg-[#015451] hover:bg-[#003c3a] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-2 self-start sm:self-center cursor-pointer"
-              >
-                {copiedEmail ? (
-                  <>
-                    <CheckIcon className="w-4 h-4 text-emerald-300" />
-                    <span>Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <CopyIcon className="w-4 h-4" />
-                    <span>Copy Address</span>
-                  </>
-                )}
-              </button>
             </div>
 
             <div className="pt-3 border-t border-[#015451]/15 text-xs text-[#003c3a]/80 space-y-1">
@@ -757,19 +740,20 @@ export default function PrivacyPage() {
 
   return (
     <div className="relative min-h-screen bg-zinc-950 text-zinc-900 font-sans antialiased selection:bg-[#015451] selection:text-white">
-      <header className="relative w-full overflow-hidden bg-zinc-900 border-b border-zinc-800 text-white min-h-[540px] sm:min-h-[640px] md:min-h-[700px] flex flex-col justify-between">
-        <div className="absolute inset-0 -z-10 select-none pointer-events-none">
+      <header className="relative z-0 w-full overflow-hidden border-b border-zinc-800 text-white min-h-125 sm:min-h-150 md:min-h-170 flex flex-col justify-between">
+        <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <Image
-            src="/assets/images/HERO-BG.png"
+            src="/assets/images/PRIV-BG.png"
             alt="Hero Background"
             fill
             priority
             sizes="100vw"
-            className="object-cover object-center brightness-90 contrast-85 scale-105"
+            className="object-cover object-center brightness-50"
           />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
         </div>
 
-        <Noise patternAlpha={22} />
+        <Noise patternAlpha={18} />
 
         <nav className="w-full max-w-7xl mx-auto px-6 h-24 flex items-center justify-between z-20 relative">
           <Link href="/" className="flex items-center group">
@@ -923,7 +907,7 @@ export default function PrivacyPage() {
                 </nav>
               </div>
 
-              <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 text-white rounded-2xl p-5 shadow-md border border-zinc-800 space-y-3">
+              <div className="bg-linear-to-br from-zinc-900 to-zinc-950 text-white rounded-2xl p-5 shadow-md border border-zinc-800 space-y-3">
                 <h4 className="font-bold text-xs text-emerald-400 uppercase tracking-wider">
                   Privacy At A Glance
                 </h4>
@@ -999,7 +983,7 @@ export default function PrivacyPage() {
                       </h2>
                     </div>
 
-                    {sec.content}
+                    <div className="text-xs sm:text-sm">{sec.content}</div>
                   </section>
                 ))
               )}
@@ -1051,76 +1035,10 @@ export default function PrivacyPage() {
                   })}
                 </div>
               </div>
-
-              <div className="bg-gradient-to-r from-zinc-900 via-zinc-950 to-zinc-900 text-white rounded-2xl p-8 sm:p-12 text-center space-y-4 shadow-xl border border-zinc-800">
-                <h3 className="text-2xl sm:text-3xl font-bold font-heading">
-                  Have Questions About Your Data Privacy?
-                </h3>
-                <p className="text-xs sm:text-sm text-zinc-300 max-w-xl mx-auto leading-relaxed font-normal">
-                  Our Data Protection Officer and Privacy Support engineering
-                  team are here to assist with any questions or requests.
-                </p>
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <a
-                    href={`mailto:${contactEmail}`}
-                    className="bg-[#015451] hover:bg-[#003c3a] text-white text-xs font-bold px-7 py-3.5 rounded-full transition-all shadow-md active:scale-95"
-                  >
-                    Contact {contactEmail}
-                  </a>
-                  <Link
-                    href="/dashboard"
-                    className="text-xs text-zinc-300 hover:text-white font-semibold underline underline-offset-4"
-                  >
-                    Return to Dashboard
-                  </Link>
-                </div>
-              </div>
             </main>
           </div>
         </div>
       </div>
-
-      <footer className="bg-zinc-950 text-zinc-400 border-t border-zinc-800 py-12 text-xs">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-1 text-center md:text-left">
-            <div className="font-heading font-bold text-lg text-white">
-              Dradix
-            </div>
-            <p className="text-zinc-500 text-[11px]">
-              AI-powered developer intelligence & unified career portfolio
-              platform.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-6 text-zinc-300">
-            <Link href="/" className="hover:text-white transition-colors">
-              Home
-            </Link>
-            <Link
-              href="/dashboard"
-              className="hover:text-white transition-colors"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/privacy"
-              className="text-emerald-400 font-semibold hover:text-emerald-300 transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <a
-              href={`mailto:${contactEmail}`}
-              className="hover:text-white transition-colors"
-            >
-              Support ({contactEmail})
-            </a>
-          </div>
-
-          <div className="text-zinc-500 text-[11px] text-center md:text-right">
-            &copy; {new Date().getFullYear()} Dradix. All rights reserved.
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
