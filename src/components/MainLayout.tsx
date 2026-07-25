@@ -567,6 +567,16 @@ export default function MainLayout({
               </div>
             </div>
 
+            {user && (
+              <Link
+                href="/admin"
+                className="px-3 py-1.5 rounded-xl bg-zinc-900 text-white text-[11px] font-bold hover:bg-black transition-all duration-200 flex items-center gap-1.5 shadow-sm border border-zinc-800"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Admin Portal
+              </Link>
+            )}
+
             <Link
               href="/profile"
               className="flex items-center gap-2.5 pl-3 border-l border-zinc-200 hover:opacity-85 transition-opacity cursor-pointer group"
@@ -593,8 +603,8 @@ export default function MainLayout({
                 <p className="text-[12px] font-bold text-black leading-none group-hover:text-zinc-700 transition-colors">
                   {displayName}
                 </p>
-                <p className="text-[10px] text-zinc-400 leading-none mt-1">
-                  Developer
+                <p className="text-[10px] text-zinc-400 font-semibold leading-none mt-1">
+                  {user?.role === "ADMIN" ? "Workspace Admin" : "Developer"}
                 </p>
               </div>
             </Link>

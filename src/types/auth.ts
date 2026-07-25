@@ -1,3 +1,8 @@
+export enum Role {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+
 export interface SafeUser {
   id: number;
   username: string;
@@ -11,6 +16,8 @@ export interface SafeUser {
   skills: string[];
   socials: Record<string, string>;
   two_factor_enabled: boolean;
+  role?: Role;
+  is_verified?: boolean;
   created_at: string;
   updated_at: string;
 }
