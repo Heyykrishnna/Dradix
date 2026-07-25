@@ -566,17 +566,6 @@ export default function MainLayout({
                 </div>
               </div>
             </div>
-
-            {user && (
-              <Link
-                href="/admin"
-                className="px-3 py-1.5 rounded-xl bg-zinc-900 text-white text-[11px] font-bold hover:bg-black transition-all duration-200 flex items-center gap-1.5 shadow-sm border border-zinc-800"
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Admin Portal
-              </Link>
-            )}
-
             <Link
               href="/profile"
               className="flex items-center gap-2.5 pl-3 border-l border-zinc-200 hover:opacity-85 transition-opacity cursor-pointer group"
