@@ -18,7 +18,6 @@ import {
 } from "@radix-ui/react-icons";
 import {
   BarChart as ReChartsBarChart,
-  Bar,
   XAxis,
   YAxis,
   ResponsiveContainer,
@@ -260,27 +259,6 @@ const yearlyActivityData = [
   { day: "Q2", hours: 360, commits: 840, problems: 410 },
   { day: "Q3", hours: 420, commits: 960, problems: 490 },
   { day: "Q4", hours: 380, commits: 910, problems: 450 },
-];
-
-const learningCourses = [
-  {
-    title: "Full Stack Open",
-    provider: "University of Helsinki",
-    pct: 78,
-    color: "#005c58",
-  },
-  {
-    title: "Advanced Rust Programming",
-    provider: "Udemy",
-    pct: 45,
-    color: "#f43f5e",
-  },
-  {
-    title: "System Design Masterclass",
-    provider: "Educative",
-    pct: 92,
-    color: "#3b82f6",
-  },
 ];
 
 const achievementBadges = [
@@ -3327,35 +3305,6 @@ export default function DashboardPage() {
 
         <div className="space-y-6">
           <SkillsSection projectsList={projectsList} />
-
-          <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
-            <h3 className="text-[15px] font-bold text-black tracking-tight">
-              Active Courses
-            </h3>
-            <div className="space-y-3">
-              {learningCourses.map((c) => (
-                <div key={c.title} className="bg-white rounded-xl p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-[13px] font-bold text-black">
-                        {c.title}
-                      </p>
-                      <p className="text-[10px] text-zinc-400">{c.provider}</p>
-                    </div>
-                    <span className="text-[13px] font-black text-black">
-                      {c.pct}%
-                    </span>
-                  </div>
-                  <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full"
-                      style={{ width: `${c.pct}%`, backgroundColor: c.color }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
           <div
             id="career-progress"

@@ -2,27 +2,6 @@
 
 import { MagicWandIcon } from "@radix-ui/react-icons";
 
-const courses = [
-  {
-    title: "Full Stack Open",
-    provider: "University of Helsinki",
-    pct: 78,
-    color: "#003c3a",
-  },
-  {
-    title: "Advanced Rust Programming",
-    provider: "Udemy",
-    pct: 45,
-    color: "#f43f5e",
-  },
-  {
-    title: "System Design Masterclass",
-    provider: "Educative",
-    pct: 92,
-    color: "#3b82f6",
-  },
-];
-
 const weeklyGoals = [
   {
     label: "Solve 15 LeetCode problems",
@@ -53,43 +32,6 @@ export default function LearningTracker() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <div className="xl:col-span-2 space-y-5">
-          <div>
-            <p className="text-[11px] font-semibold text-[#555] mb-3">
-              Active Courses
-            </p>
-            <div className="space-y-3">
-              {courses.map((c) => (
-                <div
-                  key={c.title}
-                  className="bg-[#1c1c1c] rounded-xl p-4 hover:bg-[#222] transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2.5">
-                    <div>
-                      <p className="text-[13px] font-bold text-white">
-                        {c.title}
-                      </p>
-                      <p className="text-[10px] text-[#555]">{c.provider}</p>
-                    </div>
-                    <span
-                      className="text-[13px] font-black shrink-0"
-                      style={{ color: c.color }}
-                    >
-                      {c.pct}%
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-[#141414] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${c.pct}%`, backgroundColor: c.color }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div>
             <p className="text-[11px] font-semibold text-[#555] mb-3">
               Weekly Goals
