@@ -795,9 +795,6 @@ export default function PrivacyPage() {
               <strong className="text-white">July 25, 2026</strong>
             </span>
             <span className="bg-black/50 border border-white/15 px-4 py-2 rounded-xl backdrop-blur-md">
-              Version: <strong className="text-white">1.4 (Current)</strong>
-            </span>
-            <span className="bg-black/50 border border-white/15 px-4 py-2 rounded-xl backdrop-blur-md">
               Official Email:{" "}
               <strong className="text-emerald-400 font-medium">
                 {contactEmail}
@@ -822,24 +819,6 @@ export default function PrivacyPage() {
             </div>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-              <button
-                onClick={handleCopyEmail}
-                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold px-3.5 py-2 rounded-xl border border-zinc-200/90 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-                title="Copy Official Support Email"
-              >
-                {copiedEmail ? (
-                  <>
-                    <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Email Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <CopyIcon className="w-3.5 h-3.5 text-zinc-500" />
-                    <span>Copy Email</span>
-                  </>
-                )}
-              </button>
-
               <button
                 onClick={handlePrint}
                 className="bg-[#015451] hover:bg-[#003c3a] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
