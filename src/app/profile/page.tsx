@@ -1592,14 +1592,6 @@ export default function ProfilePage() {
 
           <div className="flex items-center gap-3 self-start md:self-end">
             <button
-              type="button"
-              onClick={() => logout()}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-200/80 transition-all shadow-xs cursor-pointer"
-            >
-              <FaRightFromBracket className="w-3.5 h-3.5" />
-              <span>Log Out</span>
-            </button>
-            <button
               onClick={() => {
                 if (!isEditing) {
                   setFormState({ ...profile });
@@ -1623,6 +1615,14 @@ export default function ProfilePage() {
                   <span>Edit Profile</span>
                 </>
               )}
+            </button>
+            <button
+              type="button"
+              onClick={() => logout()}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-medium bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-200/80 transition-all shadow-xs cursor-pointer"
+            >
+              <FaRightFromBracket className="w-3 h-3" />
+              <span>Log Out</span>
             </button>
             <Link
               href="/dashboard/settings"
