@@ -69,7 +69,17 @@ export default function Home() {
         </div>
       </main>
 
-      <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-1 backdrop-blur-lg [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_100%)] mask-[linear-gradient(to_bottom,transparent_0%,black_100%)]" />
+      <footer className="w-full max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#015451]/80 z-10">
+        <p>&copy; {new Date().getFullYear()} Dradix. All rights reserved.</p>
+        <div className="flex items-center gap-6">
+          <Link href="/privacy" className="hover:text-[#015451] underline font-medium transition-colors">
+            Privacy Policy
+          </Link>
+          <a href="mailto:support@dradix.dev" className="hover:text-[#015451] underline font-medium transition-colors">
+            support@dradix.dev
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
