@@ -61,21 +61,21 @@ export default function AdminGuard({
     return (
       <VideoLoaderBackground className="fixed inset-0 min-h-screen z-50 flex items-center justify-center bg-black/75 backdrop-blur-lg p-6">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-zinc-200 text-center space-y-6 animate-in fade-in zoom-in duration-300">
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 mx-auto flex items-center justify-center text-2xl shadow-sm">
-            <LockClosedIcon className="w-8 h-8" />
+          <div className="w-16 h-16 rounded-2xl bg-black border border-zinc-900 text-emerald-400 mx-auto flex items-center justify-center text-2xl shadow-xs">
+            <LockClosedIcon className="w-8 h-8 text-emerald-400" />
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-[20px] font-black text-zinc-900 tracking-tight">
+            <h2 className="text-[20px] font-black text-black tracking-tight">
               Administrator Privileges Required
             </h2>
             <p className="text-[13px] text-zinc-500 font-medium leading-relaxed">
               Your account{" "}
-              <span className="font-extrabold text-zinc-800">
+              <span className="font-extrabold text-black">
                 ({user.email})
               </span>{" "}
               is currently registered with the{" "}
-              <span className="font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+              <span className="font-extrabold text-black bg-zinc-100 px-2 py-0.5 rounded-md border border-zinc-200">
                 USER
               </span>{" "}
               role.
@@ -83,7 +83,7 @@ export default function AdminGuard({
           </div>
 
           {errorMsg && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-900 rounded-xl text-[12px] font-bold">
+            <div className="p-3 bg-black border border-zinc-900 text-white rounded-xl text-[12px] font-bold">
               {errorMsg}
             </div>
           )}
