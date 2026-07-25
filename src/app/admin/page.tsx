@@ -2720,7 +2720,6 @@ The dradix Operations Team`,
                                 </td>
                                 <td className="p-2.5">
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
                                     Reserved Priority Spot
                                   </span>
                                 </td>
