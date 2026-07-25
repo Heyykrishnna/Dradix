@@ -5,6 +5,8 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { apiFetch } from "@/lib/api";
+import { ApiResponse } from "@/types/auth";
 import {
   BellIcon,
   HomeIcon,
@@ -231,6 +233,40 @@ export default function MainLayout({
     };
 
     window.addEventListener("storage", handleStorageChange);
+
+    // Sync live in-app notifications from backend for logged in users
+    async function syncUserNotifications() {
+      try {
+        const res = await apiFetch<
+          ApiResponse<{
+            notifications: Array<{
+              id: number;
+              title: string;
+              message: string;
+              created_at: string;
+              is_read: boolean;
+            }>;
+          }>
+        >("/notifications/my");
+        if (res.success && res.data?.notifications) {
+          const apiNotifs = res.data.notifications.map((n) => ({
+            text: `${n.title} — ${n.message}`,
+            time: new Date(n.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            type: "system",
+          }));
+          if (apiNotifs.length > 0) {
+            setNotifications(apiNotifs);
+          }
+        }
+      } catch {
+        // guest or non-auth session fallback
+      }
+    }
+    void syncUserNotifications();
+
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 

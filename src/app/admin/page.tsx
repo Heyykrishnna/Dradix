@@ -7,6 +7,7 @@ import AdminGuard from "@/components/AdminGuard";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/auth";
+import AdminNotificationStudio from "@/components/AdminNotificationStudio";
 import {
   DashboardIcon,
   PersonIcon,
@@ -460,7 +461,7 @@ export default function AdminPage() {
 function AdminDashboardContent() {
   const { user, checkAuth } = useAuth();
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "users" | "logs" | "health" | "assets"
+    "dashboard" | "users" | "notifications" | "logs" | "health" | "assets"
   >("dashboard");
 
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -1271,7 +1272,7 @@ The dradix Operations Team`,
   const upcomingList = analyticsData?.upcomingActivities || [];
 
   const navItems: {
-    id: "dashboard" | "users" | "logs" | "health" | "assets";
+    id: "dashboard" | "users" | "notifications" | "logs" | "health" | "assets";
     label: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: React.ReactNode;
@@ -1290,6 +1291,16 @@ The dradix Operations Team`,
           {stats.counts.totalUsers}
         </span>
       ) : null,
+    },
+    {
+      id: "notifications",
+      label: "Send Notifications",
+      icon: EnvelopeClosedIcon,
+      badge: (
+        <span className="text-[10px] bg-[#015451]/10 text-[#015451] font-mono font-semibold px-1.5 py-0.2 rounded border border-[#015451]/20">
+          Live
+        </span>
+      ),
     },
     {
       id: "logs",
@@ -1436,6 +1447,8 @@ The dradix Operations Team`,
               <DashboardIcon className="w-4 h-4 text-[#015451]" />
               {activeTab === "dashboard" && "Operations Telemetry"}
               {activeTab === "users" && "User Directory & Management"}
+              {activeTab === "notifications" &&
+                "Notification Dispatch & Target Studio"}
               {activeTab === "logs" && "System Audit Logs"}
               {activeTab === "health" && "Infrastructure & Service Health"}
               {activeTab === "assets" && "Platform Assets & Metrics"}
@@ -2545,6 +2558,13 @@ The dradix Operations Team`,
                     </div>
                   </div>
                 </div>
+              )}
+
+              {activeTab === "notifications" && (
+                <AdminNotificationStudio
+                  usersList={usersList}
+                  showNotice={showNotice}
+                />
               )}
 
               {activeTab === "assets" && (
