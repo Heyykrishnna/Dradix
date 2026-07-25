@@ -22,7 +22,6 @@ import {
   BellIcon,
   TargetIcon,
   TrashIcon,
-  LayersIcon,
 } from "@radix-ui/react-icons";
 
 interface AdminUserItem {
@@ -482,7 +481,7 @@ function AdminDashboardContent() {
   const pipelineRows = analyticsData?.openPipeline || [];
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans flex antialiased selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-white text-black font-sans flex antialiased selection:bg-[#015451] selection:text-white">
       {/* Sidebar */}
       <aside className="w-64 border-r border-zinc-200 bg-white flex flex-col justify-between p-4 shrink-0 shadow-xs z-20">
         <div className="space-y-6">
@@ -491,16 +490,10 @@ function AdminDashboardContent() {
               href="/admin"
               className="flex items-center gap-2.5 group cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center text-white font-black text-sm shadow-sm group-hover:scale-105 transition-transform border border-zinc-900">
-                <LayersIcon className="w-4 h-4 text-emerald-400" />
-              </div>
               <span className="font-extrabold text-[16px] tracking-tight text-black">
-                dradix <span className="text-emerald-600 font-bold">Admin</span>
+                dradix <span className="text-[#015451] font-bold">Admin</span>
               </span>
             </Link>
-            <button className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-black transition-colors">
-              <ChevronDownIcon className="w-4 h-4" />
-            </button>
           </div>
 
           <div className="space-y-1">
@@ -532,7 +525,7 @@ function AdminDashboardContent() {
                 <span>Users & Roles</span>
               </div>
               {stats && (
-                <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold px-2 py-0.5 rounded-full">
+                <span className="text-[10px] bg-[#015451]/10 text-[#015451] border border-[#015451]/20 font-extrabold px-2 py-0.5 rounded-full">
                   {stats.counts.totalUsers}
                 </span>
               )}
@@ -569,7 +562,7 @@ function AdminDashboardContent() {
                 <RocketIcon className="w-4 h-4" />
                 <span>Infrastructure</span>
               </div>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#015451] animate-pulse" />
             </button>
 
             <button
@@ -600,7 +593,7 @@ function AdminDashboardContent() {
                     ? `${user.first_name} ${user.last_name || ""}`
                     : user?.username || "Admin"}
                 </p>
-                <p className="text-[10px] font-bold text-emerald-600 truncate leading-tight">
+                <p className="text-[10px] font-bold text-[#015451] truncate leading-tight">
                   dradix Workspace Admin
                 </p>
               </div>
@@ -620,7 +613,7 @@ function AdminDashboardContent() {
         <header className="bg-white border-b border-zinc-200 px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
           <div className="flex items-center gap-4">
             <h1 className="text-[20px] font-extrabold text-black tracking-tight flex items-center gap-2">
-              <DashboardIcon className="w-5 h-5 text-emerald-600" />
+              <DashboardIcon className="w-5 h-5 text-[#015451]" />
               {activeTab === "dashboard" && "dradix Operations Dashboard"}
               {activeTab === "users" && "User & Role Directory"}
               {activeTab === "logs" && "System Audit Logs"}
@@ -635,7 +628,7 @@ function AdminDashboardContent() {
               className="px-3.5 py-1.5 rounded-xl border border-zinc-200 bg-white text-black hover:bg-zinc-50 text-[12px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <ReloadIcon
-                className={`w-3.5 h-3.5 text-emerald-600 ${loadingStats ? "animate-spin" : ""}`}
+                className={`w-3.5 h-3.5 text-[#015451] ${loadingStats ? "animate-spin" : ""}`}
               />
               Sync Live Data
             </button>
@@ -646,15 +639,15 @@ function AdminDashboardContent() {
           <div
             className={`mx-8 mt-4 p-3 rounded-2xl border text-[13px] font-bold flex items-center justify-between ${
               notice.type === "success"
-                ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                ? "bg-[#015451]/10 border-[#015451]/20 text-[#015451]"
                 : "bg-black border-zinc-800 text-white"
             }`}
           >
             <div className="flex items-center gap-2">
               {notice.type === "success" ? (
-                <CheckCircledIcon className="w-4 h-4 text-emerald-600" />
+                <CheckCircledIcon className="w-4 h-4 text-[#015451]" />
               ) : (
-                <CrossCircledIcon className="w-4 h-4 text-emerald-400" />
+                <CrossCircledIcon className="w-4 h-4 text-red-500" />
               )}
               <span>{notice.message}</span>
             </div>
@@ -677,15 +670,13 @@ function AdminDashboardContent() {
                     <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                       Platform Activity
                     </span>
-                    <div className="w-7 h-7 rounded-xl bg-black text-emerald-400 flex items-center justify-center text-[12px] font-bold border border-zinc-900">
-                      <LightningBoltIcon className="w-4 h-4" />
-                    </div>
+                    <LightningBoltIcon className="w-5 h-5 text-[#015451]" />
                   </div>
                   <div className="flex items-baseline justify-between pt-1">
                     <span className="text-[24px] font-black tracking-tight text-black truncate">
                       {stats?.pipelineValue?.value || "0 PTS"}
                     </span>
-                    <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-extrabold text-[#015451] bg-[#015451]/10 border border-[#015451]/20 px-2 py-0.5 rounded-full">
                       {stats?.pipelineValue?.changePercent || "+0"}
                     </span>
                   </div>
@@ -699,15 +690,13 @@ function AdminDashboardContent() {
                     <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                       Total Accounts
                     </span>
-                    <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-[12px] font-bold">
-                      <PersonIcon className="w-4 h-4" />
-                    </div>
+                    <PersonIcon className="w-5 h-5 text-[#015451]" />
                   </div>
                   <div className="flex items-baseline justify-between pt-1">
                     <span className="text-[26px] font-black tracking-tight text-black">
                       {stats?.openDeals?.value ?? 0}
                     </span>
-                    <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-extrabold text-[#015451] bg-[#015451]/10 border border-[#015451]/20 px-2 py-0.5 rounded-full">
                       {stats?.openDeals?.badgeText || "0 new"}
                     </span>
                   </div>
@@ -721,9 +710,7 @@ function AdminDashboardContent() {
                     <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                       Active Admins
                     </span>
-                    <div className="w-7 h-7 rounded-xl bg-black text-white flex items-center justify-center text-[12px] font-bold border border-zinc-900">
-                      <RocketIcon className="w-4 h-4 text-emerald-400" />
-                    </div>
+                    <RocketIcon className="w-5 h-5 text-[#015451]" />
                   </div>
                   <div className="flex items-baseline justify-between pt-1">
                     <span className="text-[26px] font-black tracking-tight text-black">
@@ -743,9 +730,7 @@ function AdminDashboardContent() {
                     <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                       Pending Follow-up
                     </span>
-                    <div className="w-7 h-7 rounded-xl bg-black text-white flex items-center justify-center text-[12px] font-bold border border-zinc-900">
-                      <BellIcon className="w-4 h-4 text-emerald-400" />
-                    </div>
+                    <BellIcon className="w-5 h-5 text-[#015451]" />
                   </div>
                   <div className="flex items-baseline justify-between pt-1">
                     <span className="text-[26px] font-black tracking-tight text-black">
@@ -765,15 +750,13 @@ function AdminDashboardContent() {
                     <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                       Verified Rate
                     </span>
-                    <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-[12px] font-bold">
-                      <TargetIcon className="w-4 h-4" />
-                    </div>
+                    <TargetIcon className="w-5 h-5 text-[#015451]" />
                   </div>
                   <div className="flex items-baseline justify-between pt-1">
                     <span className="text-[26px] font-black tracking-tight text-black">
                       {stats?.conversionRate?.value || "100%"}
                     </span>
-                    <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-extrabold text-[#015451] bg-[#015451]/10 border border-[#015451]/20 px-2 py-0.5 rounded-full">
                       {stats?.conversionRate?.changePercent || "100% Verified"}
                     </span>
                   </div>
@@ -799,7 +782,7 @@ function AdminDashboardContent() {
 
                     <div className="flex items-center gap-3 text-[11px] font-semibold text-zinc-600">
                       <span className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block" />
+                        <span className="w-2.5 h-2.5 rounded-sm bg-[#015451] inline-block" />
                         Registrations
                       </span>
                     </div>
@@ -839,7 +822,7 @@ function AdminDashboardContent() {
                         <path
                           d={`M ${revenuePoints.map((p) => `${p.x} ${p.y}`).join(" L ")}`}
                           fill="none"
-                          stroke="#10b981"
+                          stroke="#015451"
                           strokeWidth="3"
                         />
                       )}
@@ -852,8 +835,8 @@ function AdminDashboardContent() {
                           r={hoveredMonth?.month === pt.month ? "6" : "4"}
                           fill={
                             hoveredMonth?.month === pt.month
-                              ? "#059669"
-                              : "#10b981"
+                              ? "#013b39"
+                              : "#015451"
                           }
                           stroke="#ffffff"
                           strokeWidth="2"
@@ -875,7 +858,7 @@ function AdminDashboardContent() {
                         <p className="text-zinc-400 font-extrabold pb-0.5 border-b border-zinc-800">
                           {hoveredMonth.month}
                         </p>
-                        <div className="flex justify-between gap-4 text-emerald-400">
+                        <div className="flex justify-between gap-4 text-[#015451]">
                           <span>Activity Score</span>
                           <span className="font-black text-white">
                             {hoveredMonth.booked}
@@ -921,7 +904,7 @@ function AdminDashboardContent() {
                                 <span
                                   className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
                                     act.statusType === "green"
-                                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                      ? "bg-[#015451]/10 text-[#015451] border border-[#015451]/20"
                                       : "bg-black text-white"
                                   }`}
                                 >
@@ -957,7 +940,7 @@ function AdminDashboardContent() {
                       </p>
                     </div>
 
-                    <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                    <span className="text-[11px] font-extrabold text-[#015451] bg-[#015451]/10 px-2.5 py-1 rounded-full border border-[#015451]/20">
                       Synced DB
                     </span>
                   </div>
@@ -974,7 +957,7 @@ function AdminDashboardContent() {
                               style={{
                                 height: `${Math.min(item.won * 10, 100)}px`,
                               }}
-                              className="w-full max-w-7 bg-emerald-500 rounded-t-md transition-all group-hover:bg-emerald-600"
+                              className="w-full max-w-7 bg-[#015451] rounded-t-md transition-all group-hover:bg-[#013b39]"
                             />
                           </div>
                           <span className="text-[10px] font-bold text-zinc-500">
@@ -998,7 +981,7 @@ function AdminDashboardContent() {
                     </div>
 
                     <span className="text-[11px] font-bold text-black bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-[#015451] animate-pulse" />
                       Live Sync
                     </span>
                   </div>
@@ -1034,7 +1017,7 @@ function AdminDashboardContent() {
                                       style={{
                                         width: `${Math.min(row.sharePct, 100)}%`,
                                       }}
-                                      className="bg-emerald-500 h-full rounded-full"
+                                      className="bg-[#015451] h-full rounded-full"
                                     />
                                   </div>
                                   <span className="text-[10px] font-bold text-zinc-500 w-8">
@@ -1178,13 +1161,13 @@ function AdminDashboardContent() {
                               }
                               className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border transition-all flex items-center gap-1 w-fit cursor-pointer ${
                                 u.is_verified
-                                  ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                  ? "bg-[#015451]/10 text-[#015451] border-[#015451]/20"
                                   : "bg-zinc-100 text-black border-zinc-200"
                               }`}
                             >
                               {u.is_verified ? (
                                 <>
-                                  <CheckCircledIcon className="w-3 h-3 text-emerald-600" />
+                                  <CheckCircledIcon className="w-3 h-3 text-[#015451]" />
                                   <span>Verified</span>
                                 </>
                               ) : (
@@ -1212,7 +1195,7 @@ function AdminDashboardContent() {
                               onClick={() => handleDeleteUser(u.id, u.email)}
                               className="px-2.5 py-1 rounded-xl bg-black text-white hover:bg-zinc-800 text-[11px] font-bold border border-zinc-900 transition-colors disabled:opacity-30 cursor-pointer flex items-center gap-1 ml-auto"
                             >
-                              <TrashIcon className="w-3 h-3 text-emerald-400" />
+                              <TrashIcon className="w-3 h-3 text-[#015451]" />
                               <span>Delete</span>
                             </button>
                           </td>
@@ -1318,7 +1301,7 @@ function AdminDashboardContent() {
                               className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${
                                 log.level === "ERROR" || log.level === "WARN"
                                   ? "bg-black text-white border-zinc-900"
-                                  : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                  : "bg-[#015451]/10 text-[#015451] border-[#015451]/20"
                               }`}
                             >
                               {log.level}
@@ -1351,8 +1334,8 @@ function AdminDashboardContent() {
                   <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                     Server Status
                   </span>
-                  <div className="flex items-center gap-2 text-[24px] font-black text-emerald-600">
-                    <CheckCircledIcon className="w-6 h-6 text-emerald-600" />
+                  <div className="flex items-center gap-2 text-[24px] font-black text-[#015451]">
+                    <CheckCircledIcon className="w-6 h-6 text-[#015451]" />
                     <span>{healthData?.status || "HEALTHY"}</span>
                   </div>
                   <p className="text-[11px] text-zinc-500 font-semibold">
