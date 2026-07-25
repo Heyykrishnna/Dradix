@@ -1,111 +1,54 @@
 "use client";
 
-const achievements = [
-  {
-    label: "100 Commits",
-    icon: "C",
-    unlocked: true,
-    color: "#00c9a7",
-    category: "GitHub",
-  },
-  {
-    label: "500 Problems",
-    icon: "P",
-    unlocked: true,
-    color: "#f59e0b",
-    category: "Coding",
-  },
-  {
-    label: "1000 Problems",
-    icon: "1K",
-    unlocked: true,
-    color: "#f59e0b",
-    category: "Coding",
-  },
-  {
-    label: "First OSS PR",
-    icon: "O",
-    unlocked: true,
-    color: "#3b82f6",
-    category: "Open Source",
-  },
-  {
-    label: "100 Stars",
-    icon: "S",
-    unlocked: true,
-    color: "#f59e0b",
-    category: "GitHub",
-  },
-  {
-    label: "100 Followers",
-    icon: "F",
-    unlocked: true,
-    color: "#00c9a7",
-    category: "GitHub",
-  },
-  {
-    label: "Top 5%",
-    icon: "T",
-    unlocked: false,
-    color: "#f43f5e",
-    category: "Global",
-  },
-  {
-    label: "2000 Problems",
-    icon: "2K",
-    unlocked: false,
-    color: "#f59e0b",
-    category: "Coding",
-  },
-  {
-    label: "500 Stars",
-    icon: "5S",
-    unlocked: false,
-    color: "#f59e0b",
-    category: "GitHub",
-  },
-  {
-    label: "OSS Maintainer",
-    icon: "M",
-    unlocked: false,
-    color: "#3b82f6",
-    category: "OSS",
-  },
-  {
-    label: "10 Projects",
-    icon: "10",
-    unlocked: true,
-    color: "#f43f5e",
-    category: "Projects",
-  },
-  {
-    label: "Hackathon Win",
-    icon: "W",
-    unlocked: true,
-    color: "#f43f5e",
-    category: "Hackathon",
-  },
+interface Achievement {
+  label: string;
+  icon: string;
+  unlocked: boolean;
+  color: string;
+  category: string;
+}
+
+interface Hackathon {
+  name: string;
+  result: string;
+  date: string;
+  color: string;
+}
+
+const makeBadge = (
+  label: string,
+  icon: string,
+  unlocked: boolean,
+  color: string,
+  category: string,
+): Achievement => ({ label, icon, unlocked, color, category });
+
+const makeHackathon = (
+  name: string,
+  result: string,
+  date: string,
+  color: string,
+): Hackathon => ({ name, result, date, color });
+
+const achievements: Achievement[] = [
+  makeBadge("100 Commits", "C", true, "#00c9a7", "GitHub"),
+  makeBadge("500 Problems", "P", true, "#f59e0b", "Coding"),
+  makeBadge("1000 Problems", "1K", true, "#f59e0b", "Coding"),
+  makeBadge("First OSS PR", "O", true, "#3b82f6", "Open Source"),
+  makeBadge("100 Stars", "S", true, "#f59e0b", "GitHub"),
+  makeBadge("100 Followers", "F", true, "#00c9a7", "GitHub"),
+  makeBadge("Top 5%", "T", false, "#f43f5e", "Global"),
+  makeBadge("2000 Problems", "2K", false, "#f59e0b", "Coding"),
+  makeBadge("500 Stars", "5S", false, "#f59e0b", "GitHub"),
+  makeBadge("OSS Maintainer", "M", false, "#3b82f6", "OSS"),
+  makeBadge("10 Projects", "10", true, "#f43f5e", "Projects"),
+  makeBadge("Hackathon Win", "W", true, "#f43f5e", "Hackathon"),
 ];
 
-const hackathons = [
-  {
-    name: "HackIndia 2025",
-    result: "Winner",
-    date: "Mar 2025",
-    color: "#f59e0b",
-  },
-  {
-    name: "DevFest Hackathon",
-    result: "Runner-up",
-    date: "Nov 2024",
-    color: "#3b82f6",
-  },
-  {
-    name: "NASA SpaceApps",
-    result: "Finalist",
-    date: "Oct 2024",
-    color: "#00c9a7",
-  },
+const hackathons: Hackathon[] = [
+  makeHackathon("HackIndia 2025", "Winner", "Mar 2025", "#f59e0b"),
+  makeHackathon("DevFest Hackathon", "Runner-up", "Nov 2024", "#3b82f6"),
+  makeHackathon("NASA SpaceApps", "Finalist", "Oct 2024", "#00c9a7"),
 ];
 
 export default function AchievementCenter() {

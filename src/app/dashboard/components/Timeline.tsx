@@ -1,69 +1,31 @@
 "use client";
 
-const events = [
-  {
-    date: "Jan 2024",
-    title: "Joined Dradix",
-    desc: "Started tracking developer journey",
-    color: "#005c58",
-    done: true,
-  },
-  {
-    date: "Feb 2024",
-    title: "Connected GitHub",
-    desc: "Synced 52 repositories",
-    color: "#3b82f6",
-    done: true,
-  },
-  {
-    date: "Mar 2024",
-    title: "Completed First Project",
-    desc: "Launched dradix beta publicly",
-    color: "#f59e0b",
-    done: true,
-  },
-  {
-    date: "Apr 2024",
-    title: "Solved 100 Problems",
-    desc: "Hit the milestone on LeetCode",
-    color: "#005c58",
-    done: true,
-  },
-  {
-    date: "Jun 2024",
-    title: "Reached 500 Commits",
-    desc: "Consistent coding all year",
-    color: "#3b82f6",
-    done: true,
-  },
-  {
-    date: "Oct 2024",
-    title: "Won Hackathon",
-    desc: "DevFest — Runner-up",
-    color: "#f59e0b",
-    done: true,
-  },
-  {
-    date: "Dec 2024",
-    title: "Published Blog",
-    desc: "First dev article on hashnode",
-    color: "#f43f5e",
-    done: true,
-  },
-  {
-    date: "Mar 2025",
-    title: "Won HackIndia",
-    desc: "1st place among 3000+ teams",
-    color: "#f59e0b",
-    done: true,
-  },
-  {
-    date: "Upcoming",
-    title: "Open Source Milestone",
-    desc: "Aiming for 500 GitHub stars",
-    color: "#3b82f6",
-    done: false,
-  },
+interface TimelineEvent {
+  date: string;
+  title: string;
+  desc: string;
+  color: string;
+  done: boolean;
+}
+
+const createEvent = (
+  date: string,
+  title: string,
+  desc: string,
+  color: string,
+  done = true,
+): TimelineEvent => ({ date, title, desc, color, done });
+
+const events: TimelineEvent[] = [
+  createEvent("Jan 2024", "Joined Dradix", "Started tracking developer journey", "#005c58"),
+  createEvent("Feb 2024", "Connected GitHub", "Synced 52 repositories", "#3b82f6"),
+  createEvent("Mar 2024", "Completed First Project", "Launched dradix beta publicly", "#f59e0b"),
+  createEvent("Apr 2024", "Solved 100 Problems", "Hit the milestone on LeetCode", "#005c58"),
+  createEvent("Jun 2024", "Reached 500 Commits", "Consistent coding all year", "#3b82f6"),
+  createEvent("Oct 2024", "Won Hackathon", "DevFest — Runner-up", "#f59e0b"),
+  createEvent("Dec 2024", "Published Blog", "First dev article on hashnode", "#f43f5e"),
+  createEvent("Mar 2025", "Won HackIndia", "1st place among 3000+ teams", "#f59e0b"),
+  createEvent("Upcoming", "Open Source Milestone", "Aiming for 500 GitHub stars", "#3b82f6", false),
 ];
 
 export default function Timeline() {
