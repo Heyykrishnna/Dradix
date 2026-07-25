@@ -791,8 +791,7 @@ export default function PrivacyPage() {
 
           <div className="flex flex-wrap items-center justify-center gap-3.5 text-xs sm:text-xs text-zinc-300">
             <span className="bg-black/50 border border-white/15 px-4 py-2 rounded-xl backdrop-blur-md">
-              Last Updated:{" "}
-              <strong className="text-white">July 25, 2026</strong>
+              Last Updated: <strong className="text-white">July, 2026</strong>
             </span>
             <span className="bg-black/50 border border-white/15 px-4 py-2 rounded-xl backdrop-blur-md">
               Official Email:{" "}
