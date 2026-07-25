@@ -17,7 +17,6 @@ import {
   Cross2Icon,
 } from "@radix-ui/react-icons";
 import {
-  BarChart as ReChartsBarChart,
   XAxis,
   YAxis,
   ResponsiveContainer,

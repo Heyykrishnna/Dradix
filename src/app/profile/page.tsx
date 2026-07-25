@@ -2121,13 +2121,13 @@ export default function ProfilePage() {
               </ResponsiveContainer>
             </div>
 
-            <a
+            <Link
               href="/dashboard"
               className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-zinc-800 hover:bg-zinc-700/80 text-white rounded-xl text-[11px] font-bold transition-all"
             >
               <span>Analytics Dashboard</span>
               <FaArrowUpRightFromSquare className="w-3 h-3 text-zinc-400" />
-            </a>
+            </Link>
           </div>
 
           <div className="relative bg-linear-to-br from-zinc-800 to-zinc-950 text-white rounded-3xl border border-zinc-750 shadow-xl p-5 overflow-hidden text-left">

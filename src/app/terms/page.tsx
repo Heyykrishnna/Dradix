@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Noise from "@/components/Noise";
@@ -31,7 +31,8 @@ export default function TermsPage() {
     }
   };
 
-  const sections: Section[] = [
+  const sections: Section[] = useMemo(
+    () => [
     {
       id: "section-1",
       title: "1. Agreement to Terms & Contractual Framework",
@@ -682,7 +683,7 @@ export default function TermsPage() {
         </div>
       ),
     },
-  ];
+  ], [contactEmail]);
 
   useEffect(() => {
     const handleObserver = (entries: IntersectionObserverEntry[]) => {

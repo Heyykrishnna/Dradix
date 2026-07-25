@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Noise from "@/components/Noise";
@@ -33,9 +33,10 @@ export default function PrivacyPage() {
     }
   };
 
-  const sections: Section[] = [
-    {
-      id: "section-1",
+  const sections: Section[] = useMemo(
+    () => [
+      {
+        id: "section-1",
       title: "1. Introduction & Core Commitment",
       badge: "OVERVIEW",
       content: (
@@ -677,7 +678,7 @@ export default function PrivacyPage() {
         </div>
       ),
     },
-  ];
+  ], [contactEmail]);
 
   useEffect(() => {
     const handleObserver = (entries: IntersectionObserverEntry[]) => {

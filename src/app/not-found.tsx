@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -11,11 +11,6 @@ import { ArrowLeftIcon } from "@radix-ui/react-icons";
 export default function NotFound() {
   const router = useRouter();
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-zinc-950 text-white font-sans selection:bg-zinc-800">
@@ -39,8 +34,7 @@ export default function NotFound() {
       <Noise patternAlpha={8} />
 
       <main className="relative z-20 w-full max-w-[1600px] mx-auto px-6 sm:px-12 md:px-16 pb-12 sm:pb-16 md:pb-20 pt-20 flex-1 flex flex-col justify-end items-start">
-        {mounted && (
-          <motion.div
+        <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -112,8 +106,7 @@ export default function NotFound() {
               </Link>
             </motion.div>
           </motion.div>
-        )}
-      </main>
+        </main>
     </div>
   );
 }
