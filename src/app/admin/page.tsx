@@ -3315,6 +3315,56 @@ The dradix Operations Team`,
           </div>
         </div>
       )}
+
+      {confirmModal && confirmModal.isOpen && (
+        <div className="fixed inset-0 z-100 bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-md border border-zinc-200 max-w-sm w-full p-4 space-y-3 shadow-2xl">
+            <div className="flex items-center gap-2 border-b border-zinc-100 pb-2">
+              <ExclamationTriangleIcon
+                className={`w-4 h-4 ${
+                  confirmModal.variant === "danger"
+                    ? "text-red-600"
+                    : confirmModal.variant === "warning"
+                      ? "text-amber-600"
+                      : "text-[#015451]"
+                }`}
+              />
+              <h3 className="text-xs font-semibold text-zinc-900">
+                {confirmModal.title}
+              </h3>
+            </div>
+
+            <p className="text-xs text-zinc-600 leading-relaxed">
+              {confirmModal.message}
+            </p>
+
+            <div className="pt-2 flex justify-end gap-2 border-t border-zinc-100 text-xs">
+              <button
+                type="button"
+                onClick={() => setConfirmModal(null)}
+                className="px-3 py-1 rounded border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 font-medium cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const fn = confirmModal.onConfirm;
+                  setConfirmModal(null);
+                  await fn();
+                }}
+                className={`px-3 py-1 rounded font-medium text-white cursor-pointer ${
+                  confirmModal.variant === "danger"
+                    ? "bg-red-700 hover:bg-red-800"
+                    : "bg-[#015451] hover:bg-[#013b39]"
+                }`}
+              >
+                {confirmModal.actionLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
