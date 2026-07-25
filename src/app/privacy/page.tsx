@@ -6,8 +6,6 @@ import Image from "next/image";
 import Noise from "@/components/Noise";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  CheckIcon,
-  CopyIcon,
   FileTextIcon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -23,18 +21,11 @@ interface Section {
 
 export default function PrivacyPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [copiedEmail, setCopiedEmail] = useState(false);
   const [activeSection, setActiveSection] = useState("section-1");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   const contactEmail = "support@dradix.dev";
-
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText(contactEmail);
-    setCopiedEmail(true);
-    setTimeout(() => setCopiedEmail(false), 2500);
-  };
 
   const handlePrint = () => {
     if (typeof window !== "undefined") {

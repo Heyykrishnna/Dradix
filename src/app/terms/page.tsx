@@ -4,10 +4,9 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Noise from "@/components/Noise";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   FileTextIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
@@ -22,7 +21,6 @@ interface Section {
 export default function TermsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState("section-1");
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   const contactEmail = "support@dradix.dev";
@@ -717,31 +715,12 @@ export default function TermsPage() {
       )
     : sections;
 
-  const faqs = [
-    {
-      q: "What constitutes acceptance of the Dradix Terms of Service?",
-      a: "Creating an account, connecting any developer integration (such as GitHub or LeetCode), invoking Dradix API endpoints, or browsing the Dradix web application constitutes your full legal acceptance of these Terms.",
-    },
-    {
-      q: "Does Dradix claim ownership over my repositories or code?",
-      a: "No. You retain 100% ownership of your source code, repositories, and resume content. Dradix only receives a limited license to process and render metrics for your developer profile.",
-    },
-    {
-      q: "Can I cancel my paid subscription or request a refund?",
-      a: "Yes. You can cancel your subscription at any time via Account Settings. All new annual subscription purchases include a 14-day money-back guarantee.",
-    },
-    {
-      q: "How are disputes between users and Dradix resolved?",
-      a: "Disputes are resolved through a 30-day informal negotiation process, followed by binding individual arbitration under AAA rules if unresolved. Class action lawsuits are waived as specified in Section 15.",
-    },
-  ];
-
   return (
     <div className="relative min-h-screen bg-zinc-950 text-zinc-900 font-sans antialiased selection:bg-[#015451] selection:text-white">
       <header className="relative z-0 w-full overflow-hidden border-b border-zinc-800 text-white min-h-125 sm:min-h-150 md:min-h-170 flex flex-col justify-between">
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <Image
-            src="/assets/images/TERMS-BG.png"
+            src="/assets/images/PRIV-BG.png"
             alt="Hero Background"
             fill
             priority
@@ -961,8 +940,6 @@ export default function TermsPage() {
                   </section>
                 ))
               )}
-
-              <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-xs p-6 sm:p-8 mt-10"></div>
             </main>
           </div>
         </div>
