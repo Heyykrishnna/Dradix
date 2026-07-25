@@ -720,7 +720,7 @@ export default function TermsPage() {
       <header className="relative z-0 w-full overflow-hidden border-b border-zinc-800 text-white min-h-125 sm:min-h-150 md:min-h-170 flex flex-col justify-between">
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <Image
-            src="/assets/images/PRIV-BG.png"
+            src="/assets/images/TERMS-BG.png"
             alt="Hero Background"
             fill
             priority
