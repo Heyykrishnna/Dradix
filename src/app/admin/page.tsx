@@ -20,10 +20,13 @@ import {
   ReloadIcon,
   RocketIcon,
   LightningBoltIcon,
-  BellIcon,
   TargetIcon,
   TrashIcon,
-  LayersIcon,
+  EyeOpenIcon,
+  Pencil1Icon,
+  DownloadIcon,
+  EnvelopeClosedIcon,
+  LockClosedIcon,
 } from "@radix-ui/react-icons";
 
 interface AdminUserItem {
@@ -33,13 +36,92 @@ interface AdminUserItem {
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
+  auth_provider: "GOOGLE" | "PASSWORD" | string;
   role: "USER" | "ADMIN" | string;
   is_verified: boolean;
+  two_factor_enabled: boolean;
   developer_score: number;
   created_at: string;
+  updated_at: string;
+  last_active: string;
+  ip_address: string;
+  location: string;
+  device: string;
+  browser: string;
+  os: string;
+  riskScore: number;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  isDisposableEmail: boolean;
   _count?: {
     projects: number;
     userSessions: number;
+  };
+}
+
+interface UserSessionDetail {
+  id: number;
+  session_token: string;
+  ip_address: string;
+  user_agent: string;
+  device_type: string;
+  browser_name: string;
+  os: string;
+  location: string;
+  is_trusted: boolean;
+  created_at: string;
+  last_active: string;
+  expires_at: string;
+}
+
+interface UserDetailPayload {
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+    cover_url: string | null;
+    bio: string | null;
+    google_id: string | null;
+    role: string;
+    is_verified: boolean;
+    two_factor_enabled: boolean;
+    developer_score: number;
+    skills: string[];
+    socials: Record<string, string>;
+    created_at: string;
+    updated_at: string;
+    projects: Array<{
+      id: number;
+      title: string;
+      tagline: string;
+      category: string;
+      views_count: number;
+      created_at: string;
+    }>;
+  };
+  authProvider: string;
+  recentSessions: UserSessionDetail[];
+  recentLogs: Array<{
+    id: number;
+    action: string;
+    category: string;
+    level: string;
+    details: Record<string, unknown>;
+    ip_address: string;
+    created_at: string;
+  }>;
+  riskIndicators: {
+    riskScore: number;
+    riskLevel: "LOW" | "MEDIUM" | "HIGH";
+    isDisposableEmail: boolean;
+    failedLoginAttempts: number;
+    suspiciousLogins: boolean;
+    multipleCountries: boolean;
+    countriesCount: number;
+    devicesCount: number;
+    sharedDeviceAccountsCount: number;
   };
 }
 
@@ -242,12 +324,52 @@ function AdminDashboardContent() {
     null,
   );
 
+  // Users Directory State
   const [usersList, setUsersList] = useState<AdminUserItem[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
-  const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
+  const [verificationFilter, setVerificationFilter] = useState("");
+  const [providerFilter, setProviderFilter] = useState("");
+  const [riskFilter, setRiskFilter] = useState("");
+  const [userPage, setUserPage] = useState(1);
+  const [userLimit, setUserLimit] = useState(10);
+  const [paginationMeta, setPaginationMeta] = useState<PaginationMeta>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
 
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+  const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
+  const [bulkActioning, setBulkActioning] = useState(false);
+
+  // Modals state
+  const [inspectUserPayload, setInspectUserPayload] =
+    useState<UserDetailPayload | null>(null);
+  const [editProfileUser, setEditProfileUser] = useState<AdminUserItem | null>(
+    null,
+  );
+  const [editFormData, setEditFormData] = useState({
+    username: "",
+    first_name: "",
+    last_name: "",
+    bio: "",
+    developer_score: 0,
+    role: "USER",
+    is_verified: true,
+  });
+  const [emailModalUser, setEmailModalUser] = useState<AdminUserItem | null>(
+    null,
+  );
+  const [emailFormData, setEmailFormData] = useState({
+    subject: "",
+    message: "",
+  });
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+  // System logs state
   const [logsList, setLogsList] = useState<SystemLogItem[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logCategoryFilter, setLogCategoryFilter] = useState("");
@@ -304,21 +426,35 @@ function AdminDashboardContent() {
   const fetchUsers = useCallback(async () => {
     try {
       const query = new URLSearchParams();
+      query.append("page", String(userPage));
+      query.append("limit", String(userLimit));
       if (userSearch) query.append("search", userSearch);
       if (roleFilter) query.append("role", roleFilter);
+      if (verificationFilter) query.append("is_verified", verificationFilter);
+      if (providerFilter) query.append("provider", providerFilter);
+      if (riskFilter) query.append("riskLevel", riskFilter);
 
       const res = await apiFetch<
         ApiResponse<{ users: AdminUserItem[]; pagination: PaginationMeta }>
       >(`/admin/users?${query.toString()}`);
       if (res.success && res.data) {
         setUsersList(res.data.users);
+        setPaginationMeta(res.data.pagination);
       }
     } catch (err: unknown) {
       console.error("Failed to fetch users", err);
     } finally {
       setLoadingUsers(false);
     }
-  }, [userSearch, roleFilter]);
+  }, [
+    userPage,
+    userLimit,
+    userSearch,
+    roleFilter,
+    verificationFilter,
+    providerFilter,
+    riskFilter,
+  ]);
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -410,6 +546,7 @@ function AdminDashboardContent() {
     };
   }, [activeTab, fetchAnalytics, fetchUsers, fetchLogs, fetchHealth]);
 
+  // Single User Actions
   const handleUpdateRole = async (
     targetUserId: number,
     newRole: "USER" | "ADMIN",
@@ -428,7 +565,6 @@ function AdminDashboardContent() {
         setLoadingUsers(true);
         void fetchUsers();
         void fetchStats();
-        void fetchAnalytics();
         if (user && user.id === targetUserId) {
           void checkAuth();
         }
@@ -462,7 +598,6 @@ function AdminDashboardContent() {
         setLoadingUsers(true);
         void fetchUsers();
         void fetchStats();
-        void fetchAnalytics();
       }
     } catch (err: unknown) {
       const msg =
@@ -489,7 +624,6 @@ function AdminDashboardContent() {
         setLoadingUsers(true);
         void fetchUsers();
         void fetchStats();
-        void fetchAnalytics();
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete user";
@@ -497,6 +631,231 @@ function AdminDashboardContent() {
     } finally {
       setUpdatingUserId(null);
     }
+  };
+
+  const handleRevokeSessions = async (targetUserId: number) => {
+    setUpdatingUserId(targetUserId);
+    try {
+      const res = await apiFetch<ApiResponse<Record<string, unknown>>>(
+        `/admin/users/${targetUserId}/revoke-sessions`,
+        {
+          method: "POST",
+        },
+      );
+      if (res.success) {
+        showNotice("Revoked all sessions for user");
+        setLoadingUsers(true);
+        void fetchUsers();
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to revoke sessions";
+      showNotice(msg, "error");
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
+
+  const handleInspectUser = async (targetUserId: number) => {
+    try {
+      const res = await apiFetch<ApiResponse<UserDetailPayload>>(
+        `/admin/users/${targetUserId}`,
+      );
+      if (res.success && res.data) {
+        setInspectUserPayload(res.data);
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to fetch user details";
+      showNotice(msg, "error");
+    }
+  };
+
+  const handleOpenEditUser = (u: AdminUserItem) => {
+    setEditProfileUser(u);
+    setEditFormData({
+      username: u.username,
+      first_name: u.first_name || "",
+      last_name: u.last_name || "",
+      bio: "",
+      developer_score: u.developer_score,
+      role: u.role,
+      is_verified: u.is_verified,
+    });
+  };
+
+  const handleSaveEditedUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editProfileUser) return;
+    setUpdatingUserId(editProfileUser.id);
+    try {
+      const res = await apiFetch<ApiResponse<Record<string, unknown>>>(
+        `/admin/users/${editProfileUser.id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(editFormData),
+        },
+      );
+      if (res.success) {
+        showNotice("User profile updated successfully");
+        setEditProfileUser(null);
+        setLoadingUsers(true);
+        void fetchUsers();
+        void fetchStats();
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to update profile";
+      showNotice(msg, "error");
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
+
+  const handleSendAdminEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailModalUser) return;
+    setSendingEmail(true);
+    try {
+      const res = await apiFetch<ApiResponse<Record<string, unknown>>>(
+        `/admin/users/${emailModalUser.id}/send-email`,
+        {
+          method: "POST",
+          body: JSON.stringify(emailFormData),
+        },
+      );
+      if (res.success) {
+        showNotice(`Notification sent to ${emailModalUser.email}`);
+        setEmailModalUser(null);
+        setEmailFormData({ subject: "", message: "" });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to send email";
+      showNotice(msg, "error");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  // Bulk Operations
+  const handleSelectAllOnPage = (checked: boolean) => {
+    if (checked) {
+      const ids = usersList.map((u) => u.id);
+      setSelectedUserIds(Array.from(new Set([...selectedUserIds, ...ids])));
+    } else {
+      const pageIds = new Set(usersList.map((u) => u.id));
+      setSelectedUserIds(selectedUserIds.filter((id) => !pageIds.has(id)));
+    }
+  };
+
+  const handleToggleSelectUser = (id: number) => {
+    if (selectedUserIds.includes(id)) {
+      setSelectedUserIds(selectedUserIds.filter((item) => item !== id));
+    } else {
+      setSelectedUserIds([...selectedUserIds, id]);
+    }
+  };
+
+  const handleExecuteBulkAction = async (
+    action:
+      | "UPDATE_ROLE"
+      | "VERIFY"
+      | "UNVERIFY"
+      | "DELETE"
+      | "REVOKE_SESSIONS",
+    payload?: Record<string, unknown>,
+  ) => {
+    if (selectedUserIds.length === 0) return;
+    if (
+      action === "DELETE" &&
+      !confirm(
+        `Are you sure you want to BULK DELETE ${selectedUserIds.length} selected users?`,
+      )
+    ) {
+      return;
+    }
+
+    setBulkActioning(true);
+    try {
+      const res = await apiFetch<
+        ApiResponse<{ affected: number }>
+      >("/admin/users/bulk", {
+        method: "POST",
+        body: JSON.stringify({
+          userIds: selectedUserIds,
+          action,
+          payload,
+        }),
+      });
+      if (res.success) {
+        showNotice(
+          res.message || `Bulk action ${action} executed successfully`,
+        );
+        setSelectedUserIds([]);
+        setLoadingUsers(true);
+        void fetchUsers();
+        void fetchStats();
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to execute bulk action";
+      showNotice(msg, "error");
+    } finally {
+      setBulkActioning(false);
+    }
+  };
+
+  const handleExportUsers = (format: "csv" | "json") => {
+    if (usersList.length === 0) return;
+    if (format === "json") {
+      const blob = new Blob([JSON.stringify(usersList, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `dradix_users_export_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const headers = [
+        "ID",
+        "Username",
+        "Email",
+        "First Name",
+        "Last Name",
+        "Role",
+        "Verified",
+        "Developer Score",
+        "Country",
+        "IP Address",
+        "Joined Date",
+      ];
+      const rows = usersList.map((u) => [
+        u.id,
+        u.username,
+        u.email,
+        u.first_name || "",
+        u.last_name || "",
+        u.role,
+        u.is_verified ? "Yes" : "No",
+        u.developer_score,
+        u.location || "India",
+        u.ip_address || "127.0.0.1",
+        new Date(u.created_at).toISOString(),
+      ]);
+      const csvContent =
+        "data:text/csv;charset=utf-8," +
+        [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `dradix_users_export_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    showNotice(`Exported ${usersList.length} users in ${format.toUpperCase()}`);
   };
 
   const handleBootstrapSelf = async () => {
@@ -543,7 +902,7 @@ function AdminDashboardContent() {
   const upcomingList = analyticsData?.upcomingActivities || [];
 
   const navItems: {
-    id: "dashboard" | "users" | "logs" | "health" | "assets";
+    id: "dashboard" | "growth" | "users" | "logs" | "health" | "assets";
     label: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: React.ReactNode;
@@ -555,7 +914,7 @@ function AdminDashboardContent() {
     },
     {
       id: "users",
-      label: "Users & Roles",
+      label: "Users & Directory",
       icon: PersonIcon,
       badge: stats ? (
         <span className="text-[10px] bg-[#015451]/10 text-[#015451] border border-[#015451]/20 font-extrabold px-2 py-0.5 rounded-full z-10 transition-colors">
@@ -587,6 +946,9 @@ function AdminDashboardContent() {
       icon: FileTextIcon,
     },
   ];
+
+  const isAllPageSelected =
+    usersList.length > 0 && usersList.every((u) => selectedUserIds.includes(u.id));
 
   return (
     <div className="min-h-screen bg-white text-black font-sans flex antialiased selection:bg-[#015451] selection:text-white">
@@ -668,7 +1030,7 @@ function AdminDashboardContent() {
             <button
               onClick={handleBootstrapSelf}
               title="Sync Admin Privileges"
-              className="p-1 text-zinc-400 hover:text-black transition-colors"
+              className="p-1 text-zinc-400 hover:text-black transition-colors cursor-pointer"
             >
               <ChevronDownIcon className="w-4 h-4" />
             </button>
@@ -682,7 +1044,7 @@ function AdminDashboardContent() {
             <h1 className="text-[20px] font-extrabold text-black tracking-tight flex items-center gap-2">
               <DashboardIcon className="w-5 h-5 text-[#015451]" />
               {activeTab === "dashboard" && "dradix Operations Dashboard"}
-              {activeTab === "users" && "User & Role Directory"}
+              {activeTab === "users" && "User Directory & Management"}
               {activeTab === "logs" && "System Audit Logs"}
               {activeTab === "health" && "API & Infrastructure Health"}
               {activeTab === "assets" && "Platform Assets & Metrics"}
@@ -825,200 +1187,6 @@ function AdminDashboardContent() {
                         </p>
                         <p className="text-[10px] text-zinc-500 font-semibold">
                           Active in trailing 30 days
-                        </p>
-                      </div>
-
-                      {/* 5. New Users Today */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs hover:border-black transition-all">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                            New Users Today
-                          </span>
-                          <RocketIcon className="w-4 h-4 text-[#015451]" />
-                        </div>
-                        <p className="text-[24px] font-black text-black">
-                          {stats?.overview?.newUsersToday ?? 0}
-                        </p>
-                        <p className="text-[10px] text-[#015451] font-semibold">
-                          Signed up today
-                        </p>
-                      </div>
-
-                      {/* 6. Active Sessions */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs hover:border-black transition-all">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                            Active Sessions
-                          </span>
-                          <LayersIcon className="w-4 h-4 text-[#015451]" />
-                        </div>
-                        <p className="text-[24px] font-black text-black">
-                          {stats?.overview?.activeSessions ?? 1}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-semibold">
-                          Unexpired auth session tokens
-                        </p>
-                      </div>
-
-                      {/* 7. Concurrent Users */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs hover:border-black transition-all">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                            Concurrent Users
-                          </span>
-                          <BellIcon className="w-4 h-4 text-[#015451]" />
-                        </div>
-                        <p className="text-[24px] font-black text-black">
-                          {stats?.overview?.concurrentUsers ?? 1}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-semibold">
-                          Active in last 15 mins
-                        </p>
-                      </div>
-
-                      {/* 8. Online vs Offline Users */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs hover:border-black transition-all">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                            Online / Offline
-                          </span>
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#015451] animate-pulse" />
-                        </div>
-                        <p className="text-[20px] font-black text-black">
-                          <span className="text-[#015451]">
-                            {stats?.overview?.onlineUsers ?? 1} Online
-                          </span>
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-semibold">
-                          {stats?.overview?.offlineUsers ?? 0} Offline accounts
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Platform Assets & Storage Telemetry */}
-                  <div className="space-y-4 pt-2">
-                    <h3 className="text-[15px] font-extrabold text-black">
-                      Infrastructure Assets & Requests Telemetry
-                    </h3>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                      {/* Total Projects */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Total Projects
-                        </span>
-                        <p className="text-[22px] font-black text-black">
-                          {stats?.overview?.totalProjects ??
-                            stats?.counts?.totalProjects ??
-                            0}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Developer catalog
-                        </p>
-                      </div>
-
-                      {/* Total GitHub Connections */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          GitHub Accounts
-                        </span>
-                        <p className="text-[22px] font-black text-black">
-                          {stats?.overview?.totalGithubConnections ?? 0}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Connected GitHub data
-                        </p>
-                      </div>
-
-                      {/* Total Coding Connections */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Coding Profiles
-                        </span>
-                        <p className="text-[22px] font-black text-black">
-                          {stats?.overview?.totalCodingConnections ?? 0}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          LeetCode / Codeforces
-                        </p>
-                      </div>
-
-                      {/* Total AI Requests */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          AI Evaluation Logs
-                        </span>
-                        <p className="text-[22px] font-black text-black">
-                          {stats?.overview?.totalAiRequests ?? 0}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Gemini AI report queries
-                        </p>
-                      </div>
-
-                      {/* Total API Requests */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-3 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          API Requests
-                        </span>
-                        <p className="text-[22px] font-black text-black">
-                          {stats?.overview?.totalApiRequests ??
-                            stats?.counts?.totalLogs ??
-                            0}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Total logged API calls
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-1 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Total Storage Used
-                        </span>
-                        <p className="text-[20px] font-black text-black">
-                          {stats?.overview?.totalStorageMB ?? "1.5 MB"}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Media & attachment assets
-                        </p>
-                      </div>
-
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-1 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Database Size
-                        </span>
-                        <p className="text-[20px] font-black text-black">
-                          {stats?.overview?.databaseSizeMB ?? "12.4 MB"}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          PostgreSQL storage engine
-                        </p>
-                      </div>
-
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-1 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Cache Memory Usage
-                        </span>
-                        <p className="text-[20px] font-black text-black">
-                          {stats?.overview?.cacheUsageMB ?? "42 MB"}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Heap memory cache
-                        </p>
-                      </div>
-
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-1 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Queue & Worker Jobs
-                        </span>
-                        <p className="text-[20px] font-black text-[#015451]">
-                          0 Pending
-                        </p>
-                        <p className="text-[10px] text-[#015451] font-semibold">
-                          100% Background Jobs Healthy
                         </p>
                       </div>
                     </div>
@@ -1188,282 +1356,197 @@ function AdminDashboardContent() {
                 </div>
               )}
 
-              {activeTab === "growth" && (
-                <div className="space-y-8">
-                  {/* Growth Metrics Top Bar */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-2 shadow-xs">
-                      <span className="text-[12px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Retention Rate (30 Days)
-                      </span>
-                      <p className="text-[28px] font-black text-[#015451]">
-                        {analyticsData?.growthAnalytics?.retentionRate ||
-                          "100%"}
-                      </p>
-                      <p className="text-[11px] text-zinc-500 font-medium">
-                        Returning user session ratio
+              {activeTab === "users" && (
+                <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-6 shadow-xs">
+                  {/* Title & Top Export Action Bar */}
+                  <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-4 border-b border-zinc-100">
+                    <div>
+                      <h3 className="text-[18px] font-extrabold text-black tracking-tight">
+                        User Directory & Telemetry
+                      </h3>
+                      <p className="text-[12px] text-zinc-500 font-medium">
+                        Advanced search, risk telemetry, device footprints, bulk operations, and role assignments.
                       </p>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-2 shadow-xs">
-                      <span className="text-[12px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Churn Rate
-                      </span>
-                      <p className="text-[28px] font-black text-black">
-                        {analyticsData?.growthAnalytics?.churnRate || "0%"}
-                      </p>
-                      <p className="text-[11px] text-zinc-500 font-medium">
-                        Inactive user accounts
-                      </p>
-                    </div>
-
-                    <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-2 shadow-xs">
-                      <span className="text-[12px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Sign-up Trend Growth
-                      </span>
-                      <p className="text-[28px] font-black text-[#015451]">
-                        {analyticsData?.growthAnalytics?.signupTrendDelta ||
-                          "+14.2%"}
-                      </p>
-                      <p className="text-[11px] text-zinc-500 font-medium">
-                        Month-over-month growth rate
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleExportUsers("csv")}
+                        className="px-3.5 py-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black text-[12px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <DownloadIcon className="w-4 h-4 text-[#015451]" />
+                        <span>Export CSV</span>
+                      </button>
+                      <button
+                        onClick={() => handleExportUsers("json")}
+                        className="px-3.5 py-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black text-[12px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <DownloadIcon className="w-4 h-4 text-black" />
+                        <span>Export JSON</span>
+                      </button>
                     </div>
                   </div>
 
-                  {/* Acquisition & Distribution Grids */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* User Acquisition Sources */}
-                    <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-4 shadow-xs">
-                      <h3 className="text-[15px] font-extrabold text-black">
-                        User Acquisition Sources
-                      </h3>
-                      <div className="space-y-3 pt-1">
-                        {(
-                          analyticsData?.growthAnalytics
-                            ?.acquisitionSources || [
-                            {
-                              source: "Google OAuth",
-                              count: 1,
-                              percentage: 50,
-                            },
-                            {
-                              source: "Direct Email / Password",
-                              count: 1,
-                              percentage: 50,
-                            },
-                          ]
-                        ).map((src, idx) => (
-                          <div key={idx} className="space-y-1.5">
-                            <div className="flex justify-between text-[12px] font-bold text-black">
-                              <span>{src.source}</span>
-                              <span className="text-[#015451]">
-                                {src.count} ({src.percentage}%)
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
-                              <div
-                                style={{
-                                  width: `${Math.min(src.percentage, 100)}%`,
-                                }}
-                                className="bg-[#015451] h-full rounded-full"
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                  {/* Advanced Filters & Search Bar */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <div className="relative col-span-1 sm:col-span-2">
+                      <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-3 text-zinc-400" />
+                      <input
+                        type="text"
+                        placeholder="Search by username, email, IP..."
+                        value={userSearch}
+                        onChange={(e) => {
+                          setUserSearch(e.target.value);
+                          setUserPage(1);
+                        }}
+                        className="w-full pl-9 pr-4 py-2 bg-white border border-zinc-200 rounded-xl text-[12px] font-medium text-black focus:outline-none focus:border-black"
+                      />
                     </div>
 
-                    {/* Device Distribution */}
-                    <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-4 shadow-xs">
-                      <h3 className="text-[15px] font-extrabold text-black">
-                        Device Distribution
-                      </h3>
-                      <div className="space-y-3 pt-1">
-                        {(
-                          analyticsData?.growthAnalytics
-                            ?.deviceDistribution || [
-                            { name: "Desktop", count: 1 },
-                            { name: "Mobile", count: 0 },
-                          ]
-                        ).map((dev, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-xl border border-zinc-100"
-                          >
-                            <span className="text-[12px] font-bold text-black">
-                              {dev.name}
-                            </span>
-                            <span className="text-[12px] font-black text-[#015451]">
-                              {dev.count} Sessions
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <select
+                      value={roleFilter}
+                      onChange={(e) => {
+                        setRoleFilter(e.target.value);
+                        setUserPage(1);
+                      }}
+                      className="px-3 py-2 bg-white border border-zinc-200 rounded-xl text-[12px] font-bold text-black focus:outline-none"
+                    >
+                      <option value="">All Roles</option>
+                      <option value="USER">USER</option>
+                      <option value="ADMIN">ADMIN</option>
+                    </select>
 
-                    {/* Browser & OS Distribution */}
-                    <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-4 shadow-xs">
-                      <h3 className="text-[15px] font-extrabold text-black">
-                        Browser & OS Distribution
-                      </h3>
-                      <div className="space-y-2 pt-1 text-[12px] font-bold">
-                        <p className="text-[10px] uppercase text-zinc-400 font-extrabold">
-                          Top Browsers
-                        </p>
-                        <div className="flex flex-wrap gap-2 pb-2">
-                          {(
-                            analyticsData?.growthAnalytics
-                              ?.browserDistribution || [
-                              { name: "Chrome", count: 1 },
-                            ]
-                          ).map((b, i) => (
-                            <span
-                              key={i}
-                              className="px-2.5 py-1 rounded-xl bg-zinc-100 border border-zinc-200 text-black"
-                            >
-                              {b.name}: {b.count}
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-[10px] uppercase text-zinc-400 font-extrabold pt-2">
-                          Operating Systems
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {(
-                            analyticsData?.growthAnalytics?.osDistribution || [
-                              { name: "macOS", count: 1 },
-                            ]
-                          ).map((o, i) => (
-                            <span
-                              key={i}
-                              className="px-2.5 py-1 rounded-xl bg-[#015451]/10 border border-[#015451]/20 text-[#015451]"
-                            >
-                              {o.name}: {o.count}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                    <select
+                      value={verificationFilter}
+                      onChange={(e) => {
+                        setVerificationFilter(e.target.value);
+                        setUserPage(1);
+                      }}
+                      className="px-3 py-2 bg-white border border-zinc-200 rounded-xl text-[12px] font-bold text-black focus:outline-none"
+                    >
+                      <option value="">All Verification</option>
+                      <option value="true">Verified</option>
+                      <option value="false">Unverified</option>
+                    </select>
+
+                    <select
+                      value={providerFilter}
+                      onChange={(e) => {
+                        setProviderFilter(e.target.value);
+                        setUserPage(1);
+                      }}
+                      className="px-3 py-2 bg-white border border-zinc-200 rounded-xl text-[12px] font-bold text-black focus:outline-none"
+                    >
+                      <option value="">All Auth Providers</option>
+                      <option value="GOOGLE">Google OAuth</option>
+                      <option value="PASSWORD">Email / Password</option>
+                    </select>
+
+                    <select
+                      value={riskFilter}
+                      onChange={(e) => {
+                        setRiskFilter(e.target.value);
+                        setUserPage(1);
+                      }}
+                      className="px-3 py-2 bg-white border border-zinc-200 rounded-xl text-[12px] font-bold text-black focus:outline-none"
+                    >
+                      <option value="">All Risk Scores</option>
+                      <option value="LOW">Low Risk</option>
+                      <option value="MEDIUM">Medium Risk</option>
+                      <option value="HIGH">High Risk</option>
+                    </select>
                   </div>
 
-                  {/* Country-wise Distribution & Peak Traffic Hours */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-4 shadow-xs">
-                      <h3 className="text-[15px] font-extrabold text-black">
-                        Country-wise Distribution
-                      </h3>
-                      <div className="space-y-3 pt-1">
-                        {(
-                          analyticsData?.growthAnalytics
-                            ?.countryDistribution || [
-                            { country: "India 🇮🇳", count: 1, percentage: 100 },
-                          ]
-                        ).map((c, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-xl border border-zinc-100"
-                          >
-                            <span className="text-[12px] font-bold text-black">
-                              {c.country}
-                            </span>
-                            <span className="text-[12px] font-black text-[#015451]">
-                              {c.count} users ({c.percentage}%)
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="lg:col-span-2 bg-white rounded-2xl border border-zinc-200 p-6 space-y-4 shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-[15px] font-extrabold text-black">
-                            Peak Traffic Hours (24-Hour Intensity)
-                          </h3>
-                          <p className="text-[12px] text-zinc-500 font-medium">
-                            API request volume distribution throughout UTC day
-                          </p>
-                        </div>
-                        <span className="text-[10px] font-extrabold bg-[#015451]/10 text-[#015451] px-2.5 py-1 rounded-full border border-[#015451]/20">
-                          24h Traffic Histogram
+                  {/* Bulk Action Bar */}
+                  {selectedUserIds.length > 0 && (
+                    <div className="p-3 rounded-2xl bg-black text-white flex flex-wrap items-center justify-between gap-3 shadow-md">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[12px] font-black bg-[#015451] text-white px-2.5 py-0.5 rounded-full">
+                          {selectedUserIds.length} Selected
+                        </span>
+                        <span className="text-[12px] text-zinc-300 font-medium">
+                          Bulk Operations Menu:
                         </span>
                       </div>
 
-                      <div className="h-36 flex items-end justify-between gap-1 pt-4">
-                        {(
-                          analyticsData?.growthAnalytics?.peakTrafficHours || []
-                        ).map((pt, i) => (
-                          <div
-                            key={i}
-                            className="flex-1 flex flex-col items-center gap-1 group cursor-pointer"
-                            title={`${pt.hour}: ${pt.requests} requests`}
-                          >
-                            <div
-                              style={{
-                                height: `${Math.min(pt.requests * 5, 110)}px`,
-                              }}
-                              className="w-full bg-[#015451] rounded-t-sm group-hover:bg-[#013b39] transition-colors"
-                            />
-                            {i % 4 === 0 && (
-                              <span className="text-[9px] font-mono text-zinc-400">
-                                {pt.hour}
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          disabled={bulkActioning}
+                          onClick={() =>
+                            handleExecuteBulkAction("UPDATE_ROLE", {
+                              role: "ADMIN",
+                            })
+                          }
+                          className="px-3 py-1 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Make ADMIN
+                        </button>
+                        <button
+                          disabled={bulkActioning}
+                          onClick={() =>
+                            handleExecuteBulkAction("UPDATE_ROLE", {
+                              role: "USER",
+                            })
+                          }
+                          className="px-3 py-1 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Make USER
+                        </button>
+                        <button
+                          disabled={bulkActioning}
+                          onClick={() => handleExecuteBulkAction("VERIFY")}
+                          className="px-3 py-1 rounded-xl bg-[#015451] hover:bg-[#013b39] text-white text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Verify Selected
+                        </button>
+                        <button
+                          disabled={bulkActioning}
+                          onClick={() => handleExecuteBulkAction("UNVERIFY")}
+                          className="px-3 py-1 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Unverify Selected
+                        </button>
+                        <button
+                          disabled={bulkActioning}
+                          onClick={() =>
+                            handleExecuteBulkAction("REVOKE_SESSIONS")
+                          }
+                          className="px-3 py-1 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Revoke Sessions
+                        </button>
+                        <button
+                          disabled={bulkActioning}
+                          onClick={() => handleExecuteBulkAction("DELETE")}
+                          className="px-3 py-1 rounded-xl bg-red-950 border border-red-800 text-white hover:bg-red-900 text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Delete Selected
+                        </button>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                  )}
 
-              {activeTab === "users" && (
-                <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-6 shadow-xs">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100">
-                    <div>
-                      <h3 className="text-[16px] font-extrabold text-black">
-                        User & Role Directory
-                      </h3>
-                      <p className="text-[12px] text-zinc-500 font-medium">
-                        Manage accounts, assign roles (USER & ADMIN), verify
-                        users, and handle account operations.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 w-full sm:w-auto">
-                      <div className="relative flex-1 sm:w-64">
-                        <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-3 text-zinc-400" />
-                        <input
-                          type="text"
-                          placeholder="Search users..."
-                          value={userSearch}
-                          onChange={(e) => setUserSearch(e.target.value)}
-                          className="w-full pl-9 pr-4 py-2 bg-white border border-zinc-200 rounded-xl text-[12px] font-medium text-black focus:outline-none focus:border-black"
-                        />
-                      </div>
-
-                      <select
-                        value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                        className="px-3 py-2 bg-white border border-zinc-200 rounded-xl text-[12px] font-bold text-black focus:outline-none focus:border-black"
-                      >
-                        <option value="">All Roles</option>
-                        <option value="USER">USER</option>
-                        <option value="ADMIN">ADMIN</option>
-                      </select>
-                    </div>
-                  </div>
-
+                  {/* Users Directory Table */}
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-[13px]">
                       <thead>
                         <tr className="border-b border-zinc-100 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                          <th className="pb-3 w-8">
+                            <input
+                              type="checkbox"
+                              checked={isAllPageSelected}
+                              onChange={(e) =>
+                                handleSelectAllOnPage(e.target.checked)
+                              }
+                              className="rounded border-zinc-300 text-black focus:ring-0 cursor-pointer"
+                            />
+                          </th>
                           <th className="pb-3 font-bold">User</th>
+                          <th className="pb-3 font-bold">Provider</th>
                           <th className="pb-3 font-bold">Role</th>
                           <th className="pb-3 font-bold">Verification</th>
-                          <th className="pb-3 font-bold text-center">Score</th>
-                          <th className="pb-3 font-bold text-center">Joined</th>
+                          <th className="pb-3 font-bold">Risk Level</th>
+                          <th className="pb-3 font-bold">Telemetry</th>
                           <th className="pb-3 font-bold text-right">Actions</th>
                         </tr>
                       </thead>
@@ -1471,120 +1554,235 @@ function AdminDashboardContent() {
                         {loadingUsers ? (
                           <tr>
                             <td
-                              colSpan={6}
+                              colSpan={8}
                               className="py-8 text-center text-zinc-400 italic"
                             >
-                              Loading users list...
+                              Loading user directory...
                             </td>
                           </tr>
                         ) : usersList.length === 0 ? (
                           <tr>
                             <td
-                              colSpan={6}
+                              colSpan={8}
                               className="py-8 text-center text-zinc-400 italic"
                             >
-                              No users found matching filter
+                              No users match the active filter criteria
                             </td>
                           </tr>
                         ) : (
-                          usersList.map((u) => (
-                            <tr
-                              key={u.id}
-                              className="hover:bg-zinc-50 transition-colors"
-                            >
-                              <td className="py-3.5">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-xl bg-black text-white border border-zinc-900 flex items-center justify-center font-black text-[12px] shrink-0">
-                                    {u.username[0]?.toUpperCase()}
+                          usersList.map((u) => {
+                            const isSelected = selectedUserIds.includes(u.id);
+                            return (
+                              <tr
+                                key={u.id}
+                                className={`transition-colors ${
+                                  isSelected ? "bg-zinc-50" : "hover:bg-zinc-50"
+                                }`}
+                              >
+                                <td className="py-3.5">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() =>
+                                      handleToggleSelectUser(u.id)
+                                    }
+                                    className="rounded border-zinc-300 text-black focus:ring-0 cursor-pointer"
+                                  />
+                                </td>
+
+                                <td className="py-3.5">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-black text-white border border-zinc-900 flex items-center justify-center font-black text-[12px] shrink-0">
+                                      {u.username[0]?.toUpperCase()}
+                                    </div>
+                                    <div>
+                                      <p className="font-extrabold text-black leading-tight flex items-center gap-1.5">
+                                        <span>
+                                          {u.first_name
+                                            ? `${u.first_name} ${u.last_name || ""}`
+                                            : u.username}
+                                        </span>
+                                      </p>
+                                      <p className="text-[11px] text-zinc-500 font-medium">
+                                        {u.email}
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="font-extrabold text-black leading-tight">
-                                      {u.first_name
-                                        ? `${u.first_name} ${u.last_name || ""}`
-                                        : u.username}
-                                    </p>
-                                    <p className="text-[11px] text-zinc-500 font-medium">
-                                      {u.email}
-                                    </p>
+                                </td>
+
+                                <td className="py-3.5">
+                                  <span className="px-2.5 py-0.5 rounded-md bg-zinc-100 text-black border border-zinc-200 text-[10px] font-bold">
+                                    {u.auth_provider || "PASSWORD"}
+                                  </span>
+                                </td>
+
+                                <td className="py-3.5">
+                                  <button
+                                    disabled={updatingUserId === u.id}
+                                    onClick={() =>
+                                      handleUpdateRole(
+                                        u.id,
+                                        u.role === "ADMIN" ? "USER" : "ADMIN",
+                                      )
+                                    }
+                                    className={`px-3 py-1 rounded-full text-[11px] font-extrabold border transition-all cursor-pointer ${
+                                      u.role === "ADMIN"
+                                        ? "bg-black text-white border-zinc-900 hover:bg-zinc-800"
+                                        : "bg-zinc-100 text-black border-zinc-200 hover:bg-zinc-200"
+                                    }`}
+                                  >
+                                    {u.role || "USER"} (Switch)
+                                  </button>
+                                </td>
+
+                                <td className="py-3.5">
+                                  <button
+                                    disabled={updatingUserId === u.id}
+                                    onClick={() =>
+                                      handleToggleVerification(
+                                        u.id,
+                                        u.is_verified,
+                                      )
+                                    }
+                                    className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border transition-all flex items-center gap-1 w-fit cursor-pointer ${
+                                      u.is_verified
+                                        ? "bg-[#015451]/10 text-[#015451] border-[#015451]/20"
+                                        : "bg-zinc-100 text-black border-zinc-200"
+                                    }`}
+                                  >
+                                    {u.is_verified ? (
+                                      <>
+                                        <CheckCircledIcon className="w-3 h-3 text-[#015451]" />
+                                        <span>Verified</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <ExclamationTriangleIcon className="w-3 h-3 text-black" />
+                                        <span>Pending</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </td>
+
+                                <td className="py-3.5">
+                                  <span
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${
+                                      u.riskLevel === "HIGH"
+                                        ? "bg-black text-white border-zinc-900"
+                                        : u.riskLevel === "MEDIUM"
+                                          ? "bg-zinc-100 text-black border-zinc-300"
+                                          : "bg-[#015451]/10 text-[#015451] border-[#015451]/20"
+                                    }`}
+                                  >
+                                    {u.riskLevel} ({u.riskScore})
+                                  </span>
+                                </td>
+
+                                <td className="py-3.5 text-[11px] text-zinc-500">
+                                  <p className="font-bold text-black">
+                                    {u.location || "India"}
+                                  </p>
+                                  <p className="font-mono text-[10px]">
+                                    {u.ip_address} · {u.device}
+                                  </p>
+                                </td>
+
+                                <td className="py-3.5 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      title="Inspect User Details"
+                                      onClick={() => handleInspectUser(u.id)}
+                                      className="p-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black transition-colors cursor-pointer"
+                                    >
+                                      <EyeOpenIcon className="w-3.5 h-3.5 text-[#015451]" />
+                                    </button>
+                                    <button
+                                      title="Edit Profile"
+                                      onClick={() => handleOpenEditUser(u)}
+                                      className="p-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black transition-colors cursor-pointer"
+                                    >
+                                      <Pencil1Icon className="w-3.5 h-3.5 text-black" />
+                                    </button>
+                                    <button
+                                      title="Send Email"
+                                      onClick={() => setEmailModalUser(u)}
+                                      className="p-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black transition-colors cursor-pointer"
+                                    >
+                                      <EnvelopeClosedIcon className="w-3.5 h-3.5 text-black" />
+                                    </button>
+                                    <button
+                                      title="Revoke All Sessions"
+                                      disabled={updatingUserId === u.id}
+                                      onClick={() => handleRevokeSessions(u.id)}
+                                      className="p-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black transition-colors cursor-pointer"
+                                    >
+                                      <LockClosedIcon className="w-3.5 h-3.5 text-black" />
+                                    </button>
+                                    <button
+                                      title="Delete User"
+                                      disabled={
+                                        updatingUserId === u.id ||
+                                        u.id === user?.id
+                                      }
+                                      onClick={() =>
+                                        handleDeleteUser(u.id, u.email)
+                                      }
+                                      className="p-1.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black transition-colors disabled:opacity-30 cursor-pointer"
+                                    >
+                                      <TrashIcon className="w-3.5 h-3.5 text-red-600" />
+                                    </button>
                                   </div>
-                                </div>
-                              </td>
-
-                              <td className="py-3.5">
-                                <button
-                                  disabled={updatingUserId === u.id}
-                                  onClick={() =>
-                                    handleUpdateRole(
-                                      u.id,
-                                      u.role === "ADMIN" ? "USER" : "ADMIN",
-                                    )
-                                  }
-                                  className={`px-3 py-1 rounded-full text-[11px] font-extrabold border transition-all cursor-pointer ${
-                                    u.role === "ADMIN"
-                                      ? "bg-black text-white border-zinc-900 hover:bg-zinc-800"
-                                      : "bg-zinc-100 text-black border-zinc-200 hover:bg-zinc-200"
-                                  }`}
-                                >
-                                  {u.role || "USER"} (Switch)
-                                </button>
-                              </td>
-
-                              <td className="py-3.5">
-                                <button
-                                  disabled={updatingUserId === u.id}
-                                  onClick={() =>
-                                    handleToggleVerification(
-                                      u.id,
-                                      u.is_verified,
-                                    )
-                                  }
-                                  className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border transition-all flex items-center gap-1 w-fit cursor-pointer ${
-                                    u.is_verified
-                                      ? "bg-[#015451]/10 text-[#015451] border-[#015451]/20"
-                                      : "bg-zinc-100 text-black border-zinc-200"
-                                  }`}
-                                >
-                                  {u.is_verified ? (
-                                    <>
-                                      <CheckCircledIcon className="w-3 h-3 text-[#015451]" />
-                                      <span>Verified</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <ExclamationTriangleIcon className="w-3 h-3 text-black" />
-                                      <span>Pending</span>
-                                    </>
-                                  )}
-                                </button>
-                              </td>
-
-                              <td className="py-3.5 text-center font-black text-black">
-                                {u.developer_score || 0}
-                              </td>
-
-                              <td className="py-3.5 text-center text-[11px] text-zinc-500 font-medium">
-                                {new Date(u.created_at).toLocaleDateString()}
-                              </td>
-
-                              <td className="py-3.5 text-right">
-                                <button
-                                  disabled={
-                                    updatingUserId === u.id || u.id === user?.id
-                                  }
-                                  onClick={() =>
-                                    handleDeleteUser(u.id, u.email)
-                                  }
-                                  className="px-2.5 py-1 rounded-xl bg-black text-white hover:bg-zinc-800 text-[11px] font-bold border border-zinc-900 transition-colors disabled:opacity-30 cursor-pointer flex items-center gap-1 ml-auto"
-                                >
-                                  <TrashIcon className="w-3 h-3 text-[#015451]" />
-                                  <span>Delete</span>
-                                </button>
-                              </td>
-                            </tr>
-                          ))
+                                </td>
+                              </tr>
+                            );
+                          })
                         )}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-zinc-100 text-[12px]">
+                    <div className="flex items-center gap-2 text-zinc-500 font-medium">
+                      <span>
+                        Showing page {paginationMeta.page} of{" "}
+                        {paginationMeta.totalPages} ({paginationMeta.total}{" "}
+                        total users)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <select
+                        value={userLimit}
+                        onChange={(e) => {
+                          setUserLimit(Number(e.target.value));
+                          setUserPage(1);
+                        }}
+                        className="px-2.5 py-1 bg-white border border-zinc-200 rounded-xl text-[12px] font-bold text-black focus:outline-none"
+                      >
+                        <option value={10}>10 per page</option>
+                        <option value={25}>25 per page</option>
+                        <option value={50}>50 per page</option>
+                        <option value={100}>100 per page</option>
+                      </select>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          disabled={userPage <= 1}
+                          onClick={() => setUserPage(userPage - 1)}
+                          className="px-3 py-1 rounded-xl border border-zinc-200 bg-white text-black hover:bg-zinc-50 disabled:opacity-30 cursor-pointer font-bold"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          disabled={userPage >= paginationMeta.totalPages}
+                          onClick={() => setUserPage(userPage + 1)}
+                          className="px-3 py-1 rounded-xl border border-zinc-200 bg-white text-black hover:bg-zinc-50 disabled:opacity-30 cursor-pointer font-bold"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1680,8 +1878,7 @@ function AdminDashboardContent() {
                               <td className="py-3">
                                 <span
                                   className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${
-                                    log.level === "ERROR" ||
-                                    log.level === "WARN"
+                                    log.level === "ERROR" || log.level === "WARN"
                                       ? "bg-black text-white border-zinc-900"
                                       : "bg-[#015451]/10 text-[#015451] border-[#015451]/20"
                                   }`}
@@ -1711,11 +1908,10 @@ function AdminDashboardContent() {
 
               {activeTab === "health" && (
                 <div className="space-y-6">
-                  {/* Top Node Process Telemetry */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-2 shadow-xs">
-                      <span className="text-[12px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Server Health Status
+                      <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
+                        Server Status
                       </span>
                       <div className="flex items-center gap-2 text-[24px] font-black text-[#015451]">
                         <CheckCircledIcon className="w-6 h-6 text-[#015451]" />
@@ -1727,7 +1923,7 @@ function AdminDashboardContent() {
                     </div>
 
                     <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-2 shadow-xs">
-                      <span className="text-[12px] font-bold text-zinc-400 uppercase tracking-wider">
+                      <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                         Process Uptime
                       </span>
                       <p className="text-[24px] font-black text-black">
@@ -1741,7 +1937,7 @@ function AdminDashboardContent() {
                     </div>
 
                     <div className="bg-white rounded-2xl border border-zinc-200 p-6 space-y-2 shadow-xs">
-                      <span className="text-[12px] font-bold text-zinc-400 uppercase tracking-wider">
+                      <span className="text-[12px] font-bold text-zinc-500 uppercase tracking-wider">
                         Heap Memory Usage
                       </span>
                       <p className="text-[24px] font-black text-black">
@@ -1752,183 +1948,6 @@ function AdminDashboardContent() {
                       <p className="text-[11px] text-zinc-500 font-semibold">
                         Total RSS: {healthData?.memory?.rssMB || "95"} MB
                       </p>
-                    </div>
-                  </div>
-
-                  {/* 10 Services Health Grid */}
-                  <div className="space-y-4 pt-2">
-                    <h3 className="text-[15px] font-extrabold text-black">
-                      Platform Infrastructure & Third-Party Service Monitors
-                    </h3>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                      {/* 1. Server Status */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Server Status
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#015451]">
-                          <span className="w-2 h-2 rounded-full bg-[#015451] animate-pulse" />
-                          <span>
-                            {healthData?.services?.serverStatus ||
-                              "OPERATIONAL"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Express backend runtime
-                        </p>
-                      </div>
-
-                      {/* 2. Database Status */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Database Status
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#015451]">
-                          <span className="w-2 h-2 rounded-full bg-[#015451] animate-pulse" />
-                          <span>
-                            {healthData?.services?.databaseStatus ||
-                              healthData?.databaseStatus ||
-                              "CONNECTED"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Prisma / PostgreSQL
-                        </p>
-                      </div>
-
-                      {/* 3. Redis Status */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Redis Status
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-black">
-                          <span className="w-2 h-2 rounded-full bg-[#015451]" />
-                          <span>
-                            {healthData?.services?.redisStatus || "IN_MEMORY"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          DB Session fallback
-                        </p>
-                      </div>
-
-                      {/* 4. Queue Workers */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Queue Workers
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#015451]">
-                          <span className="w-2 h-2 rounded-full bg-[#015451]" />
-                          <span>
-                            {healthData?.services?.queueWorkers ||
-                              "1 Worker Active"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Background sync worker
-                        </p>
-                      </div>
-
-                      {/* 5. API Health */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          API Health
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#015451]">
-                          <span className="w-2 h-2 rounded-full bg-[#015451]" />
-                          <span>
-                            {healthData?.services?.apiHealth || "99.9% (~12ms)"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          REST API uptime
-                        </p>
-                      </div>
-
-                      {/* 6. Email Service Status */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          Email Service
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#015451]">
-                          <span className="w-2 h-2 rounded-full bg-[#015451]" />
-                          <span>
-                            {healthData?.services?.emailServiceStatus ||
-                              "OPERATIONAL"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          SMTP OTP verification
-                        </p>
-                      </div>
-
-                      {/* 7. OAuth Providers Status */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          OAuth Providers
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#015451]">
-                          <span className="w-2 h-2 rounded-full bg-[#015451]" />
-                          <span>
-                            {healthData?.services?.oauthProvidersStatus ||
-                              "OPERATIONAL"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Google OAuth 2.0
-                        </p>
-                      </div>
-
-                      {/* 8. External API Status */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          External APIs
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#015451]">
-                          <span className="w-2 h-2 rounded-full bg-[#015451]" />
-                          <span>
-                            {healthData?.services?.externalApiStatus ||
-                              "OPERATIONAL"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          GitHub & Coding Sync
-                        </p>
-                      </div>
-
-                      {/* 9. AI Service Status */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          AI Service
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#015451]">
-                          <span className="w-2 h-2 rounded-full bg-[#015451]" />
-                          <span>
-                            {healthData?.services?.aiServiceStatus ||
-                              "OPERATIONAL"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Gemini AI engine
-                        </p>
-                      </div>
-
-                      {/* 10. CDN Status */}
-                      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-2 shadow-xs">
-                        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                          CDN Status
-                        </span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-[#015451]">
-                          <span className="w-2 h-2 rounded-full bg-[#015451]" />
-                          <span>
-                            {healthData?.services?.cdnStatus || "OPERATIONAL"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-zinc-500 font-medium">
-                          Edge static asset pipeline
-                        </p>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -1977,6 +1996,320 @@ function AdminDashboardContent() {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Inspect User Details Modal */}
+      {inspectUserPayload && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-zinc-200 max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+              <div>
+                <h3 className="text-[18px] font-black text-black">
+                  User Telemetry Inspection
+                </h3>
+                <p className="text-[12px] text-zinc-500 font-medium">
+                  {inspectUserPayload.user.email} (ID: {inspectUserPayload.user.id})
+                </p>
+              </div>
+              <button
+                onClick={() => setInspectUserPayload(null)}
+                className="p-1 rounded-xl hover:bg-zinc-100 text-black cursor-pointer font-bold"
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Profile Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2">
+                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+                  Authentication & Provider
+                </span>
+                <p className="text-[14px] font-extrabold text-black">
+                  {inspectUserPayload.authProvider}
+                </p>
+                <p className="text-[12px] text-zinc-500 font-medium">
+                  2FA Status:{" "}
+                  {inspectUserPayload.user.two_factor_enabled
+                    ? "Enabled"
+                    : "Disabled"}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2">
+                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+                  Calculated Risk Telemetry
+                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2 py-0.5 rounded-md text-[11px] font-black border ${
+                      inspectUserPayload.riskIndicators.riskLevel === "HIGH"
+                        ? "bg-black text-white"
+                        : "bg-[#015451]/10 text-[#015451] border-[#015451]/20"
+                    }`}
+                  >
+                    Risk Level: {inspectUserPayload.riskIndicators.riskLevel} (
+                    {inspectUserPayload.riskIndicators.riskScore}/100)
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 font-medium">
+                  Disposable Email:{" "}
+                  {inspectUserPayload.riskIndicators.isDisposableEmail
+                    ? "Yes (High Risk)"
+                    : "No"}
+                </p>
+              </div>
+            </div>
+
+            {/* Risk Flags */}
+            <div className="p-4 rounded-2xl bg-white border border-zinc-200 space-y-3">
+              <h4 className="text-[13px] font-extrabold text-black">
+                Security Risk Flags
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px] font-bold">
+                <div className="p-2.5 bg-zinc-50 rounded-xl border border-zinc-100">
+                  <span className="text-zinc-400 block text-[10px]">
+                    Countries Count
+                  </span>
+                  <span className="text-black">
+                    {inspectUserPayload.riskIndicators.countriesCount}
+                  </span>
+                </div>
+                <div className="p-2.5 bg-zinc-50 rounded-xl border border-zinc-100">
+                  <span className="text-zinc-400 block text-[10px]">
+                    Active Devices
+                  </span>
+                  <span className="text-black">
+                    {inspectUserPayload.riskIndicators.devicesCount}
+                  </span>
+                </div>
+                <div className="p-2.5 bg-zinc-50 rounded-xl border border-zinc-100">
+                  <span className="text-zinc-400 block text-[10px]">
+                    Shared Accounts
+                  </span>
+                  <span className="text-black">
+                    {inspectUserPayload.riskIndicators.sharedDeviceAccountsCount}
+                  </span>
+                </div>
+                <div className="p-2.5 bg-zinc-50 rounded-xl border border-zinc-100">
+                  <span className="text-zinc-400 block text-[10px]">
+                    Suspicious Logins
+                  </span>
+                  <span className="text-black">
+                    {inspectUserPayload.riskIndicators.suspiciousLogins
+                      ? "Flagged"
+                      : "Clean"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Sessions list */}
+            <div className="space-y-3">
+              <h4 className="text-[13px] font-extrabold text-black">
+                Active & Recent Sessions ({inspectUserPayload.recentSessions.length})
+              </h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-[12px]">
+                  <thead>
+                    <tr className="border-b border-zinc-100 text-[10px] font-bold text-zinc-400">
+                      <th className="pb-2">IP Address</th>
+                      <th className="pb-2">Device & OS</th>
+                      <th className="pb-2">Browser</th>
+                      <th className="pb-2">Last Active</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100 font-medium">
+                    {inspectUserPayload.recentSessions.map((s) => (
+                      <tr key={s.id}>
+                        <td className="py-2 font-mono">{s.ip_address}</td>
+                        <td className="py-2">
+                          {s.device_type} · {s.os}
+                        </td>
+                        <td className="py-2">{s.browser_name}</td>
+                        <td className="py-2 text-zinc-400">
+                          {new Date(s.last_active).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-zinc-100 flex justify-end">
+              <button
+                onClick={() => setInspectUserPayload(null)}
+                className="px-4 py-2 bg-black text-white font-bold rounded-xl text-[12px] cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {editProfileUser && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <form
+            onSubmit={handleSaveEditedUser}
+            className="bg-white rounded-3xl border border-zinc-200 max-w-md w-full p-6 space-y-4 shadow-2xl"
+          >
+            <h3 className="text-[16px] font-extrabold text-black">
+              Edit User Profile ({editProfileUser.email})
+            </h3>
+
+            <div className="space-y-3 text-[12px]">
+              <div>
+                <label className="block text-zinc-500 font-bold mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.username}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, username: e.target.value })
+                  }
+                  className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl font-medium focus:outline-none focus:border-black"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-zinc-500 font-bold mb-1">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.first_name}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        first_name: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl font-medium focus:outline-none focus:border-black"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-500 font-bold mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.last_name}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        last_name: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl font-medium focus:outline-none focus:border-black"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-zinc-500 font-bold mb-1">
+                  Developer Score
+                </label>
+                <input
+                  type="number"
+                  value={editFormData.developer_score}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      developer_score: Number(e.target.value),
+                    })
+                  }
+                  className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl font-medium focus:outline-none focus:border-black"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditProfileUser(null)}
+                className="px-4 py-2 rounded-xl border border-zinc-200 bg-white text-black font-bold text-[12px] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-black text-white font-bold text-[12px] cursor-pointer"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Send Notification Email Modal */}
+      {emailModalUser && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <form
+            onSubmit={handleSendAdminEmail}
+            className="bg-white rounded-3xl border border-zinc-200 max-w-md w-full p-6 space-y-4 shadow-2xl"
+          >
+            <h3 className="text-[16px] font-extrabold text-black">
+              Send Email to {emailModalUser.email}
+            </h3>
+
+            <div className="space-y-3 text-[12px]">
+              <div>
+                <label className="block text-zinc-500 font-bold mb-1">
+                  Subject Line
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Account Verification Notice"
+                  value={emailFormData.subject}
+                  onChange={(e) =>
+                    setEmailFormData({ ...emailFormData, subject: e.target.value })
+                  }
+                  className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl font-medium focus:outline-none focus:border-black"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-500 font-bold mb-1">
+                  Message Body
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="Type official notification message..."
+                  value={emailFormData.message}
+                  onChange={(e) =>
+                    setEmailFormData({ ...emailFormData, message: e.target.value })
+                  }
+                  className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl font-medium focus:outline-none focus:border-black"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEmailModalUser(null)}
+                className="px-4 py-2 rounded-xl border border-zinc-200 bg-white text-black font-bold text-[12px] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={sendingEmail}
+                className="px-4 py-2 rounded-xl bg-black text-white font-bold text-[12px] cursor-pointer disabled:opacity-50"
+              >
+                {sendingEmail ? "Sending..." : "Send Email"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
