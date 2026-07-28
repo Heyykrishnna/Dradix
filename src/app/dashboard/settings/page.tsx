@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/auth";
 import { Cross1Icon, ExitIcon } from "@radix-ui/react-icons";
+import CandyButton from "@/components/ui/candy-button";
 
 interface Session {
   id: number;
@@ -48,6 +49,53 @@ export default function SettingsPage() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  const [sessionLimit, setSessionLimit] = useState<number>(
+    user?.max_sessions || 5,
+  );
+  const [savingLimit, setSavingLimit] = useState(false);
+  const [limitSuccessMsg, setLimitSuccessMsg] = useState("");
+  const [limitErrorMsg, setLimitErrorMsg] = useState("");
+
+  useEffect(() => {
+    if (user?.max_sessions) {
+      setSessionLimit(user.max_sessions);
+    }
+  }, [user?.max_sessions]);
+
+  const handleSaveSessionLimit = async () => {
+    setSavingLimit(true);
+    setLimitErrorMsg("");
+    setLimitSuccessMsg("");
+    try {
+      const res = await apiFetch<
+        ApiResponse<{ max_sessions: number; activeSessions: Session[] }>
+      >("/auth/session-limit", {
+        method: "PUT",
+        body: JSON.stringify({ max_sessions: sessionLimit }),
+      });
+      if (res.success && res.data) {
+        setLimitSuccessMsg(
+          `Concurrent session limit set to ${res.data.max_sessions} active sessions.`,
+        );
+        if (res.data.activeSessions) {
+          const now = Date.now();
+          const enriched = res.data.activeSessions.map((s) => ({
+            ...s,
+            relativeActive: getRelativeTime(s.last_active, now),
+          }));
+          setSessions(enriched);
+        }
+        if (checkAuth) void checkAuth();
+      }
+    } catch (err) {
+      setLimitErrorMsg(
+        err instanceof Error ? err.message : "Failed to update session limit",
+      );
+    } finally {
+      setSavingLimit(false);
+    }
+  };
 
   const [showSetup2FA, setShowSetup2FA] = useState(false);
   const [qrCodeData, setQrCodeData] = useState("");
@@ -685,7 +733,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={pwdLoading || !isPasswordValid}
-              className="px-4 py-2.5 bg-[#003c3a] hover:bg-[#002d2b] disabled:bg-zinc-300 disabled:opacity-80 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:cursor-not-allowed"
+              className="btn-candy px-4 py-2.5 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold shadow-[0px_4px_20px_-6px_rgba(0,60,58,0.6),inset_0px_1px_3px_0px_rgba(255,255,255,0.4)] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             >
               {pwdLoading ? "Updating..." : "Update Password"}
             </button>
@@ -727,7 +775,7 @@ export default function SettingsPage() {
               {!showSetup2FA ? (
                 <button
                   onClick={() => openReauth("setup")}
-                  className="px-4 py-2.5 bg-[#003c3a] hover:bg-[#002d2b] text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                  className="btn-candy px-4 py-2.5 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Enable 2FA
                 </button>
@@ -784,14 +832,14 @@ export default function SettingsPage() {
                       <button
                         type="submit"
                         disabled={setupLoading}
-                        className="px-4 py-2 bg-[#003c3a] hover:bg-[#002d2b] disabled:bg-zinc-400 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                        className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer"
                       >
                         {setupLoading ? "Verifying..." : "Verify & Enable"}
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowSetup2FA(false)}
-                        className="px-4 py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition-all"
+                        className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -811,19 +859,19 @@ export default function SettingsPage() {
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => openReauth("view_codes")}
-                  className="px-4 py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition-all"
+                  className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   View Recovery Codes
                 </button>
                 <button
                   onClick={() => openReauth("regen_codes")}
-                  className="px-4 py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition-all"
+                  className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Regenerate Recovery Codes
                 </button>
                 <button
                   onClick={() => openReauth("disable")}
-                  className="px-4 py-2 bg-red-50 hover:bg-red-100/70 border border-red-200 text-red-700 rounded-xl text-xs font-bold transition-all"
+                  className="btn-candy px-4 py-2 bg-linear-to-b from-red-600 via-red-700 to-red-800 border border-red-500/50 text-white rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Disable 2FA
                 </button>
@@ -892,7 +940,7 @@ export default function SettingsPage() {
               <button
                 onClick={handleRevokeAll}
                 disabled={bulkLoading}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                className="btn-candy px-4 py-2 bg-linear-to-b from-red-600 via-red-700 to-red-800 border border-red-500/50 text-white disabled:opacity-50 rounded-xl text-xs font-bold shadow-sm cursor-pointer whitespace-nowrap"
               >
                 {bulkLoading ? "Logging out all..." : "Logout All Devices"}
               </button>
@@ -900,7 +948,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleRevokeOther}
                   disabled={bulkLoading}
-                  className="px-4 py-2 bg-[#003c3a] hover:bg-[#002d2b] text-white disabled:opacity-50 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                  className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] border border-[#003c3a]/50 text-white disabled:opacity-50 rounded-xl text-xs font-bold shadow-sm cursor-pointer whitespace-nowrap"
                 >
                   {bulkLoading
                     ? "Logging out others..."
@@ -908,6 +956,57 @@ export default function SettingsPage() {
                 </button>
               )}
             </div>
+          </div>
+
+          <div className="p-4 bg-zinc-50/90 border border-zinc-200/90 rounded-2xl space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
+                    Concurrent Session Limit
+                  </h3>
+                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
+                    {sessions.length} / {user?.max_sessions || sessionLimit || 5} active
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 font-medium mt-1">
+                  Set the maximum number of concurrent active sessions allowed for your account. Older sessions will be automatically logged out.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0">
+                <select
+                  value={sessionLimit}
+                  onChange={(e) => setSessionLimit(Number(e.target.value))}
+                  className="px-3.5 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#003c3a]/20 cursor-pointer shadow-2xs"
+                >
+                  {[1, 2, 3, 5, 10, 15, 20].map((num) => (
+                    <option key={num} value={num}>
+                      {num} {num === 1 ? "Session" : "Sessions"}
+                    </option>
+                  ))}
+                </select>
+
+                <CandyButton
+                  onClick={handleSaveSessionLimit}
+                  disabled={savingLimit}
+                  className="text-xs px-4 py-2 font-bold whitespace-nowrap"
+                >
+                  {savingLimit ? "Saving..." : "Save Limit"}
+                </CandyButton>
+              </div>
+            </div>
+
+            {limitSuccessMsg && (
+              <p className="text-xs text-emerald-600 font-bold tracking-tight">
+                {limitSuccessMsg}
+              </p>
+            )}
+            {limitErrorMsg && (
+              <p className="text-xs text-red-600 font-bold tracking-tight">
+                {limitErrorMsg}
+              </p>
+            )}
           </div>
 
           {loading ? (
@@ -1200,14 +1299,14 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setShowReauthModal(false)}
-                    className="px-4 py-2 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition-all"
+                    className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={reauthLoading}
-                    className="px-4 py-2 bg-[#003c3a] hover:bg-[#002d2b] disabled:bg-zinc-400 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                    className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer"
                   >
                     {reauthLoading ? "Confirming..." : "Confirm Password"}
                   </button>
@@ -1245,14 +1344,14 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => handlePasswordChangeSubmit(false)}
-                  className="px-4 py-2.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition-all"
+                  className="btn-candy px-4 py-2.5 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   No, Keep Other Sessions
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePasswordChangeSubmit(true)}
-                  className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                  className="btn-candy px-4 py-2.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white border border-red-500/50 rounded-xl text-xs font-bold cursor-pointer"
                 >
                   Yes, Sign Out Everywhere
                 </button>

@@ -16,6 +16,7 @@ export interface SafeUser {
   skills: string[];
   socials: Record<string, string>;
   two_factor_enabled: boolean;
+  max_sessions?: number;
   role?: Role;
   is_verified?: boolean;
   created_at: string;
