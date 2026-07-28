@@ -961,7 +961,7 @@ export default function SettingsPage() {
                   <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
                     Concurrent Session Limit
                   </h3>
-                  <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
+                  <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
                     {sessions.length} /{" "}
                     {user?.max_sessions || sessionLimit || 5} active
                   </span>
@@ -976,7 +976,9 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2.5 shrink-0">
                 <select
                   value={sessionLimit}
-                  onChange={(e) => setCustomSessionLimit(Number(e.target.value))}
+                  onChange={(e) =>
+                    setCustomSessionLimit(Number(e.target.value))
+                  }
                   className="px-3.5 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#003c3a]/20 cursor-pointer shadow-2xs"
                 >
                   {[1, 2, 3, 5, 10, 15, 20].map((num) => (
