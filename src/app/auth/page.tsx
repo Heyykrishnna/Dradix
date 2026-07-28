@@ -216,11 +216,12 @@ function AuthFormContent() {
           setShow2FA(true);
         }
       } else {
-        const baseUsername = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "");
+        const nameSource = `${firstName}${lastName}`.trim() || firstName.trim() || email.split("@")[0];
+        const baseUsername = nameSource.toLowerCase().replace(/[^a-zA-Z0-9]/g, "");
         const array = new Uint32Array(1);
         window.crypto.getRandomValues(array);
         const randomNum = 100 + (array[0] % 900);
-        const username = `${baseUsername}${randomNum}`;
+        const username = baseUsername ? `${baseUsername}${randomNum}` : `user${randomNum}`;
 
         await register({
           email,
