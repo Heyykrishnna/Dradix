@@ -118,8 +118,8 @@ export default function DocumentUploadModal({
       if (currentUploaded >= totalSize) {
         currentUploaded = totalSize;
         clearInterval(interval);
-        setFileList((prev) => {
-          const updated = prev.map((item) =>
+        setFileList((prev) =>
+          prev.map((item) =>
             item.id === newFileItem.id
               ? {
                   ...item,
@@ -128,12 +128,8 @@ export default function DocumentUploadModal({
                   status: "completed" as const,
                 }
               : item,
-          );
-          onUploadCompleteRef.current?.(
-            updated.filter((item) => item.status === "completed"),
-          );
-          return updated;
-        });
+          ),
+        );
       } else {
         const currentProgress = Math.round((currentUploaded / totalSize) * 100);
         setFileList((prev) =>
@@ -200,11 +196,7 @@ export default function DocumentUploadModal({
       status: "completed",
       progress: 100,
     };
-    setFileList((prev) => {
-      const updated = [...prev, newItem];
-      onUploadCompleteRef.current?.(updated);
-      return updated;
-    });
+    setFileList((prev) => [...prev, newItem]);
     setUrlInput("");
   };
 
@@ -230,13 +222,7 @@ export default function DocumentUploadModal({
   };
 
   const handleRemoveFile = (id: string) => {
-    setFileList((prev) => {
-      const updated = prev.filter((item) => item.id !== id);
-      onUploadCompleteRef.current?.(
-        updated.filter((item) => item.status === "completed"),
-      );
-      return updated;
-    });
+    setFileList((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleConfirm = () => {

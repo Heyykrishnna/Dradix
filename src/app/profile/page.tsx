@@ -2622,7 +2622,9 @@ export default function ProfilePage() {
 
                           const localData =
                             typeof window !== "undefined"
-                              ? localStorage.getItem("dradix_profile_resume_data")
+                              ? localStorage.getItem(
+                                  "dradix_profile_resume_data",
+                                )
                               : null;
                           const el = document.createElement("a");
                           if (localData && localData.startsWith("data:")) {
