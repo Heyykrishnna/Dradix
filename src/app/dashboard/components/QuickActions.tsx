@@ -95,12 +95,12 @@ export default function QuickActions() {
               onClick={() => {
                 if (isUpload) setIsUploadOpen(true);
               }}
-              className={`flex flex-col items-center gap-2 p-4 bg-zinc-900/60 ${bg} border border-zinc-800/60 hover:border-zinc-700 rounded-xl transition-all group text-center cursor-pointer`}
+              className={`btn-candy flex flex-col items-center gap-2 p-4 bg-linear-to-b from-zinc-900/80 to-zinc-950/90 ${bg} border border-zinc-800/80 hover:border-zinc-700 rounded-xl group text-center cursor-pointer`}
             >
               <Icon
                 className={`w-5 h-5 ${color} group-hover:scale-110 transition-transform`}
               />
-              <p className="text-[11px] text-zinc-500 group-hover:text-zinc-300 transition-colors leading-tight">
+              <p className="text-[11px] text-zinc-400 group-hover:text-zinc-200 transition-colors leading-tight font-medium">
                 {label}
               </p>
             </button>

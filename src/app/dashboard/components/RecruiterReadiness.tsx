@@ -108,7 +108,7 @@ export default function RecruiterReadiness() {
           ))}
         </div>
 
-        <button className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl text-[13px] text-zinc-200 font-medium transition-colors">
+        <button className="btn-candy w-full mt-4 flex items-center justify-center gap-2 py-2.5 bg-linear-to-b from-zinc-800 via-zinc-900 to-zinc-950 border border-zinc-700/80 rounded-xl text-[13px] text-zinc-100 font-medium cursor-pointer">
           Improve Profile <ArrowRightIcon className="w-3.5 h-3.5" />
         </button>
       </div>

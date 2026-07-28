@@ -209,7 +209,7 @@ export default function CodingPlatforms() {
               <ContestMini data={p.recentContests} color={p.color} />
             </div>
 
-            <button className="w-full mt-3 flex items-center justify-center gap-1.5 py-2 bg-[#141414] hover:bg-[#1c1c1c] rounded-lg text-[11px] font-semibold text-[#888] hover:text-white transition-all">
+            <button className="btn-candy w-full mt-3 flex items-center justify-center gap-1.5 py-2 bg-linear-to-b from-[#1c1c1c] via-[#141414] to-black border border-zinc-800 rounded-lg text-[11px] font-semibold text-zinc-300 hover:text-white cursor-pointer">
               <UpdateIcon className="w-3 h-3" /> Sync Account
             </button>
           </div>

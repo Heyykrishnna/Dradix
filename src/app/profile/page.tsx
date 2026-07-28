@@ -1598,10 +1598,10 @@ export default function ProfilePage() {
                 }
                 setIsEditing(!isEditing);
               }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm cursor-pointer ${
+              className={`btn-candy flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold cursor-pointer ${
                 isEditing
-                  ? "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-200"
-                  : "bg-black text-white hover:bg-zinc-800"
+                  ? "bg-linear-to-b from-zinc-100 to-zinc-200 text-zinc-800 border border-zinc-300"
+                  : "bg-linear-to-b from-zinc-900 to-black text-white border border-zinc-800"
               }`}
             >
               {isEditing ? (
@@ -1619,9 +1619,9 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => logout()}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-medium bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-200/80 transition-all shadow-xs cursor-pointer"
+              className="btn-candy flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-semibold bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white border border-red-500/50 shadow-red-900/30 cursor-pointer"
             >
-              <FaRightFromBracket className="w-3 h-3" />
+              <FaRightFromBracket className="w-3 h-3 text-white" />
               <span>Log Out</span>
             </button>
             <Link
@@ -1886,7 +1886,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={handleSyncAllPlatforms}
                 disabled={isSyncingAllPlatforms || isPlatformsLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#005c58] text-white hover:bg-[#003c3a] rounded-xl text-[10px] font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                className="btn-candy flex items-center gap-1.5 px-3.5 py-1.5 bg-[radial-gradient(95%_60%_at_50%_75%,#005451_0%,#002927_100%)] text-white rounded-xl text-[10px] font-bold cursor-pointer disabled:opacity-50 shadow-[0px_4px_20px_-6px_rgba(0,60,58,0.6),inset_0px_1px_3px_0px_rgba(255,255,255,0.4)]"
               >
                 {isSyncingAllPlatforms ? (
                   <>
@@ -2005,7 +2005,7 @@ export default function ProfilePage() {
                           disabled={
                             isSyncingThis || !platformHandles[p.id]?.trim()
                           }
-                          className="px-2.5 py-1 bg-zinc-900 hover:bg-black text-white rounded-xl text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                          className="btn-candy px-2.5 py-1 bg-linear-to-b from-zinc-800 via-zinc-900 to-black text-white rounded-xl text-[10px] font-bold cursor-pointer disabled:opacity-50 border border-zinc-700/60"
                         >
                           {isSyncingThis ? "Syncing..." : "Save & Sync"}
                         </button>
@@ -2123,7 +2123,7 @@ export default function ProfilePage() {
 
             <Link
               href="/dashboard"
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-zinc-800 hover:bg-zinc-700/80 text-white rounded-xl text-[11px] font-bold transition-all"
+              className="btn-candy w-full flex items-center justify-center gap-1.5 py-2.5 bg-linear-to-b from-zinc-800 via-zinc-900 to-zinc-950 border border-zinc-700/60 text-white rounded-xl text-[11px] font-bold"
             >
               <span>Analytics Dashboard</span>
               <FaArrowUpRightFromSquare className="w-3 h-3 text-zinc-400" />
@@ -2489,7 +2489,7 @@ export default function ProfilePage() {
                     <button
                       type="button"
                       onClick={() => setIsResumeModalOpen(true)}
-                      className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white transition-all text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
+                      className="btn-candy px-3 py-1.5 rounded-xl bg-linear-to-b from-zinc-900 via-zinc-950 to-black text-white text-xs font-bold border border-zinc-800 flex items-center gap-1.5 cursor-pointer"
                     >
                       <FaUpload className="w-3 h-3" />
                       <span>Upload</span>
@@ -2504,7 +2504,7 @@ export default function ProfilePage() {
                             `Downloading ${isEditing ? formState.resumeName : profile.resumeName}`,
                           )
                         }
-                        className="px-3 py-1.5 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-800 hover:bg-zinc-200 transition-all text-xs font-bold cursor-pointer"
+                        className="btn-candy px-3 py-1.5 rounded-xl bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 text-xs font-bold cursor-pointer"
                       >
                         Download
                       </button>

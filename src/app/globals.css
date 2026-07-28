@@ -151,3 +151,20 @@ h1, h2, h3, h4, h5, h6 {
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .btn-candy {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden transition-all duration-200 ease-out active:scale-[0.98] cursor-pointer hover:brightness-110 select-none;
+    box-shadow: 0px 4px 20px -6px rgba(0, 0, 0, 0.4), inset 0px 1px 3px 0px rgba(255, 255, 255, 0.35);
+  }
+  .btn-candy::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.45), transparent);
+    pointer-events: none;
+  }
+}

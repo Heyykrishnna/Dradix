@@ -2203,7 +2203,7 @@ export default function DashboardPage() {
           <button
             onClick={handleSyncAll}
             disabled={isSyncing}
-            className="w-full py-3 bg-black hover:bg-zinc-900 text-white rounded-xl text-[12px] font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="btn-candy w-full py-3 bg-linear-to-b from-zinc-900 via-zinc-950 to-black text-white border border-zinc-800 rounded-xl text-[12px] font-bold disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           >
             {isSyncing && <UpdateIcon className="w-3.5 h-3.5 animate-spin" />}
             <span>
@@ -2220,20 +2220,20 @@ export default function DashboardPage() {
             dradix.dev/yatharth
           </div>
           <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-bold text-zinc-700">
-            <button className="bg-white rounded-lg py-2 hover:bg-zinc-50 transition-all border border-zinc-100">
+            <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
               Open Profile
             </button>
-            <button className="bg-white rounded-lg py-2 hover:bg-zinc-50 transition-all border border-zinc-100">
+            <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
               Share Link
             </button>
-            <button className="bg-white rounded-lg py-2 hover:bg-zinc-50 transition-all border border-zinc-100">
+            <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
               Copy Link
             </button>
-            <button className="bg-white rounded-lg py-2 hover:bg-zinc-50 transition-all border border-zinc-100">
+            <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
               Download CV
             </button>
           </div>
-          <button className="w-full bg-white rounded-lg py-2 hover:bg-zinc-50 transition-all border border-zinc-100 text-[11px] font-bold text-zinc-700">
+          <button className="btn-candy w-full bg-white rounded-lg py-2 border border-zinc-200 text-[11px] font-bold text-zinc-800 shadow-2xs cursor-pointer">
             Generate Profile QR Code
           </button>
         </div>
@@ -2268,7 +2268,7 @@ export default function DashboardPage() {
                   <button
                     onClick={handleSyncAll}
                     disabled={isSyncing}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#27272a] hover:bg-zinc-700 text-[10px] font-semibold text-zinc-200 transition-all cursor-pointer"
+                    className="btn-candy flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-linear-to-b from-[#27272a] to-[#18181b] border border-zinc-700/60 text-[10px] font-semibold text-zinc-100 cursor-pointer"
                     title="Sync Velocity & Profiles"
                   >
                     <UpdateIcon
@@ -2851,7 +2851,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={handleOpenAddModal}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-black hover:bg-zinc-800 text-white rounded-xl text-[10px] font-bold shadow-sm transition-colors cursor-pointer"
+                  className="btn-candy flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-b from-zinc-900 via-zinc-950 to-black border border-zinc-800 text-white rounded-xl text-[10px] font-bold cursor-pointer"
                 >
                   <PlusIcon className="w-3.5 h-3.5" />
                   <span>Add Project</span>
@@ -3288,7 +3288,7 @@ export default function DashboardPage() {
                     <button
                       onClick={handleSyncAll}
                       disabled={isSyncing}
-                      className="w-full py-1.5 bg-[#f4f4f5] hover:bg-[#eef2f6] text-[10px] font-bold text-zinc-600 rounded-lg flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+                      className="btn-candy w-full py-1.5 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-[10px] font-bold text-zinc-800 rounded-lg flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
                     >
                       <UpdateIcon
                         className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`}
@@ -3388,7 +3388,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <button className="w-full py-2.5 bg-black hover:bg-zinc-900 text-white rounded-xl text-[12px] font-bold transition-all flex items-center justify-center gap-1.5">
+              <button className="btn-candy w-full py-2.5 bg-linear-to-b from-zinc-900 via-zinc-950 to-black border border-zinc-800 text-white rounded-xl text-[12px] font-bold flex items-center justify-center gap-1.5 cursor-pointer">
                 <span>Generate Developer Wrapped</span>
               </button>
             </div>

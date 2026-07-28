@@ -293,7 +293,7 @@ export default function AdminNotificationStudio({
 
           <button
             onClick={() => void fetchNotifications()}
-            className="px-3 py-1.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-medium rounded-md cursor-pointer transition-colors"
+            className="btn-candy px-3 py-1.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-medium rounded-lg cursor-pointer"
           >
             {loadingNotifications ? "Loading..." : "Refresh"}
           </button>
@@ -319,7 +319,7 @@ export default function AdminNotificationStudio({
                       setTitle(tmpl.title);
                       setMessage(tmpl.message);
                     }}
-                    className="bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-700 font-medium px-2.5 py-1 rounded text-xs transition-colors cursor-pointer"
+                    className="btn-candy bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-700 font-medium px-2.5 py-1 rounded-lg text-xs cursor-pointer"
                   >
                     {tmpl.title}
                   </button>
@@ -551,7 +551,7 @@ export default function AdminNotificationStudio({
               <button
                 type="submit"
                 disabled={dispatching}
-                className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-medium text-xs rounded-md transition-colors cursor-pointer disabled:opacity-50"
+                className="btn-candy px-5 py-2 bg-linear-to-b from-zinc-800 via-zinc-900 to-zinc-950 border border-zinc-700/60 text-white font-medium text-xs rounded-xl cursor-pointer disabled:opacity-50"
               >
                 {dispatching
                   ? "Processing..."

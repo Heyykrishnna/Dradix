@@ -31,15 +31,14 @@ export default function Home() {
         <div className="flex items-center gap-6">
           <Link
             href="/auth"
-            className="text-[#015451] font-medium text-sm transition-colors"
+            className="text-[#015451] font-semibold text-sm hover:text-[#003c3a] transition-colors"
           >
             Login
           </Link>
-          <Link
-            href="/dashboard"
-            className="border border-[#015451]/20 hover:border-[#015451]/40 bg-[#015451]/5 hover:bg-[#015451]/10 text-[#015451] font-medium text-sm px-5 py-2 rounded-full transition-all backdrop-blur-sm"
-          >
-            Get Started
+          <Link href="/dashboard">
+            <CandyButton className="text-xs px-5 py-2 font-semibold">
+              Get Started
+            </CandyButton>
           </Link>
         </div>
       </header>
@@ -72,10 +71,16 @@ export default function Home() {
       <footer className="w-full max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#015451]/80 z-10">
         <p>&copy; {new Date().getFullYear()} Dradix. All rights reserved.</p>
         <div className="flex items-center gap-6">
-          <Link href="/privacy" className="hover:text-[#015451] underline font-medium transition-colors">
+          <Link
+            href="/privacy"
+            className="hover:text-[#015451] underline font-medium transition-colors"
+          >
             Privacy Policy
           </Link>
-          <a href="mailto:support@dradix.dev" className="hover:text-[#015451] underline font-medium transition-colors">
+          <a
+            href="mailto:support@dradix.dev"
+            className="hover:text-[#015451] underline font-medium transition-colors"
+          >
             support@dradix.dev
           </a>
         </div>

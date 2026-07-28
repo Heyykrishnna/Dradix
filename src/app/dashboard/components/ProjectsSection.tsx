@@ -51,7 +51,7 @@ export default function ProjectsSection() {
           </p>
           <p className="text-[11px] text-[#555] mt-0.5">19 total · 4 Live</p>
         </div>
-        <button className="ml-auto flex items-center gap-1.5 text-[12px] font-bold text-white bg-[#003c3a] hover:bg-[#002d2b] rounded-xl px-3 py-2 transition-colors">
+        <button className="btn-candy ml-auto flex items-center gap-1.5 text-[12px] font-bold text-white bg-[radial-gradient(95%_60%_at_50%_75%,#005451_0%,#002927_100%)] rounded-xl px-3.5 py-2 shadow-[0px_4px_20px_-6px_rgba(0,60,58,0.6),inset_0px_1px_3px_0px_rgba(255,255,255,0.4)] cursor-pointer">
           <PlusIcon className="w-3.5 h-3.5" /> Add Project
         </button>
       </div>

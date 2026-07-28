@@ -79,7 +79,7 @@ export default function OnboardingPage() {
 
       <div className="w-full lg:w-1/2 h-screen flex flex-col z-10 relative overflow-hidden">
         <div className="w-full px-8 sm:px-16 lg:px-24 pt-12 pb-4 shrink-0">
-          <div className="max-w-[420px] w-full mx-auto">
+          <div className="max-w-105 w-full mx-auto">
             {errorMsg && (
               <div className="mb-6 px-4 py-3 bg-red-950/40 border border-red-900/60 text-red-200 rounded-lg text-sm flex justify-between items-center">
                 <span>{errorMsg}</span>
@@ -110,7 +110,7 @@ export default function OnboardingPage() {
 
         <div className="relative flex-1 w-full flex items-center justify-center px-8 sm:px-16 lg:px-24">
           <div
-            className={`absolute inset-0 flex flex-col justify-center max-w-[420px] w-full mx-auto transition-all duration-700 ease-in-out ${
+            className={`absolute inset-0 flex flex-col justify-center max-w-105 w-full mx-auto transition-all duration-700 ease-in-out ${
               step === 1
                 ? "opacity-100 visible translate-x-0 scale-100 delay-150"
                 : step > 1
@@ -193,7 +193,7 @@ export default function OnboardingPage() {
           </div>
 
           <div
-            className={`absolute inset-0 flex flex-col justify-center max-w-[420px] w-full mx-auto transition-all duration-700 ease-in-out ${
+            className={`absolute inset-0 flex flex-col justify-center max-w-105 w-full mx-auto transition-all duration-700 ease-in-out ${
               step === 2
                 ? "opacity-100 visible translate-x-0 scale-100 delay-150"
                 : step > 2
@@ -254,13 +254,13 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="px-5 py-3.5 bg-[#181818] hover:bg-[#202020] border border-zinc-800 rounded-lg text-zinc-300 transition-colors flex items-center justify-center"
+                  className="btn-candy px-5 py-3.5 bg-linear-to-b from-[#181818] to-[#121212] border border-zinc-800 rounded-xl text-zinc-300 flex items-center justify-center cursor-pointer"
                 >
                   <ChevronLeftIcon className="w-5 h-5" />
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-zinc-200 hover:bg-white text-black rounded-lg font-semibold text-[15px] transition-colors shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+                  className="btn-candy flex-1 flex items-center justify-center gap-2 py-3.5 bg-linear-to-b from-zinc-100 to-zinc-300 text-black rounded-xl font-semibold text-[15px] cursor-pointer shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                 >
                   Continue <ChevronRightIcon className="w-5 h-5" />
                 </button>
@@ -269,7 +269,7 @@ export default function OnboardingPage() {
           </div>
 
           <div
-            className={`absolute inset-0 flex flex-col justify-center max-w-[420px] w-full mx-auto transition-all duration-700 ease-in-out ${
+            className={`absolute inset-0 flex flex-col justify-center max-w-105 w-full mx-auto transition-all duration-700 ease-in-out ${
               step === 3
                 ? "opacity-100 visible translate-x-0 scale-100 delay-150"
                 : step > 3
@@ -317,14 +317,14 @@ export default function OnboardingPage() {
                   type="button"
                   onClick={handlePrev}
                   disabled={loading}
-                  className="px-5 py-3.5 bg-[#181818] hover:bg-[#202020] border border-zinc-800 rounded-lg text-zinc-300 transition-colors flex items-center justify-center"
+                  className="btn-candy px-5 py-3.5 bg-linear-to-b from-[#181818] to-[#121212] border border-zinc-800 rounded-xl text-zinc-300 flex items-center justify-center cursor-pointer disabled:opacity-50"
                 >
                   <ChevronLeftIcon className="w-5 h-5" />
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-zinc-200 hover:bg-white text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-lg font-semibold text-[15px] transition-colors shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+                  className="btn-candy flex-1 flex items-center justify-center gap-2 py-3.5 bg-linear-to-b from-zinc-100 to-zinc-300 text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-xl font-semibold text-[15px] cursor-pointer shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                 >
                   {loading ? "Completing Setup..." : "Complete Setup"}
                 </button>
