@@ -700,6 +700,7 @@ export default function ProfilePage() {
         (user as { resume_name?: string }).resume_name ||
         savedResume ||
         initialProfile.resumeName;
+      const username = user.username || initialProfile.username;
       const name = user.first_name
         ? `${user.first_name} ${user.last_name || ""}`.trim()
         : user.username || initialProfile.name;
@@ -708,6 +709,7 @@ export default function ProfilePage() {
       setProfile((prev) => {
         if (
           prev.name === name &&
+          prev.username === username &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
           prev.bio === newBio &&
@@ -718,6 +720,7 @@ export default function ProfilePage() {
         return {
           ...prev,
           name,
+          username,
           avatarUrl: avatar,
           coverUrl: cover,
           bio: newBio,
@@ -728,6 +731,7 @@ export default function ProfilePage() {
       setFormState((prev) => {
         if (
           prev.name === name &&
+          prev.username === username &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
           prev.bio === newBio &&
@@ -738,6 +742,7 @@ export default function ProfilePage() {
         return {
           ...prev,
           name,
+          username,
           avatarUrl: avatar,
           coverUrl: cover,
           bio: newBio,
@@ -1139,6 +1144,7 @@ export default function ProfilePage() {
       await apiFetch("/users/profile", {
         method: "PATCH",
         body: JSON.stringify({
+          username: formState.username,
           first_name: firstName,
           last_name: lastName,
           avatar_url: formState.avatarUrl,
