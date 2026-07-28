@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import DocumentUploadModal from "@/components/DocumentUploadModal";
@@ -70,6 +70,48 @@ import {
   Line,
   LabelList,
 } from "recharts";
+
+interface SafeResponsiveContainerProps {
+  children: React.ReactNode;
+  width?: number | `${number}%`;
+  height?: number | `${number}%`;
+  minWidth?: number;
+  minHeight?: number;
+}
+
+const emptySubscribe = () => () => {};
+const useIsClient = () => {
+  return React.useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+};
+
+const SafeResponsiveContainer: React.FC<SafeResponsiveContainerProps> = ({
+  children,
+  width = "100%",
+  height = "100%",
+  minWidth = 0,
+  minHeight = 0,
+}) => {
+  const isClient = useIsClient();
+
+  if (!isClient) {
+    return <div style={{ width: "100%", height: "100%" }} />;
+  }
+
+  return (
+    <ResponsiveContainer
+      width={width}
+      height={height}
+      minWidth={minWidth}
+      minHeight={minHeight}
+    >
+      {children as React.ReactElement}
+    </ResponsiveContainer>
+  );
+};
 
 import {
   useSkills,
@@ -427,6 +469,16 @@ const weeklyActivityData = [
   { day: "Sun", commits: 150, problems: 250, total: 400, percentage: 3.0 },
 ];
 
+const profileViewsData = [
+  { day: "09", views: 0 },
+  { day: "10", views: 0 },
+  { day: "11", views: 0 },
+  { day: "12", views: 0 },
+  { day: "13", views: 2 },
+  { day: "14", views: 0 },
+  { day: "15", views: 0 },
+];
+
 interface CustomTickProps {
   x?: number;
   y?: number;
@@ -537,8 +589,13 @@ const ActivityStatsChart = () => {
   const [activeDayIndex, setActiveDayIndex] = useState<number>(1);
 
   return (
-    <div className="h-56 w-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-56 w-full min-w-0 min-h-0">
+      <SafeResponsiveContainer
+        width="100%"
+        height="100%"
+        minWidth={0}
+        minHeight={0}
+      >
         <BarChart
           data={weeklyActivityData}
           margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
@@ -578,7 +635,6 @@ const ActivityStatsChart = () => {
           <Tooltip cursor={false} content={<CustomTooltip />} />
           <Bar dataKey="percentage" radius={[5, 5, 5, 5]} maxBarSize={60}>
             {weeklyActivityData.map((entry, index) => {
-              console.log(entry);
               const isActive = index === activeDayIndex;
               return (
                 <Cell
@@ -600,7 +656,7 @@ const ActivityStatsChart = () => {
             />
           </Bar>
         </BarChart>
-      </ResponsiveContainer>
+      </SafeResponsiveContainer>
     </div>
   );
 };
@@ -639,22 +695,42 @@ export default function ProfilePage() {
       const name = user.first_name
         ? `${user.first_name} ${user.last_name || ""}`.trim()
         : user.username || initialProfile.name;
+      const newBio = user.bio || initialProfile.bio;
 
-      queueMicrotask(() => {
-        setProfile((prev) => ({
+      setProfile((prev) => {
+        if (
+          prev.name === name &&
+          prev.avatarUrl === avatar &&
+          prev.coverUrl === cover &&
+          prev.bio === newBio
+        ) {
+          return prev;
+        }
+        return {
           ...prev,
           name,
           avatarUrl: avatar,
           coverUrl: cover,
-          bio: user.bio || prev.bio,
-        }));
-        setFormState((prev) => ({
+          bio: newBio,
+        };
+      });
+
+      setFormState((prev) => {
+        if (
+          prev.name === name &&
+          prev.avatarUrl === avatar &&
+          prev.coverUrl === cover &&
+          prev.bio === newBio
+        ) {
+          return prev;
+        }
+        return {
           ...prev,
           name,
           avatarUrl: avatar,
           coverUrl: cover,
-          bio: user.bio || prev.bio,
-        }));
+          bio: newBio,
+        };
       });
     }
   }, [user]);
@@ -1411,18 +1487,22 @@ export default function ProfilePage() {
     }
   };
 
-  const radialData = [
-    {
-      name: "Activity",
-      value: isEditing ? formState.activityRate : profile.activityRate,
-      fill: "#005c58",
-    },
-    {
-      name: "Remaining",
-      value: 100 - (isEditing ? formState.activityRate : profile.activityRate),
-      fill: "#e5e7eb",
-    },
-  ];
+  const radialData = useMemo(
+    () => [
+      {
+        name: "Activity",
+        value: isEditing ? formState.activityRate : profile.activityRate,
+        fill: "#005c58",
+      },
+      {
+        name: "Remaining",
+        value:
+          100 - (isEditing ? formState.activityRate : profile.activityRate),
+        fill: "#e5e7eb",
+      },
+    ],
+    [isEditing, formState.activityRate, profile.activityRate],
+  );
 
   return (
     <div className="relative pb-24 space-y-8 animate-fade-in text-left">
@@ -2074,19 +2154,16 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="h-28 w-full -ml-3">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-28 w-full min-w-0 min-h-0">
+              <SafeResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={0}
+                minHeight={0}
+              >
                 <LineChart
-                  data={[
-                    { day: "09", views: 0 },
-                    { day: "10", views: 0 },
-                    { day: "11", views: 0 },
-                    { day: "12", views: 0 },
-                    { day: "13", views: 2 },
-                    { day: "14", views: 0 },
-                    { day: "15", views: 0 },
-                  ]}
-                  margin={{ top: 15, right: 10, left: 10, bottom: 5 }}
+                  data={profileViewsData}
+                  margin={{ top: 15, right: 10, left: -20, bottom: 5 }}
                 >
                   <XAxis
                     dataKey="day"
@@ -2118,7 +2195,7 @@ export default function ProfilePage() {
                     activeDot={{ r: 4 }}
                   />
                 </LineChart>
-              </ResponsiveContainer>
+              </SafeResponsiveContainer>
             </div>
 
             <Link
@@ -2566,25 +2643,23 @@ export default function ProfilePage() {
               </span>
 
               <div className="relative flex items-center justify-center py-4">
-                <div className="w-36 h-36">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={radialData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={62}
-                        startAngle={225}
-                        endAngle={-45}
-                        paddingAngle={0}
-                        dataKey="value"
-                      >
-                        <Cell key="cell-0" fill="#005c58" />
-                        <Cell key="cell-1" fill="#f3f4f6" />
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
+                <div className="w-36 h-36 flex items-center justify-center">
+                  <PieChart width={144} height={144}>
+                    <Pie
+                      data={radialData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={62}
+                      startAngle={225}
+                      endAngle={-45}
+                      paddingAngle={0}
+                      dataKey="value"
+                    >
+                      <Cell key="cell-0" fill="#005c58" />
+                      <Cell key="cell-1" fill="#f3f4f6" />
+                    </Pie>
+                  </PieChart>
                 </div>
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center mt-3">
