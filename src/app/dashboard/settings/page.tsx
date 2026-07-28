@@ -50,18 +50,13 @@ export default function SettingsPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const [sessionLimit, setSessionLimit] = useState<number>(
-    user?.max_sessions || 5,
+  const [customSessionLimit, setCustomSessionLimit] = useState<number | null>(
+    null,
   );
+  const sessionLimit = customSessionLimit ?? (user?.max_sessions || 5);
   const [savingLimit, setSavingLimit] = useState(false);
   const [limitSuccessMsg, setLimitSuccessMsg] = useState("");
   const [limitErrorMsg, setLimitErrorMsg] = useState("");
-
-  useEffect(() => {
-    if (user?.max_sessions) {
-      setSessionLimit(user.max_sessions);
-    }
-  }, [user?.max_sessions]);
 
   const handleSaveSessionLimit = async () => {
     setSavingLimit(true);
@@ -78,6 +73,7 @@ export default function SettingsPage() {
         setLimitSuccessMsg(
           `Concurrent session limit set to ${res.data.max_sessions} active sessions.`,
         );
+        setCustomSessionLimit(res.data.max_sessions);
         if (res.data.activeSessions) {
           const now = Date.now();
           const enriched = res.data.activeSessions.map((s) => ({
@@ -966,18 +962,21 @@ export default function SettingsPage() {
                     Concurrent Session Limit
                   </h3>
                   <span className="px-2.5 py-0.5 text-[11px] font-extrabold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
-                    {sessions.length} / {user?.max_sessions || sessionLimit || 5} active
+                    {sessions.length} /{" "}
+                    {user?.max_sessions || sessionLimit || 5} active
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-500 font-medium mt-1">
-                  Set the maximum number of concurrent active sessions allowed for your account. Older sessions will be automatically logged out.
+                  Set the maximum number of concurrent active sessions allowed
+                  for your account. Older sessions will be automatically logged
+                  out.
                 </p>
               </div>
 
               <div className="flex items-center gap-2.5 shrink-0">
                 <select
                   value={sessionLimit}
-                  onChange={(e) => setSessionLimit(Number(e.target.value))}
+                  onChange={(e) => setCustomSessionLimit(Number(e.target.value))}
                   className="px-3.5 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#003c3a]/20 cursor-pointer shadow-2xs"
                 >
                   {[1, 2, 3, 5, 10, 15, 20].map((num) => (
