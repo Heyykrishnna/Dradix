@@ -12,7 +12,7 @@ export function CandyButton({
     <button
       className={cn(
         "relative inline-flex items-center justify-center gap-2 text-white font-medium text-sm leading-5.5 tracking-[0.02em]",
-        "px-7 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ease-out overflow-hidden select-none",
+        "px-7 py-3 rounded-xl cursor-pointer transition-all duration-200 ease-out overflow-hidden select-none",
         "bg-[radial-gradient(95%_60%_at_50%_75%,#005451_0%,#002927_100%)]",
         "shadow-[0px_4px_24px_-6px_rgba(0,60,58,0.6),inset_0px_1px_4px_0px_rgba(255,255,255,0.4)]",
         "active:scale-[0.98]",

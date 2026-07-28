@@ -10,6 +10,7 @@ import {
   Cross1Icon,
 } from "@radix-ui/react-icons";
 import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa";
 import { useState, Suspense, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
@@ -196,9 +197,13 @@ function AuthFormContent() {
   const initialError =
     errorParam === "google_failed"
       ? "Google authentication failed. Please try again."
-      : errorParam === "no_token"
-        ? "Failed to authenticate session."
-        : "";
+      : errorParam === "github_failed"
+        ? "GitHub authentication failed. Please try again."
+        : errorParam === "github_no_email"
+          ? "Your GitHub account has no verified email. Please add one on GitHub."
+          : errorParam === "no_token"
+            ? "Failed to authenticate session."
+            : "";
 
   const [errorMsg, setErrorMsg] = useState(initialError);
   const [loading, setLoading] = useState(false);
@@ -281,6 +286,14 @@ function AuthFormContent() {
     const cleanedApiUrl = cleanUrl(rawApiUrl);
     const backendUrl = cleanedApiUrl.replace(/\/api\/v1\/?$/, "");
     window.location.href = `${backendUrl}/api/v1/auth/google`;
+  };
+
+  const handleGitHubAuth = () => {
+    const rawApiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1";
+    const cleanedApiUrl = cleanUrl(rawApiUrl);
+    const backendUrl = cleanedApiUrl.replace(/\/api\/v1\/?$/, "");
+    window.location.href = `${backendUrl}/api/v1/auth/github/auth`;
   };
 
   return (
@@ -497,10 +510,19 @@ function AuthFormContent() {
                   <button
                     type="button"
                     onClick={handleGoogleAuth}
-                    className="btn-candy flex items-center justify-center gap-3 w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] rounded-xl border border-zinc-800 mb-6 text-sm font-medium text-zinc-200 cursor-pointer"
+                    className="btn-candy flex items-center justify-center gap-3 w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] rounded-xl border border-zinc-800 mb-3 text-sm font-medium text-zinc-200 cursor-pointer"
                   >
                     <FcGoogle className="w-5 h-5" />
-                    <span>Google</span>
+                    <span>Continue with Google</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleGitHubAuth}
+                    className="btn-candy flex items-center justify-center gap-3 w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] rounded-xl border border-zinc-800 mb-6 text-sm font-medium text-zinc-200 cursor-pointer"
+                  >
+                    <FaGithub className="w-5 h-5" />
+                    <span>Continue with GitHub</span>
                   </button>
 
                   <div className="flex items-center gap-4 mb-6">
@@ -605,10 +627,19 @@ function AuthFormContent() {
                   <button
                     type="button"
                     onClick={handleGoogleAuth}
-                    className="btn-candy flex items-center justify-center gap-3 w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] rounded-xl border border-zinc-800 mb-6 text-sm font-medium text-zinc-200 cursor-pointer"
+                    className="btn-candy flex items-center justify-center gap-3 w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] rounded-xl border border-zinc-800 mb-3 text-sm font-medium text-zinc-200 cursor-pointer"
                   >
                     <FcGoogle className="w-5 h-5" />
-                    <span>Google</span>
+                    <span>Continue with Google</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleGitHubAuth}
+                    className="btn-candy flex items-center justify-center gap-3 w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] rounded-xl border border-zinc-800 mb-6 text-sm font-medium text-zinc-200 cursor-pointer"
+                  >
+                    <FaGithub className="w-5 h-5" />
+                    <span>Continue with GitHub</span>
                   </button>
 
                   <div className="flex items-center gap-4 mb-6">
