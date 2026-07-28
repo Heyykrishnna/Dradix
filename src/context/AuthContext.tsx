@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { SafeUser, ApiResponse } from "../types/auth";
 import { apiFetch, setAccessToken, setRefreshToken } from "../lib/api";
@@ -42,29 +42,42 @@ const PUBLIC_ROUTES = [
   "/privacy",
 ];
 
+const RE_VALIDATE_INTERVAL_MS = 5 * 60 * 1000;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SafeUser | null>(() => {
     if (typeof window !== "undefined") {
       const cached = localStorage.getItem("dradix_auth_user");
       if (cached) {
-        try {
-          return JSON.parse(cached);
-        } catch {}
+        try { return JSON.parse(cached); } catch {}
       }
     }
     return null;
   });
-  const [loading, setLoading] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("dradix_auth_user");
-      if (cached) return false;
-    }
-    return true;
-  });
+  const [loading, setLoading] = useState<boolean>(true);
+  const [verified, setVerified] = useState<boolean>(false);
+  const lastValidatedRef = useRef<number>(0);
   const router = useRouter();
   const pathname = usePathname();
 
-  const updateCachedUser = (userData: SafeUser | null) => {
+  const clearAuthState = useCallback(() => {
+    setUser(null);
+    setVerified(true);
+    setAccessToken(null);
+    setRefreshToken(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("dradix_auth_user");
+      localStorage.removeItem("isOnboarded");
+      localStorage.removeItem("userProfile");
+      localStorage.removeItem("dradix_dashboard_data");
+      localStorage.removeItem("dradix_profile_avatar");
+      localStorage.removeItem("dradix_profile_banner");
+      localStorage.removeItem("dradix_token");
+      localStorage.removeItem("dradix_refresh_token");
+    }
+  }, []);
+
+  const updateCachedUser = useCallback((userData: SafeUser | null) => {
     setUser(userData);
     if (typeof window !== "undefined") {
       if (userData) {
@@ -73,24 +86,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem("dradix_auth_user");
       }
     }
-  };
+  }, []);
 
-  const checkAuth = async () => {
+  const validateWithServer = useCallback(async (): Promise<boolean> => {
     try {
       const res = await apiFetch<ApiResponse<SafeUser>>("/auth/me");
       if (res.success && res.data) {
         updateCachedUser(res.data);
+        lastValidatedRef.current = Date.now();
+        return true;
       } else {
-        updateCachedUser(null);
+        clearAuthState();
+        return false;
       }
     } catch {
-      updateCachedUser(null);
-      setAccessToken(null);
-      setRefreshToken(null);
-    } finally {
-      setLoading(false);
+      clearAuthState();
+      return false;
     }
-  };
+  }, [updateCachedUser, clearAuthState]);
+
+  const checkAuth = useCallback(async () => {
+    await validateWithServer();
+    setLoading(false);
+    setVerified(true);
+  }, [validateWithServer]);
 
   useEffect(() => {
     let active = true;
@@ -101,24 +120,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (res.success && res.data) {
             updateCachedUser(res.data);
           } else {
-            updateCachedUser(null);
+            clearAuthState();
           }
         }
       } catch {
-        if (active) {
-          updateCachedUser(null);
-          setAccessToken(null);
-          setRefreshToken(null);
-        }
+        if (active) clearAuthState();
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          setVerified(true);
+        }
       }
     };
     initAuth();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const now = Date.now();
+      if (user && now - lastValidatedRef.current > RE_VALIDATE_INTERVAL_MS) {
+        await validateWithServer();
+      }
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [user, validateWithServer]);
+
+  useEffect(() => {
+    const onVisibilityChange = async () => {
+      if (document.visibilityState === "visible" && user) {
+        const now = Date.now();
+        if (now - lastValidatedRef.current > RE_VALIDATE_INTERVAL_MS) {
+          await validateWithServer();
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [user, validateWithServer]);
 
   useEffect(() => {
     if (user) {
@@ -133,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    if (loading) return;
+    if (!verified || loading) return;
 
     if (pathname.startsWith("/auth/callback")) return;
 
@@ -167,7 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.replace("/onboarding");
       }
     }
-  }, [user, pathname, loading, router]);
+  }, [user, pathname, loading, verified, router]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -228,16 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error(err);
     } finally {
-      setAccessToken(null);
-      setRefreshToken(null);
-      updateCachedUser(null);
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("isOnboarded");
-        localStorage.removeItem("userProfile");
-        localStorage.removeItem("dradix_dashboard_data");
-        localStorage.removeItem("dradix_profile_avatar");
-        localStorage.removeItem("dradix_profile_banner");
-      }
+      clearAuthState();
       setLoading(false);
       router.push("/auth");
     }
@@ -273,7 +303,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (loading) {
+  if (loading || !verified) {
     return (
       <VideoLoaderBackground className="fixed inset-0 min-h-screen z-50">
         <Loader />
