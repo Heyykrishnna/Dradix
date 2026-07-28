@@ -2393,6 +2393,8 @@ export default function DashboardPage() {
                     return velocityData.map((entry) => {
                       const isSelected = selectedVelocityMonth === entry.month;
                       const isHovered = hoveredBar?.month === entry.month;
+                      const isActiveBar =
+                        isHovered || (isSelected && !hoveredBar);
                       const heightPercent = Math.max(
                         12,
                         Math.round((entry.commits / maxCommits) * 100),
@@ -2414,14 +2416,14 @@ export default function DashboardPage() {
                           onMouseLeave={() => setHoveredBar(null)}
                           className="flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group focus:outline-none"
                         >
-                          {(isSelected || isHovered) && (
+                          {isActiveBar && (
                             <motion.div
                               layoutId="floatingVelocityBadge"
-                              className="absolute -top-7 z-30 bg-[#18181b] border border-emerald-500/30 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xl whitespace-nowrap pointer-events-none"
+                              className="absolute -top-7 z-30 bg-[#18181b] border border-emerald-500/40 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xl whitespace-nowrap pointer-events-none"
                               transition={{
                                 type: "spring",
-                                stiffness: 400,
-                                damping: 28,
+                                stiffness: 380,
+                                damping: 26,
                               }}
                             >
                               <span className="text-emerald-400 font-bold">
@@ -2431,33 +2433,79 @@ export default function DashboardPage() {
                             </motion.div>
                           )}
 
-                          {isSelected && (
+                          {isActiveBar && (
                             <motion.div
                               layoutId="glowingVelocityBeam"
-                              className="absolute inset-x-0 bottom-0 top-0 bg-emerald-500/10 rounded-t-lg z-0"
+                              className="absolute inset-x-0 bottom-0 top-0 bg-emerald-500/15 rounded-t-lg z-0 pointer-events-none"
                               transition={{
                                 type: "spring",
                                 stiffness: 350,
-                                damping: 30,
+                                damping: 26,
                               }}
                             />
                           )}
 
                           <motion.div
-                            className="w-full rounded-t-md relative z-10"
+                            className="w-full rounded-t-md relative z-10 overflow-hidden"
                             initial={false}
                             animate={{
                               height: `${heightPercent}%`,
-                              backgroundColor:
-                                isSelected || isHovered ? "#005c58" : "#27272a",
-                              scaleY: isSelected ? 1.03 : 1,
+                              scaleY: isSelected || isHovered ? 1.04 : 1,
+                              boxShadow:
+                                isSelected || isHovered
+                                  ? "0px 0px 18px rgba(0, 229, 191, 0.35)"
+                                  : "0px 0px 0px rgba(0, 0, 0, 0)",
                             }}
                             transition={{
                               type: "spring",
-                              stiffness: 300,
+                              stiffness: 350,
                               damping: 25,
                             }}
-                          />
+                          >
+                            {/* Inactive Base Gradient Layer */}
+                            <motion.div
+                              className="absolute inset-0 bg-linear-to-t from-[#18181b] to-[#27272a]"
+                              initial={false}
+                              animate={{
+                                opacity: isSelected || isHovered ? 0 : 1,
+                              }}
+                              transition={{
+                                duration: 0.35,
+                                ease: [0.4, 0, 0.2, 1],
+                              }}
+                            />
+
+                            {/* Active Vibrant Gradient Layer */}
+                            <motion.div
+                              className="absolute inset-0 bg-linear-to-t from-[#005c58] to-[#00e5bf]"
+                              initial={false}
+                              animate={{
+                                opacity: isSelected || isHovered ? 1 : 0,
+                              }}
+                              transition={{
+                                duration: 0.35,
+                                ease: [0.4, 0, 0.2, 1],
+                              }}
+                            />
+
+                            {/* Diagonal Masked Lines Overlay Layer */}
+                            <motion.div
+                              className="absolute inset-0 pointer-events-none"
+                              initial={false}
+                              animate={{
+                                opacity: isSelected || isHovered ? 0 : 0.85,
+                              }}
+                              transition={{
+                                duration: 0.35,
+                                ease: [0.4, 0, 0.2, 1],
+                              }}
+                              style={{
+                                backgroundImage: `repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.4) 0px, rgba(255, 255, 255, 0.4) 1.5px, transparent 1.5px, transparent 7px)`,
+                                maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0) 100%)`,
+                                WebkitMaskImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0) 100%)`,
+                              }}
+                            />
+                          </motion.div>
 
                           <span
                             className={`text-[10px] mt-1.5 transition-colors font-medium ${
