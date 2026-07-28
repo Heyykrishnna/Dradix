@@ -39,7 +39,7 @@ export default function DocumentUploadModal({
   subtitle = "Apply this job in a few clicks, recruiter needs your updated resume and your proof of work.",
   maxSizeMB = 3,
   acceptedTypes = ".pdf,.doc,.docx,.zip",
-  confirmText = "Apply Job",
+  confirmText = "Upload",
   onUploadComplete,
 }: DocumentUploadModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
