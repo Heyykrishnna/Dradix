@@ -371,7 +371,7 @@ export default function OnboardingPage() {
                 {!resumeFile ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-zinc-800 hover:border-zinc-600 bg-[#181818] rounded-xl p-6 text-center cursor-pointer transition-colors group flex flex-col items-center justify-center min-h-[160px]"
+                    className="border-2 border-dashed border-zinc-800 hover:border-zinc-600 bg-[#181818] rounded-xl p-6 text-center cursor-pointer transition-colors group flex flex-col items-center justify-center min-h-40"
                   >
                     <input
                       type="file"

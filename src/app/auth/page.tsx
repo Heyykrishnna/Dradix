@@ -380,7 +380,7 @@ function AuthFormContent() {
                     <button
                       type="submit"
                       disabled={twoFALoading}
-                      className="w-full py-3 bg-zinc-200 hover:bg-white text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors mt-6 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+                      className="btn-candy w-full py-3 bg-linear-to-b from-zinc-100 to-zinc-300 text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-xl font-semibold text-[14px] cursor-pointer mt-6 shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                     >
                       {twoFALoading ? "Verifying..." : "Verify Code"}
                     </button>
@@ -411,7 +411,7 @@ function AuthFormContent() {
                         setRecoveryCode("");
                         setTwoFactorToken("");
                       }}
-                      className="text-zinc-400 hover:text-zinc-200 transition-colors mt-2"
+                      className="btn-candy w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] border border-zinc-800 rounded-xl text-sm font-medium text-zinc-300 cursor-pointer mt-2"
                     >
                       Back to sign in
                     </button>
@@ -444,7 +444,7 @@ function AuthFormContent() {
                     <button
                       onClick={handleResend}
                       disabled={resendStatus === "sending"}
-                      className="w-full py-3 bg-zinc-200 hover:bg-white text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors"
+                      className="btn-candy w-full py-3 bg-linear-to-b from-zinc-100 to-zinc-300 text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-xl font-semibold text-[14px] cursor-pointer shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                     >
                       {resendStatus === "sending"
                         ? "Sending..."
@@ -457,7 +457,7 @@ function AuthFormContent() {
                         setIsLogin(true);
                         setResendStatus("idle");
                       }}
-                      className="w-full py-3 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 text-sm font-medium text-zinc-300"
+                      className="btn-candy w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] border border-zinc-800 rounded-xl text-sm font-medium text-zinc-300 cursor-pointer"
                     >
                       Back to sign in
                     </button>
@@ -496,12 +496,10 @@ function AuthFormContent() {
                   <button
                     type="button"
                     onClick={handleGoogleAuth}
-                    className="flex items-center justify-center gap-3 w-full py-3 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-6"
+                    className="btn-candy flex items-center justify-center gap-3 w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] rounded-xl border border-zinc-800 mb-6 text-sm font-medium text-zinc-200 cursor-pointer"
                   >
                     <FcGoogle className="w-5 h-5" />
-                    <span className="text-sm font-medium text-zinc-200">
-                      Google
-                    </span>
+                    <span>Google</span>
                   </button>
 
                   <div className="flex items-center gap-4 mb-6">
@@ -564,7 +562,7 @@ function AuthFormContent() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3 bg-zinc-200 hover:bg-white text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors mt-6 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+                      className="btn-candy w-full py-3 bg-linear-to-b from-zinc-100 to-zinc-300 text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-xl font-semibold text-[14px] cursor-pointer mt-6 shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                     >
                       {loading ? "Signing in..." : "Sign In"}
                     </button>
@@ -606,12 +604,10 @@ function AuthFormContent() {
                   <button
                     type="button"
                     onClick={handleGoogleAuth}
-                    className="flex items-center justify-center gap-3 w-full py-3 bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-zinc-800 mb-6"
+                    className="btn-candy flex items-center justify-center gap-3 w-full py-3 bg-linear-to-b from-[#181818] to-[#121212] rounded-xl border border-zinc-800 mb-6 text-sm font-medium text-zinc-200 cursor-pointer"
                   >
                     <FcGoogle className="w-5 h-5" />
-                    <span className="text-sm font-medium text-zinc-200">
-                      Google
-                    </span>
+                    <span>Google</span>
                   </button>
 
                   <div className="flex items-center gap-4 mb-6">
@@ -697,7 +693,7 @@ function AuthFormContent() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3 bg-zinc-200 hover:bg-white text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors mt-4 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+                      className="btn-candy w-full py-3 bg-linear-to-b from-zinc-100 to-zinc-300 text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-xl font-semibold text-[14px] cursor-pointer mt-4 shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                     >
                       {loading ? "Registering..." : "Register"}
                     </button>
@@ -806,7 +802,7 @@ function AuthFormContent() {
                   <button
                     type="submit"
                     disabled={forgotLoading}
-                    className="w-full py-3 bg-zinc-200 hover:bg-white disabled:bg-zinc-700 text-black disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors"
+                    className="btn-candy w-full py-3 bg-linear-to-b from-zinc-100 to-zinc-300 text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-xl font-semibold text-[14px] cursor-pointer shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                   >
                     {forgotLoading ? "Sending..." : "Send Verification Code"}
                   </button>
@@ -853,7 +849,7 @@ function AuthFormContent() {
                   <button
                     type="submit"
                     disabled={forgotLoading}
-                    className="w-full py-3 bg-zinc-200 hover:bg-white disabled:bg-zinc-700 text-black disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors"
+                    className="btn-candy w-full py-3 bg-linear-to-b from-zinc-100 to-zinc-300 text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-xl font-semibold text-[14px] cursor-pointer shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                   >
                     {forgotLoading ? "Verifying..." : "Verify Code"}
                   </button>
@@ -863,7 +859,7 @@ function AuthFormContent() {
                       type="button"
                       disabled={cooldown > 0 || forgotLoading}
                       onClick={handleForgotResend}
-                      className="text-xs text-zinc-400 hover:text-white disabled:text-zinc-600 font-medium transition-colors"
+                      className="btn-candy w-full py-2.5 bg-linear-to-b from-[#181818] to-[#121212] border border-zinc-800 rounded-xl text-xs text-zinc-300 disabled:text-zinc-600 font-medium cursor-pointer"
                     >
                       {cooldown > 0
                         ? `Resend code in ${cooldown}s`
@@ -1041,7 +1037,7 @@ function AuthFormContent() {
                   <button
                     type="submit"
                     disabled={forgotLoading || !isForgotPwdValid}
-                    className="w-full py-3 bg-zinc-200 hover:bg-white disabled:bg-zinc-700 text-black disabled:text-zinc-400 rounded-lg font-semibold text-[14px] transition-colors disabled:cursor-not-allowed"
+                    className="btn-candy w-full py-3 bg-linear-to-b from-zinc-100 to-zinc-300 text-black disabled:bg-zinc-600 disabled:text-zinc-400 rounded-xl font-semibold text-[14px] cursor-pointer disabled:cursor-not-allowed shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                   >
                     {forgotLoading ? "Resetting..." : "Reset Password"}
                   </button>
@@ -1075,7 +1071,7 @@ function AuthFormContent() {
                     setForgotError("");
                     setForgotSuccessMsg("");
                   }}
-                  className="w-full py-3 bg-zinc-200 hover:bg-white text-black rounded-lg font-semibold text-[14px] transition-colors"
+                  className="btn-candy w-full py-3 bg-linear-to-b from-zinc-100 to-zinc-300 text-black rounded-xl font-semibold text-[14px] cursor-pointer shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                 >
                   Return to Sign In
                 </button>
