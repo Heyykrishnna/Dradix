@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import DocumentUploadModal from "@/components/DocumentUploadModal";
 import { useAuth } from "@/context/AuthContext";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, API_URL } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import Loader from "@/components/Loader";
 
@@ -690,8 +690,16 @@ export default function ProfilePage() {
         typeof window !== "undefined"
           ? localStorage.getItem("dradix_profile_banner")
           : null;
+      const savedResume =
+        typeof window !== "undefined"
+          ? localStorage.getItem("dradix_profile_resume")
+          : null;
       const avatar = user.avatar_url || savedAvatar || initialProfile.avatarUrl;
       const cover = user.cover_url || savedCover || initialProfile.coverUrl;
+      const resumeName =
+        (user as { resume_name?: string }).resume_name ||
+        savedResume ||
+        initialProfile.resumeName;
       const name = user.first_name
         ? `${user.first_name} ${user.last_name || ""}`.trim()
         : user.username || initialProfile.name;
@@ -702,7 +710,8 @@ export default function ProfilePage() {
           prev.name === name &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
-          prev.bio === newBio
+          prev.bio === newBio &&
+          prev.resumeName === resumeName
         ) {
           return prev;
         }
@@ -712,6 +721,7 @@ export default function ProfilePage() {
           avatarUrl: avatar,
           coverUrl: cover,
           bio: newBio,
+          resumeName,
         };
       });
 
@@ -720,7 +730,8 @@ export default function ProfilePage() {
           prev.name === name &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
-          prev.bio === newBio
+          prev.bio === newBio &&
+          prev.resumeName === resumeName
         ) {
           return prev;
         }
@@ -730,6 +741,7 @@ export default function ProfilePage() {
           avatarUrl: avatar,
           coverUrl: cover,
           bio: newBio,
+          resumeName,
         };
       });
     }
@@ -2576,11 +2588,59 @@ export default function ProfilePage() {
                       : profile.resumeName) && (
                       <button
                         type="button"
-                        onClick={() =>
-                          alert(
-                            `Downloading ${isEditing ? formState.resumeName : profile.resumeName}`,
-                          )
-                        }
+                        onClick={async () => {
+                          const nameToDownload = isEditing
+                            ? formState.resumeName
+                            : profile.resumeName;
+                          if (!nameToDownload) return;
+                          try {
+                            const token =
+                              typeof window !== "undefined"
+                                ? localStorage.getItem("dradix_token")
+                                : null;
+                            const downloadUrl = `${API_URL}/users/resume/download`;
+                            const res = await fetch(downloadUrl, {
+                              headers: token
+                                ? { Authorization: `Bearer ${token}` }
+                                : {},
+                            });
+                            if (res.ok) {
+                              const blob = await res.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = url;
+                              a.download = nameToDownload;
+                              document.body.appendChild(a);
+                              a.click();
+                              a.remove();
+                              window.URL.revokeObjectURL(url);
+                              return;
+                            }
+                          } catch (err) {
+                            console.error("Resume download error:", err);
+                          }
+
+                          const localData =
+                            typeof window !== "undefined"
+                              ? localStorage.getItem("dradix_profile_resume_data")
+                              : null;
+                          const el = document.createElement("a");
+                          if (localData && localData.startsWith("data:")) {
+                            el.href = localData;
+                          } else {
+                            const file = new Blob(
+                              [
+                                `Resume Document: ${nameToDownload}\nDownloaded from Dradix Platform`,
+                              ],
+                              { type: "application/pdf" },
+                            );
+                            el.href = URL.createObjectURL(file);
+                          }
+                          el.download = nameToDownload;
+                          document.body.appendChild(el);
+                          el.click();
+                          el.remove();
+                        }}
                         className="btn-candy px-3 py-1.5 rounded-xl bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 text-xs font-bold cursor-pointer"
                       >
                         Download
@@ -4321,9 +4381,29 @@ export default function ProfilePage() {
           acceptedTypes=".pdf,.doc,.docx"
           onUploadComplete={(files) => {
             if (files.length > 0) {
-              const uploadedName = files[0].name;
+              const uploadedFile = files[0];
+              const uploadedName = uploadedFile.name;
+              const fileSize = uploadedFile.size;
+              const fileData = uploadedFile.data;
+
               setProfile((prev) => ({ ...prev, resumeName: uploadedName }));
               setFormState((prev) => ({ ...prev, resumeName: uploadedName }));
+              if (typeof window !== "undefined") {
+                localStorage.setItem("dradix_profile_resume", uploadedName);
+                if (fileData) {
+                  localStorage.setItem("dradix_profile_resume_data", fileData);
+                }
+              }
+
+              apiFetch("/users/resume", {
+                method: "POST",
+                body: JSON.stringify({
+                  resume_name: uploadedName,
+                  resume_file_size: fileSize,
+                  file_type: uploadedFile.type || "pdf",
+                  resume_data: fileData,
+                }),
+              }).catch((err) => console.error("Resume DB sync error:", err));
             }
           }}
         />

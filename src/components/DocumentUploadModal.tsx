@@ -19,6 +19,7 @@ export interface UploadedFileItem {
   type: string;
   status: "uploading" | "completed" | "error";
   progress: number;
+  data?: string;
 }
 
 interface DocumentUploadModalProps {
@@ -150,9 +151,25 @@ export default function DocumentUploadModal({
     }, 120);
   };
 
-  const handleFilesAdded = (files: FileList | File[]) => {
+  const readFileAsBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFilesAdded = async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
-    fileArray.forEach((file) => {
+    for (const file of fileArray) {
+      let fileData: string | undefined = undefined;
+      try {
+        fileData = await readFileAsBase64(file);
+      } catch (err) {
+        console.error("Failed to read file data:", err);
+      }
+
       const newItem: UploadedFileItem = {
         id: crypto.randomUUID(),
         name: file.name,
@@ -161,10 +178,11 @@ export default function DocumentUploadModal({
         type: getFileExt(file.name),
         status: "uploading",
         progress: 0,
+        data: fileData,
       };
       setFileList((prev) => [...prev, newItem]);
       simulateUpload(newItem);
-    });
+    }
   };
 
   const handleImportUrl = () => {
