@@ -24,6 +24,37 @@ export default function PrivacyPage() {
   const [activeSection, setActiveSection] = useState("section-1");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const isClickScrollingRef = useRef(false);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTocClick = (secId: string) => {
+    setActiveSection(secId);
+    isClickScrollingRef.current = true;
+
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+    }
+
+    document.getElementById(secId)?.scrollIntoView({ behavior: "smooth" });
+
+    const resetClickScroll = () => {
+      isClickScrollingRef.current = false;
+      if (typeof window !== "undefined") {
+        window.removeEventListener("scrollend", resetClickScroll);
+      }
+    };
+
+    if (typeof window !== "undefined" && "onscrollend" in window) {
+      window.addEventListener("scrollend", resetClickScroll, { once: true });
+    }
+
+    clickTimeoutRef.current = setTimeout(() => {
+      isClickScrollingRef.current = false;
+      if (typeof window !== "undefined") {
+        window.removeEventListener("scrollend", resetClickScroll);
+      }
+    }, 1000);
+  };
 
   const contactEmail = "support@dradix.dev";
 
@@ -682,11 +713,17 @@ export default function PrivacyPage() {
 
   useEffect(() => {
     const handleObserver = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
-      });
+      if (isClickScrollingRef.current) return;
+
+      const intersectingEntries = entries.filter((entry) => entry.isIntersecting);
+      if (intersectingEntries.length > 0) {
+        const topEntry = intersectingEntries.reduce((prev, curr) => {
+          return Math.abs(curr.boundingClientRect.top) < Math.abs(prev.boundingClientRect.top)
+            ? curr
+            : prev;
+        });
+        setActiveSection(topEntry.target.id);
+      }
     };
 
     observerRef.current = new IntersectionObserver(handleObserver, {
@@ -700,7 +737,10 @@ export default function PrivacyPage() {
       if (el) observerRef.current?.observe(el);
     });
 
-    return () => observerRef.current?.disconnect();
+    return () => {
+      observerRef.current?.disconnect();
+      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+    };
   }, [sections]);
 
   const filteredSections = searchQuery.trim()
@@ -839,10 +879,7 @@ export default function PrivacyPage() {
                         href={`#${sec.id}`}
                         onClick={(e) => {
                           e.preventDefault();
-                          setActiveSection(sec.id);
-                          document
-                            .getElementById(sec.id)
-                            ?.scrollIntoView({ behavior: "smooth" });
+                          handleTocClick(sec.id);
                         }}
                         className={`relative flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors duration-200 ${
                           isActive
@@ -855,8 +892,8 @@ export default function PrivacyPage() {
                             layoutId="active-toc-indicator"
                             transition={{
                               type: "spring",
-                              stiffness: 380,
-                              damping: 32,
+                              stiffness: 550,
+                              damping: 38,
                             }}
                             className="absolute inset-0 bg-[#015451] rounded-xl shadow-sm"
                           />

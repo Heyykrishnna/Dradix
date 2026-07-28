@@ -31,14 +31,15 @@ export default function Home() {
         <div className="flex items-center gap-6">
           <Link
             href="/auth"
-            className="text-[#015451] font-semibold text-sm hover:text-[#003c3a] transition-colors"
+            className="text-[#015451] font-normal text-sm hover:text-[#003c3a] transition-colors"
           >
             Login
           </Link>
-          <Link href="/dashboard">
-            <CandyButton className="text-xs px-5 py-2 font-semibold">
-              Get Started
-            </CandyButton>
+          <Link
+            href="/dashboard"
+            className="border border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/20 text-white font-normal text-xs sm:text-sm px-6 py-2.5 rounded-full transition-all backdrop-blur-md shadow-md active:scale-95 inline-flex items-center justify-center"
+          >
+            Get Started
           </Link>
         </div>
       </header>

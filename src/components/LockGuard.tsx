@@ -11,7 +11,12 @@ export default function LockGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unlocked = localStorage.getItem("dradix_unlocked") === "true";
 
-    if (!unlocked && pathname !== "/coming-soon") {
+    const isPublicPage =
+      pathname === "/coming-soon" ||
+      pathname.startsWith("/terms") ||
+      pathname.startsWith("/privacy");
+
+    if (!unlocked && !isPublicPage) {
       if (typeof window !== "undefined") {
         sessionStorage.setItem("dradix_redirected", "true");
       }
@@ -35,7 +40,12 @@ export default function LockGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isUnlocked && pathname !== "/coming-soon") {
+  const isPublicPage =
+    pathname === "/coming-soon" ||
+    pathname.startsWith("/terms") ||
+    pathname.startsWith("/privacy");
+
+  if (!isUnlocked && !isPublicPage) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500 font-sans text-sm tracking-wider">
         Redirecting to Private Preview...

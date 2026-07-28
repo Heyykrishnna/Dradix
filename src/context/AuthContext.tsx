@@ -38,6 +38,8 @@ const PUBLIC_ROUTES = [
   "/coming-soon",
   "/auth/callback",
   "/auth/verify",
+  "/terms",
+  "/privacy",
 ];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
