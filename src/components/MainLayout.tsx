@@ -97,6 +97,11 @@ const navigationConfig: NavCategory[] = [
     href: "/dashboard#career",
     subItems: [
       {
+        label: "ATS Resume Analyzer",
+        href: "/resume-analyzer",
+        desc: "AI-powered ATS scoring, pros & cons breakdown",
+      },
+      {
         label: "Recruiter Readiness",
         href: "/dashboard#recruiter",
         desc: "Checklist to optimize your profile",

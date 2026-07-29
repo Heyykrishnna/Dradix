@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -725,6 +726,25 @@ export default function DashboardPage() {
     }
     return initialDevStats;
   });
+  const [atsScore, setAtsScore] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const val = localStorage.getItem("dradix_ats_score");
+      if (val) return parseInt(val, 10) || 84;
+    }
+    return 84;
+  });
+
+  React.useEffect(() => {
+    const syncAts = () => {
+      if (typeof window !== "undefined") {
+        const val = localStorage.getItem("dradix_ats_score");
+        if (val) setAtsScore(parseInt(val, 10) || 84);
+      }
+    };
+    window.addEventListener("storage", syncAts);
+    syncAts();
+    return () => window.removeEventListener("storage", syncAts);
+  }, []);
   const [platformsList, setPlatformsList] = useState<CodingPlatformItem[]>(
     () => {
       if (typeof window !== "undefined") {
@@ -1983,6 +2003,22 @@ export default function DashboardPage() {
                 {devStats.score}
               </p>
             </div>
+            <Link
+              href="/resume-analyzer"
+              className="bg-white rounded-xl p-3 border border-transparent hover:border-zinc-200 transition-all text-left group block"
+            >
+              <div className="flex items-center justify-between gap-1">
+                <p className="text-[10px] text-zinc-400 font-semibold uppercase group-hover:text-emerald-600 transition-colors">
+                  ATS Score
+                </p>
+                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">
+                  Groq AI
+                </span>
+              </div>
+              <p className="text-[18px] font-black text-emerald-600 mt-1">
+                {atsScore}%
+              </p>
+            </Link>
             <div className="bg-white rounded-xl p-3">
               <p className="text-[10px] text-zinc-400 font-semibold uppercase">
                 Contributions
@@ -1997,14 +2033,6 @@ export default function DashboardPage() {
               </p>
               <p className="text-[18px] font-black text-black mt-1">
                 {devStats.problemsSolved}
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-3">
-              <p className="text-[10px] text-zinc-400 font-semibold uppercase">
-                Streak
-              </p>
-              <p className="text-[18px] font-black text-black mt-1">
-                {devStats.streak} Days
               </p>
             </div>
           </div>
@@ -2097,9 +2125,17 @@ export default function DashboardPage() {
                 {recruiterPct}% Ready
               </span>
             </div>
-            <button className="w-full mt-2 py-2 bg-black hover:bg-zinc-900 text-white rounded-lg text-[11px] font-bold transition-all">
-              Improve Profile
-            </button>
+            <div className="flex gap-2 mt-2">
+              <button className="flex-1 py-2 bg-black hover:bg-zinc-900 text-white rounded-lg text-[11px] font-bold transition-all cursor-pointer">
+                Improve Profile
+              </button>
+              <Link
+                href="/resume-analyzer"
+                className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+              >
+                ATS Analysis ({atsScore}%)
+              </Link>
+            </div>
           </div>
         </div>
 
