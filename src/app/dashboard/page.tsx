@@ -550,6 +550,8 @@ interface DashboardResponseData {
     username: string;
     first_name?: string | null;
     last_name?: string | null;
+    ats_score?: number;
+    ats_report?: any;
   };
   developer_score?: number;
   github?: {
@@ -1426,6 +1428,34 @@ export default function DashboardPage() {
               wins: 2,
               certificates: data.achievements?.length || 0,
             });
+
+            const fetchedAtsScore =
+              typeof data.profile.ats_score === "number"
+                ? data.profile.ats_score
+                : typeof (data as any).ats_score === "number"
+                  ? (data as any).ats_score
+                  : null;
+
+            if (fetchedAtsScore !== null && !isNaN(fetchedAtsScore)) {
+              setAtsScore(fetchedAtsScore);
+              if (typeof window !== "undefined") {
+                localStorage.setItem(
+                  "dradix_ats_score",
+                  String(fetchedAtsScore),
+                );
+              }
+            }
+
+            if (data.profile.ats_report) {
+              if (typeof window !== "undefined") {
+                localStorage.setItem(
+                  "dradix_ats_report",
+                  typeof data.profile.ats_report === "string"
+                    ? data.profile.ats_report
+                    : JSON.stringify(data.profile.ats_report),
+                );
+              }
+            }
           }
 
           if (data.github) {
