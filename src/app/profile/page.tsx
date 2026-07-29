@@ -385,7 +385,7 @@ const initialProfile: Omit<ProfileState, "skills"> = {
   behance: "https://behance.net/yatharthk",
   medium: "https://medium.com/@yatharthk",
   customSocials: [{ id: "1", name: "Twitter", url: "https://x.com/yatharthk" }],
-  resumeName: "yatharth_resume.pdf",
+  resumeName: "",
   techStack: [
     "Next.js",
     "TypeScript",

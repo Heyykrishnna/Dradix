@@ -113,12 +113,50 @@ const defaultAnalysis: ATSAnalysisData = {
   ],
 };
 
+const sanitizeAnalysis = (
+  raw?: Partial<ATSAnalysisData> | null,
+): ATSAnalysisData => {
+  if (!raw || typeof raw !== "object") return defaultAnalysis;
+
+  const rawCats = (
+    raw.categoryScores && typeof raw.categoryScores === "object"
+      ? raw.categoryScores
+      : {}
+  ) as Record<string, CategoryScoreItem | undefined>;
+
+  return {
+    atsScore: typeof raw.atsScore === "number" ? raw.atsScore : defaultAnalysis.atsScore,
+    summary: raw.summary || defaultAnalysis.summary,
+    categoryScores: {
+      formatting: rawCats.formatting || defaultAnalysis.categoryScores.formatting,
+      keywords: rawCats.keywords || defaultAnalysis.categoryScores.keywords,
+      impact: rawCats.impact || defaultAnalysis.categoryScores.impact,
+      skills: rawCats.skills || defaultAnalysis.categoryScores.skills,
+      completeness: rawCats.completeness || defaultAnalysis.categoryScores.completeness,
+    },
+    pros: Array.isArray(raw.pros) && raw.pros.length > 0 ? raw.pros : defaultAnalysis.pros,
+    cons: Array.isArray(raw.cons) && raw.cons.length > 0 ? raw.cons : defaultAnalysis.cons,
+    missingKeywords:
+      Array.isArray(raw.missingKeywords) && raw.missingKeywords.length > 0
+        ? raw.missingKeywords
+        : defaultAnalysis.missingKeywords,
+    actionableFixes:
+      Array.isArray(raw.actionableFixes) && raw.actionableFixes.length > 0
+        ? raw.actionableFixes
+        : defaultAnalysis.actionableFixes,
+    suggestedTargetRoles:
+      Array.isArray(raw.suggestedTargetRoles) && raw.suggestedTargetRoles.length > 0
+        ? raw.suggestedTargetRoles
+        : defaultAnalysis.suggestedTargetRoles,
+  };
+};
+
 export default function ResumeAnalyzerPage() {
   const [resumeName, setResumeName] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("dradix_profile_resume") || "yatharth_resume.pdf";
+      return localStorage.getItem("dradix_profile_resume") || "";
     }
-    return "yatharth_resume.pdf";
+    return "";
   });
   const [resumeData, setResumeData] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
@@ -137,17 +175,17 @@ export default function ResumeAnalyzerPage() {
       const storedReport = localStorage.getItem("dradix_ats_report");
       if (storedReport) {
         try {
-          return JSON.parse(storedReport);
+          const parsed = JSON.parse(storedReport);
+          return sanitizeAnalysis(parsed);
         } catch {
           // ignore
         }
       }
       const storedScore = localStorage.getItem("dradix_ats_score");
       if (storedScore) {
-        return {
-          ...defaultAnalysis,
+        return sanitizeAnalysis({
           atsScore: parseInt(storedScore, 10) || 84,
-        };
+        });
       }
     }
     return defaultAnalysis;
@@ -213,7 +251,7 @@ export default function ResumeAnalyzerPage() {
       });
 
       if (res?.data) {
-        const newAnalysis: ATSAnalysisData = res.data;
+        const newAnalysis: ATSAnalysisData = sanitizeAnalysis(res.data);
         setAnalysis(newAnalysis);
         if (typeof window !== "undefined") {
           localStorage.setItem(
@@ -247,7 +285,7 @@ export default function ResumeAnalyzerPage() {
     const skillScore = Math.min(95, computedScore + 2);
     const compScore = Math.min(94, computedScore + 3);
 
-    const updated: ATSAnalysisData = {
+    const updated: ATSAnalysisData = sanitizeAnalysis({
       atsScore: computedScore,
       summary: `ATS evaluation score calculated for target role "${targetJobTitle || "Software Engineer"}". Total alignment rating: ${computedScore}%.`,
       categoryScores: {
@@ -309,7 +347,7 @@ export default function ResumeAnalyzerPage() {
         "Fullstack Developer",
         "Backend Engineer",
       ],
-    };
+    });
     setAnalysis(updated);
     if (typeof window !== "undefined") {
       localStorage.setItem("dradix_ats_score", String(computedScore));
@@ -458,11 +496,12 @@ export default function ResumeAnalyzerPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white">
-                        {resumeName}
+                        {resumeName || "No Resume Uploaded"}
                       </p>
                       <p className="text-[11px] text-zinc-400 mt-1 max-w-xs leading-relaxed">
-                        Interactive document preview active. Upload a new PDF
-                        file anytime to update this viewer.
+                        {resumeName
+                          ? "Interactive document preview active. Upload a new PDF file anytime to update this viewer."
+                          : "No active resume document found. Upload your PDF or DOCX resume to get an accurate ATS score."}
                       </p>
                     </div>
                     <button
@@ -470,7 +509,7 @@ export default function ResumeAnalyzerPage() {
                       onClick={() => setIsUploadModalOpen(true)}
                       className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white text-xs font-bold cursor-pointer transition-colors"
                     >
-                      Upload PDF Resume
+                      {resumeName ? "Update PDF Resume" : "Upload PDF Resume"}
                     </button>
                   </div>
                 )}
@@ -642,8 +681,9 @@ export default function ResumeAnalyzerPage() {
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {Object.entries(analysis.categoryScores).map(
-                      ([key, cat]) => (
+                    {Object.entries(
+                      analysis?.categoryScores || defaultAnalysis.categoryScores,
+                    ).map(([key, cat]) => (
                         <div
                           key={key}
                           className="bg-zinc-50/80 border border-zinc-200/80 rounded-2xl p-4.5 space-y-3 flex flex-col justify-between h-full shadow-2xs hover:border-zinc-300 transition-colors"

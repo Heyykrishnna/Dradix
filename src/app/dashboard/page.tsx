@@ -2160,12 +2160,6 @@ export default function DashboardPage() {
               <button className="flex-1 py-2 bg-black hover:bg-zinc-900 text-white rounded-lg text-[11px] font-bold transition-all cursor-pointer">
                 Improve Profile
               </button>
-              <Link
-                href="/resume-analyzer"
-                className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
-              >
-                ATS Analysis ({atsScore}%)
-              </Link>
             </div>
           </div>
         </div>
