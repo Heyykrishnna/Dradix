@@ -2034,22 +2034,16 @@ export default function DashboardPage() {
                 {devStats.score}
               </p>
             </div>
-            <Link
-              href="/resume-analyzer"
-              className="bg-white rounded-xl p-3 border border-transparent hover:border-zinc-200 transition-all text-left group block"
-            >
+            <div className="bg-white rounded-xl p-3">
               <div className="flex items-center justify-between gap-1">
-                <p className="text-[10px] text-zinc-400 font-semibold uppercase group-hover:text-emerald-600 transition-colors">
+                <p className="text-[10px] text-zinc-400 font-semibold uppercase">
                   ATS Score
                 </p>
-                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">
-                  Groq AI
-                </span>
               </div>
-              <p className="text-[18px] font-black text-emerald-600 mt-1">
+              <p className="text-[18px] font-black text-black mt-1">
                 {atsScore}%
               </p>
-            </Link>
+            </div>
             <div className="bg-white rounded-xl p-3">
               <p className="text-[10px] text-zinc-400 font-semibold uppercase">
                 Contributions
