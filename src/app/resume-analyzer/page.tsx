@@ -114,46 +114,59 @@ const defaultAnalysis: ATSAnalysisData = {
 };
 
 export default function ResumeAnalyzerPage() {
-  const [resumeName, setResumeName] = useState<string>("yatharth_resume.pdf");
-  const [resumeData, setResumeData] = useState<string | null>(null);
+  const [resumeName, setResumeName] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("dradix_profile_resume") || "yatharth_resume.pdf";
+    }
+    return "yatharth_resume.pdf";
+  });
+  const [resumeData, setResumeData] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("dradix_profile_resume_data");
+    }
+    return null;
+  });
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [targetJobTitle, setTargetJobTitle] = useState(
     "Fullstack Software Engineer",
   );
   const [targetJobDesc, setTargetJobDesc] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<ATSAnalysisData>(defaultAnalysis);
+  const [analysis, setAnalysis] = useState<ATSAnalysisData>(() => {
+    if (typeof window !== "undefined") {
+      const storedReport = localStorage.getItem("dradix_ats_report");
+      if (storedReport) {
+        try {
+          return JSON.parse(storedReport);
+        } catch {
+          // ignore
+        }
+      }
+      const storedScore = localStorage.getItem("dradix_ats_score");
+      if (storedScore) {
+        return {
+          ...defaultAnalysis,
+          atsScore: parseInt(storedScore, 10) || 84,
+        };
+      }
+    }
+    return defaultAnalysis;
+  });
   const [activeTab, setActiveTab] = useState<
     "overview" | "proscons" | "keywords" | "fixes"
   >("overview");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedName = localStorage.getItem("dradix_profile_resume");
-      const storedData = localStorage.getItem("dradix_profile_resume_data");
-      const storedScore = localStorage.getItem("dradix_ats_score");
-      const storedReport = localStorage.getItem("dradix_ats_report");
-
-      if (storedName) setResumeName(storedName);
-      if (storedData) setResumeData(storedData);
-      if (storedReport) {
-        try {
-          const parsed = JSON.parse(storedReport);
-          setAnalysis(parsed);
-        } catch (e) {
-          console.error("Failed to parse cached ATS report:", e);
-        }
-      } else if (storedScore) {
-        setAnalysis((prev) => ({
-          ...prev,
-          atsScore: parseInt(storedScore, 10) || 84,
-        }));
-      }
-    }
-
     const fetchBackendResume = async () => {
       try {
-        const res = await apiFetch<any>("/users/resume");
+        const res = await apiFetch<{
+          data?: {
+            resume?: {
+              resume_name?: string;
+              resume_data?: string;
+            };
+          };
+        }>("/users/resume");
         if (res?.data?.resume) {
           if (res.data.resume.resume_name) {
             setResumeName(res.data.resume.resume_name);
@@ -194,7 +207,7 @@ export default function ResumeAnalyzerPage() {
         targetJobDesc,
       };
 
-      const res = await apiFetch<any>("/ai/analyze-resume", {
+      const res = await apiFetch<{ data?: ATSAnalysisData }>("/ai/analyze-resume", {
         method: "POST",
         body: JSON.stringify(payload),
       });
@@ -585,18 +598,20 @@ export default function ResumeAnalyzerPage() {
               </div>
 
               <div className="relative z-10 flex items-center gap-1 p-1 bg-zinc-100/90 rounded-2xl border border-zinc-200/80 overflow-x-auto">
-                {[
-                  { id: "overview", label: "Category Scores" },
-                  { id: "proscons", label: "Pros & Cons Breakdown" },
-                  { id: "keywords", label: "Missing Keywords" },
-                  { id: "fixes", label: "Actionable Fixes" },
-                ].map((tab) => {
+                {(
+                  [
+                    { id: "overview", label: "Category Scores" },
+                    { id: "proscons", label: "Pros & Cons Breakdown" },
+                    { id: "keywords", label: "Missing Keywords" },
+                    { id: "fixes", label: "Actionable Fixes" },
+                  ] as const
+                ).map((tab) => {
                   const isActive = activeTab === tab.id;
                   return (
                     <button
                       key={tab.id}
                       type="button"
-                      onClick={() => setActiveTab(tab.id as any)}
+                      onClick={() => setActiveTab(tab.id)}
                       className={`relative px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap z-10 select-none ${
                         isActive
                           ? "text-white"

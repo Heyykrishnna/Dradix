@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PUBLIC_PATHS = [
-  '/',
-  '/auth',
-  '/auth/callback',
-  '/auth/verify',
-  '/coming-soon',
-  '/terms',
-  '/privacy',
-];
+
 
 const PROTECTED_PREFIXES = [
   '/dashboard',
@@ -17,12 +9,6 @@ const PROTECTED_PREFIXES = [
   '/explore',
   '/admin',
 ];
-
-function isPublic(pathname: string): boolean {
-  if (PUBLIC_PATHS.some((p) => p === pathname || pathname.startsWith(p + '/'))) return true;
-  if (pathname.startsWith('/_next') || pathname.startsWith('/api') || pathname.includes('.')) return true;
-  return false;
-}
 
 function isProtected(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'));

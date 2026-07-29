@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     initAuth();
     return () => { active = false; };
-  }, []);
+  }, [clearAuthState, updateCachedUser]);
 
   useEffect(() => {
     const interval = setInterval(async () => {

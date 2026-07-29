@@ -551,7 +551,7 @@ interface DashboardResponseData {
     first_name?: string | null;
     last_name?: string | null;
     ats_score?: number;
-    ats_report?: any;
+    ats_report?: unknown;
   };
   developer_score?: number;
   github?: {
@@ -1429,11 +1429,12 @@ export default function DashboardPage() {
               certificates: data.achievements?.length || 0,
             });
 
+            const rawData = data as Record<string, unknown>;
             const fetchedAtsScore =
               typeof data.profile.ats_score === "number"
                 ? data.profile.ats_score
-                : typeof (data as any).ats_score === "number"
-                  ? (data as any).ats_score
+                : typeof rawData.ats_score === "number"
+                  ? (rawData.ats_score as number)
                   : null;
 
             if (fetchedAtsScore !== null && !isNaN(fetchedAtsScore)) {
