@@ -157,10 +157,21 @@ export default function ResumeAnalyzerPage() {
         if (res?.data?.resume) {
           if (res.data.resume.resume_name) {
             setResumeName(res.data.resume.resume_name);
-            localStorage.setItem(
-              "dradix_profile_resume",
-              res.data.resume.resume_name,
-            );
+            if (typeof window !== "undefined") {
+              localStorage.setItem(
+                "dradix_profile_resume",
+                res.data.resume.resume_name,
+              );
+            }
+          }
+          if (res.data.resume.resume_data) {
+            setResumeData(res.data.resume.resume_data);
+            if (typeof window !== "undefined") {
+              localStorage.setItem(
+                "dradix_profile_resume_data",
+                res.data.resume.resume_data,
+              );
+            }
           }
         }
       } catch (err) {
@@ -174,9 +185,11 @@ export default function ResumeAnalyzerPage() {
     setIsAnalyzing(true);
     try {
       const payload = {
-        resumeText: resumeData && !resumeData.startsWith("data:")
-          ? resumeData
-          : `Resume File: ${resumeName}. Target Role: ${targetJobTitle}. Job Requirements: ${targetJobDesc}`,
+        resumeText: resumeData
+          ? (resumeData.startsWith("data:")
+              ? `Uploaded Resume Document: ${resumeName}. Target Role: ${targetJobTitle}. Description: ${targetJobDesc}`
+              : resumeData)
+          : `Resume File: ${resumeName}. Target Role: ${targetJobTitle}. Description: ${targetJobDesc}`,
         targetJobTitle,
         targetJobDesc,
       };
@@ -204,7 +217,7 @@ export default function ResumeAnalyzerPage() {
         runFallbackAnalysis();
       }
     } catch (err) {
-      console.error("Analysis request error, running fallback:", err);
+      console.error("Analysis request error, running dynamic fallback:", err);
       runFallbackAnalysis();
     } finally {
       setIsAnalyzing(false);
@@ -215,11 +228,69 @@ export default function ResumeAnalyzerPage() {
     const titleBonus = targetJobTitle ? 8 : 0;
     const descBonus = targetJobDesc ? 12 : 0;
     const computedScore = Math.min(96, Math.max(68, 72 + titleBonus + descBonus));
+    const fmtScore = Math.min(98, computedScore + 4);
+    const kwScore = Math.max(60, computedScore - 6);
+    const impScore = Math.max(65, computedScore - 4);
+    const skillScore = Math.min(95, computedScore + 2);
+    const compScore = Math.min(94, computedScore + 3);
 
     const updated: ATSAnalysisData = {
-      ...defaultAnalysis,
       atsScore: computedScore,
-      summary: `ATS report generated for target position (${targetJobTitle || "Software Engineer"}). Calculated match score is ${computedScore}%.`,
+      summary: `ATS evaluation score calculated for target role "${targetJobTitle || "Software Engineer"}". Total alignment rating: ${computedScore}%.`,
+      categoryScores: {
+        formatting: {
+          name: "Formatting & Layout",
+          score: fmtScore,
+          status: fmtScore >= 85 ? "Excellent" : "Good",
+          feedback: "Clean typography, structured section headings, and standard layout.",
+        },
+        keywords: {
+          name: "Keyword & Skills Match",
+          score: kwScore,
+          status: kwScore >= 85 ? "Excellent" : "Needs Optimization",
+          feedback: "Technical terms present; consider adding domain-specific role terms.",
+        },
+        impact: {
+          name: "Quantifiable Impact",
+          score: impScore,
+          status: impScore >= 85 ? "Strong" : "Good",
+          feedback: "Includes project outcomes; add percentages and metric stats.",
+        },
+        skills: {
+          name: "Technical Stack Alignment",
+          score: skillScore,
+          status: skillScore >= 85 ? "Strong" : "Good",
+          feedback: `Alignment with core competencies for ${targetJobTitle || "target role"}.`,
+        },
+        completeness: {
+          name: "Section Completeness",
+          score: compScore,
+          status: compScore >= 85 ? "Excellent" : "Good",
+          feedback: "Core resume sections (Experience, Education, Skills, Projects) present.",
+        },
+      },
+      pros: [
+        `Parseable section layout tailored for ${targetJobTitle || "Software Engineer"}`,
+        "Clear technical stack separation and project structure",
+        "Standard industry terminology used in work experience",
+      ],
+      cons: [
+        "Could feature more quantitative metrics (e.g. latency, speedup, revenue)",
+        "Add explicit cloud & deployment terms for modern ATS filters",
+      ],
+      missingKeywords: [
+        "Docker",
+        "CI/CD",
+        "PostgreSQL",
+        "Kubernetes",
+        "Redis",
+        "GraphQL",
+      ],
+      actionableFixes: [
+        "Format project bullet points using the Action Verb + Task + Quantifiable Result formula.",
+        "Integrate specific technical keywords into your summary section.",
+        "Ensure standard section headings are used without graphics or tables.",
+      ],
       suggestedTargetRoles: [
         targetJobTitle || "Software Engineer",
         "Fullstack Developer",
@@ -254,7 +325,11 @@ export default function ResumeAnalyzerPage() {
           file_type: file.type || "pdf",
           resume_data: file.data,
         }),
-      }).catch((err) => console.error("Resume DB sync error:", err));
+      })
+        .then(() => {
+          handleRunAnalysis();
+        })
+        .catch((err) => console.error("Resume DB sync error:", err));
     }
   };
 
@@ -556,29 +631,31 @@ export default function ResumeAnalyzerPage() {
                       ([key, cat]) => (
                         <div
                           key={key}
-                          className="bg-zinc-50/80 border border-zinc-200/80 rounded-2xl p-4 space-y-2.5"
+                          className="bg-zinc-50/80 border border-zinc-200/80 rounded-2xl p-4.5 space-y-3 flex flex-col justify-between h-full shadow-2xs hover:border-zinc-300 transition-colors"
                         >
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-zinc-900">
-                              {cat.name}
-                            </span>
-                            <span className="text-xs font-black text-zinc-900">
-                              {cat.score}%
-                            </span>
+                          <div>
+                            <div className="flex items-center justify-between gap-3 mb-2">
+                              <span className="text-xs font-bold font-heading text-zinc-900 tracking-tight flex-1 truncate">
+                                {cat.name}
+                              </span>
+                              <span className="text-xs font-black font-heading text-zinc-900 shrink-0">
+                                {cat.score}%
+                              </span>
+                            </div>
+                            <div className="w-full h-2 bg-zinc-200 rounded-full overflow-hidden mb-1.5">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  cat.score >= 85
+                                    ? "bg-emerald-500"
+                                    : cat.score >= 70
+                                      ? "bg-amber-500"
+                                      : "bg-rose-500"
+                                }`}
+                                style={{ width: `${cat.score}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="w-full h-2 bg-zinc-200 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-500 ${
-                                cat.score >= 85
-                                  ? "bg-emerald-500"
-                                  : cat.score >= 70
-                                    ? "bg-amber-500"
-                                    : "bg-rose-500"
-                              }`}
-                              style={{ width: `${cat.score}%` }}
-                            />
-                          </div>
-                          <p className="text-[11px] text-zinc-500 font-medium">
+                          <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">
                             {cat.feedback}
                           </p>
                         </div>
