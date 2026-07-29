@@ -387,10 +387,10 @@ export default function ResumeAnalyzerPage() {
   const getScoreColor = (score: number) => {
     if (score >= 85)
       return {
-        text: "text-emerald-600",
-        bg: "bg-emerald-500",
-        border: "border-emerald-200",
-        badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        text: "text-[#015451]",
+        bg: "bg-[#015451]",
+        border: "border-[#015451]/30",
+        badge: "bg-[#015451]/10 text-[#015451] border-[#015451]/30",
       };
     if (score >= 70)
       return {
@@ -492,7 +492,7 @@ export default function ResumeAnalyzerPage() {
                 ) : (
                   <div className="p-6 text-center space-y-3">
                     <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center mx-auto text-white">
-                      <EyeOpenIcon className="w-6 h-6 text-emerald-400" />
+                      <EyeOpenIcon className="w-6 h-6 text-[#015451]" />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white">
@@ -701,7 +701,7 @@ export default function ResumeAnalyzerPage() {
                               <div
                                 className={`h-full rounded-full transition-all duration-500 ${
                                   cat.score >= 85
-                                    ? "bg-emerald-500"
+                                    ? "bg-[#015451]"
                                     : cat.score >= 70
                                       ? "bg-amber-500"
                                       : "bg-rose-500"
@@ -723,8 +723,8 @@ export default function ResumeAnalyzerPage() {
               {activeTab === "proscons" && (
                 <div className="relative z-10 space-y-6 text-left">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-emerald-700">
-                      <CheckCircledIcon className="w-4 h-4 text-emerald-600" />
+                    <div className="flex items-center gap-2 text-[#015451]">
+                      <CheckCircledIcon className="w-4 h-4 text-[#015451]" />
                       <h3 className="text-sm font-bold">
                         Strengths & Pros ({analysis.pros.length})
                       </h3>
@@ -733,9 +733,9 @@ export default function ResumeAnalyzerPage() {
                       {analysis.pros.map((pro, i) => (
                         <div
                           key={i}
-                          className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex items-start gap-2.5 text-xs text-emerald-950 font-semibold"
+                          className="p-3.5 rounded-xl bg-[#015451]/10 border border-[#015451]/20 flex items-start gap-2.5 text-xs text-[#015451] font-semibold"
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#015451] shrink-0 mt-1.5" />
                           <span>{pro}</span>
                         </div>
                       ))}
