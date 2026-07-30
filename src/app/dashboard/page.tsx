@@ -648,7 +648,10 @@ function FormattedCoachMessage({
 
   formattedText = formattedText
     .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<\/?(think|thought|comment|message|reasoning|system|prompt)[^>]*>/gi, "")
+    .replace(
+      /<\/?(think|thought|comment|message|reasoning|system|prompt)[^>]*>/gi,
+      "",
+    )
     .replace(/(\d+\.\s+\*\*)/g, "\n$1");
 
   const lines = formattedText
@@ -2702,7 +2705,10 @@ export default function DashboardPage() {
                               : "bg-zinc-50 border border-zinc-200/80 text-zinc-800 rounded-tl-none shadow-xs"
                           }`}
                         >
-                          <FormattedCoachMessage text={m.text} sender={m.sender} />
+                          <FormattedCoachMessage
+                            text={m.text}
+                            sender={m.sender}
+                          />
                         </div>
                       </MessageScrollerItem>
                     ))}
