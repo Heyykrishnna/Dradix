@@ -15,6 +15,14 @@ import {
   Pencil2Icon,
   BarChartIcon,
   Cross2Icon,
+  ExternalLinkIcon,
+  EyeOpenIcon,
+  HeartIcon,
+  StarIcon,
+  GridIcon,
+  ListBulletIcon,
+  GitHubLogoIcon,
+  GlobeIcon,
 } from "@radix-ui/react-icons";
 import {
   XAxis,
@@ -800,6 +808,10 @@ export default function DashboardPage() {
     name: string;
     value: number;
   } | null>(null);
+
+  const [projectViewMode, setProjectViewMode] = useState<"grid" | "table">(
+    "grid",
+  );
 
   const [projectModalType, setProjectModalType] = useState<
     "add" | "edit" | "delete" | "analytics" | null
@@ -2007,1280 +2019,1540 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-      <div className="lg:col-span-1 space-y-6">
-        <div
-          id="overview"
-          className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-[16px] font-bold text-black tracking-tight">
-              Performance Overview
-            </h2>
-            {dashboardError && (
-              <ErrorQuestionTooltip message={dashboardError} />
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-xl p-3">
-              <div className="flex items-center justify-between gap-1">
-                <p className="text-[10px] text-zinc-400 font-semibold uppercase">
-                  Dev Score
-                </p>
-                <DevScoreTooltip />
-              </div>
-              <p className="text-[18px] font-black text-black mt-1">
-                {devStats.score}
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-3">
-              <div className="flex items-center justify-between gap-1">
-                <p className="text-[10px] text-zinc-400 font-semibold uppercase">
-                  ATS Score
-                </p>
-              </div>
-              <p className="text-[18px] font-black text-black mt-1">
-                {atsScore}%
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-3">
-              <p className="text-[10px] text-zinc-400 font-semibold uppercase">
-                Contributions
-              </p>
-              <p className="text-[18px] font-black text-black mt-1">
-                {devStats.contributions}
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-3">
-              <p className="text-[10px] text-zinc-400 font-semibold uppercase">
-                Problems
-              </p>
-              <p className="text-[18px] font-black text-black mt-1">
-                {devStats.problemsSolved}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-3 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-zinc-600">YK</span>
-              </div>
-              <div className="text-left">
-                <p className="text-[12px] font-bold text-black">Yatharth K.</p>
-                <p className="text-[10px] text-zinc-400">Top Developer</p>
-              </div>
-            </div>
-            <div className="bg-[#003c3a]/15 text-[#005c58] text-[10px] font-black px-2 py-1 rounded-md">
-              9.2 Rating
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
-              <span className="text-[12px] font-semibold text-zinc-700">
-                {devStats.projects} Projects ({devStats.liveProjects} Live)
-              </span>
-              <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
-            </button>
-            <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
-              <span className="text-[12px] font-semibold text-zinc-700">
-                {devStats.repositories} Repos ({devStats.publicRepos} Public)
-              </span>
-              <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
-            </button>
-          </div>
-        </div>
-
-        <div
-          id="recruiter"
-          className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4"
-        >
-          <h2 className="text-[16px] font-bold text-black tracking-tight">
-            Recruiter Readiness
-          </h2>
-          <div className="space-y-2">
-            {checklist.map((item, idx) => (
-              <button
-                type="button"
-                key={item.label}
-                onClick={() => toggleChecklistItem(idx)}
-                className="w-full text-left bg-white rounded-xl p-3 flex items-center gap-2.5 cursor-pointer hover:bg-zinc-50 transition-colors"
-              >
-                {item.done ? (
-                  <CheckCircledIcon className="w-4 h-4 text-[#005c58]" />
-                ) : (
-                  <CrossCircledIcon className="w-4 h-4 text-[#ef4444]" />
-                )}
-                <span
-                  className={`text-[12px] font-semibold ${item.done ? "text-zinc-700" : "text-zinc-400"}`}
-                >
-                  {item.label}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <div className="bg-white rounded-xl p-3.5 space-y-2 text-left">
-            <p className="text-[10px] text-zinc-400 font-bold uppercase">
-              Missing Items
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {missingItems.length > 0 ? (
-                missingItems.map((m, idx) => (
-                  <span
-                    key={idx}
-                    className="text-[9px] font-bold text-zinc-600 bg-zinc-100 rounded px-2 py-0.5"
-                  >
-                    {m}
-                  </span>
-                ))
-              ) : (
-                <span className="text-[9px] font-bold text-[#005c58]">
-                  All Green! Ready to Hire
-                </span>
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        <div className="lg:col-span-1 space-y-6">
+          <div
+            id="overview"
+            className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-[16px] font-bold text-black tracking-tight">
+                Performance Overview
+              </h2>
+              {dashboardError && (
+                <ErrorQuestionTooltip message={dashboardError} />
               )}
             </div>
-            <div className="flex items-center justify-between pt-2.5 border-t border-zinc-100">
-              <span className="text-[10px] text-zinc-400 font-bold uppercase">
-                Completion
-              </span>
-              <span className="text-[12px] font-black text-[#005c58]">
-                {recruiterPct}% Ready
-              </span>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-xl p-3">
+                <div className="flex items-center justify-between gap-1">
+                  <p className="text-[10px] text-zinc-400 font-semibold uppercase">
+                    Dev Score
+                  </p>
+                  <DevScoreTooltip />
+                </div>
+                <p className="text-[18px] font-black text-black mt-1">
+                  {devStats.score}
+                </p>
+              </div>
+              <div className="bg-white rounded-xl p-3">
+                <div className="flex items-center justify-between gap-1">
+                  <p className="text-[10px] text-zinc-400 font-semibold uppercase">
+                    ATS Score
+                  </p>
+                </div>
+                <p className="text-[18px] font-black text-black mt-1">
+                  {atsScore}%
+                </p>
+              </div>
+              <div className="bg-white rounded-xl p-3">
+                <p className="text-[10px] text-zinc-400 font-semibold uppercase">
+                  Contributions
+                </p>
+                <p className="text-[18px] font-black text-black mt-1">
+                  {devStats.contributions}
+                </p>
+              </div>
+              <div className="bg-white rounded-xl p-3">
+                <p className="text-[10px] text-zinc-400 font-semibold uppercase">
+                  Problems
+                </p>
+                <p className="text-[18px] font-black text-black mt-1">
+                  {devStats.problemsSolved}
+                </p>
+              </div>
             </div>
-            <div className="flex gap-2 mt-2">
-              <button className="flex-1 py-2 bg-black hover:bg-zinc-900 text-white rounded-lg text-[11px] font-bold transition-all cursor-pointer">
-                Improve Profile
+
+            <div className="bg-white rounded-xl p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center">
+                  <span className="text-[10px] font-bold text-zinc-600">
+                    YK
+                  </span>
+                </div>
+                <div className="text-left">
+                  <p className="text-[12px] font-bold text-black">
+                    Yatharth K.
+                  </p>
+                  <p className="text-[10px] text-zinc-400">Top Developer</p>
+                </div>
+              </div>
+              <div className="bg-[#003c3a]/15 text-[#005c58] text-[10px] font-black px-2 py-1 rounded-md">
+                9.2 Rating
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
+                <span className="text-[12px] font-semibold text-zinc-700">
+                  {devStats.projects} Projects ({devStats.liveProjects} Live)
+                </span>
+                <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
+              </button>
+              <button className="w-full bg-white rounded-xl p-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
+                <span className="text-[12px] font-semibold text-zinc-700">
+                  {devStats.repositories} Repos ({devStats.publicRepos} Public)
+                </span>
+                <ChevronRightIcon className="w-4 h-4 text-zinc-400" />
               </button>
             </div>
           </div>
-        </div>
 
-        <div
-          id="ai-coach"
-          className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4"
-        >
-          <h2 className="text-[16px] font-bold text-black tracking-tight">
-            AI Career Coach
-          </h2>
-
-          <MessageScrollerProvider
-            autoScroll={true}
-            defaultScrollPosition="end"
+          <div
+            id="recruiter"
+            className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4"
           >
-            <MessageScroller className="bg-white rounded-xl p-3 h-48 text-[11px] relative">
-              <MessageScrollerViewport className="scrollbar-thin">
-                <MessageScrollerContent className="gap-2.5">
-                  {messages.map((m, idx) => (
-                    <MessageScrollerItem
+            <h2 className="text-[16px] font-bold text-black tracking-tight">
+              Recruiter Readiness
+            </h2>
+            <div className="space-y-2">
+              {checklist.map((item, idx) => (
+                <button
+                  type="button"
+                  key={item.label}
+                  onClick={() => toggleChecklistItem(idx)}
+                  className="w-full text-left bg-white rounded-xl p-3 flex items-center gap-2.5 cursor-pointer hover:bg-zinc-50 transition-colors"
+                >
+                  {item.done ? (
+                    <CheckCircledIcon className="w-4 h-4 text-[#005c58]" />
+                  ) : (
+                    <CrossCircledIcon className="w-4 h-4 text-[#ef4444]" />
+                  )}
+                  <span
+                    className={`text-[12px] font-semibold ${item.done ? "text-zinc-700" : "text-zinc-400"}`}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-xl p-3.5 space-y-2 text-left">
+              <p className="text-[10px] text-zinc-400 font-bold uppercase">
+                Missing Items
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {missingItems.length > 0 ? (
+                  missingItems.map((m, idx) => (
+                    <span
                       key={idx}
-                      messageId={`msg-${idx}`}
-                      scrollAnchor={idx === messages.length - 1}
-                      className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
+                      className="text-[9px] font-bold text-zinc-600 bg-zinc-100 rounded px-2 py-0.5"
                     >
-                      <span className="text-[9px] text-zinc-400 font-bold mb-0.5">
-                        {m.sender === "user" ? "You" : "Coach"}
-                      </span>
-                      <p
-                        className={`p-2.5 rounded-xl max-w-[85%] leading-relaxed ${m.sender === "user" ? "bg-black text-white rounded-tr-none" : "bg-zinc-100 text-zinc-800 rounded-tl-none"}`}
-                      >
-                        {m.text}
-                      </p>
-                    </MessageScrollerItem>
-                  ))}
-                </MessageScrollerContent>
-              </MessageScrollerViewport>
-              <MessageScrollerButton />
-            </MessageScroller>
-          </MessageScrollerProvider>
-
-          <div className="space-y-1.5">
-            <button
-              onClick={() => handleAskCoach("How can I improve my resume?")}
-              className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors"
-            >
-              How can I improve my resume?
-            </button>
-            <button
-              onClick={() =>
-                handleAskCoach("What project should I build next?")
-              }
-              className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors"
-            >
-              What project should I build next?
-            </button>
+                      {m}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-[9px] font-bold text-[#005c58]">
+                    All Green! Ready to Hire
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-2.5 border-t border-zinc-100">
+                <span className="text-[10px] text-zinc-400 font-bold uppercase">
+                  Completion
+                </span>
+                <span className="text-[12px] font-black text-[#005c58]">
+                  {recruiterPct}% Ready
+                </span>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button className="flex-1 py-2 bg-black hover:bg-zinc-900 text-white rounded-lg text-[11px] font-bold transition-all cursor-pointer">
+                  Improve Profile
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-white rounded-xl p-3 flex items-center justify-between border border-zinc-100">
-            <input
-              type="text"
-              placeholder="Ask anything..."
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAskCoach(chatInput)}
-              className="bg-transparent text-[12px] text-zinc-800 placeholder:text-zinc-400 outline-none w-full pr-2"
-            />
-            <button
-              onClick={() => handleAskCoach(chatInput)}
-              className="w-6 h-6 rounded-lg bg-black text-white flex items-center justify-center hover:bg-zinc-800 shrink-0"
-            >
-              <ArrowRightIcon className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-[#e6edde] rounded-[24px] p-5 space-y-4 flex flex-col items-center text-center">
-          <div className="w-full max-w-40 aspect-square relative flex items-center justify-center bg-white/40 rounded-2xl p-4">
-            <svg
-              viewBox="0 0 24 24"
-              className="w-16 h-16 text-[#4d6a34]"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0v1.5H3v-1.5M9 7.5h6M9 10.5h3"
-              />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-[16px] font-black text-[#2e421e] leading-tight">
-              Developer on the run
-            </h3>
-            <p className="text-[12px] text-[#4d6a34] mt-2 leading-relaxed font-semibold">
-              Expedite your development workflow with AI-powered analytics.
-            </p>
-          </div>
-          <button
-            onClick={handleSyncAll}
-            disabled={isSyncing}
-            className="btn-candy w-full py-3 bg-linear-to-b from-zinc-900 via-zinc-950 to-black text-white border border-zinc-800 rounded-xl text-[12px] font-bold disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+          <div
+            id="ai-coach"
+            className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4"
           >
-            {isSyncing && <UpdateIcon className="w-3.5 h-3.5 animate-spin" />}
-            <span>
-              {isSyncing ? "Syncing Workspace..." : "Sync all accounts"}
-            </span>
-          </button>
+            <h2 className="text-[16px] font-bold text-black tracking-tight">
+              AI Career Coach
+            </h2>
+
+            <MessageScrollerProvider
+              autoScroll={true}
+              defaultScrollPosition="end"
+            >
+              <MessageScroller className="bg-white rounded-xl p-3 h-48 text-[11px] relative">
+                <MessageScrollerViewport className="scrollbar-thin">
+                  <MessageScrollerContent className="gap-2.5">
+                    {messages.map((m, idx) => (
+                      <MessageScrollerItem
+                        key={idx}
+                        messageId={`msg-${idx}`}
+                        scrollAnchor={idx === messages.length - 1}
+                        className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
+                      >
+                        <span className="text-[9px] text-zinc-400 font-bold mb-0.5">
+                          {m.sender === "user" ? "You" : "Coach"}
+                        </span>
+                        <p
+                          className={`p-2.5 rounded-xl max-w-[85%] leading-relaxed ${m.sender === "user" ? "bg-black text-white rounded-tr-none" : "bg-zinc-100 text-zinc-800 rounded-tl-none"}`}
+                        >
+                          {m.text}
+                        </p>
+                      </MessageScrollerItem>
+                    ))}
+                  </MessageScrollerContent>
+                </MessageScrollerViewport>
+                <MessageScrollerButton />
+              </MessageScroller>
+            </MessageScrollerProvider>
+
+            <div className="space-y-1.5">
+              <button
+                onClick={() => handleAskCoach("How can I improve my resume?")}
+                className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors"
+              >
+                How can I improve my resume?
+              </button>
+              <button
+                onClick={() =>
+                  handleAskCoach("What project should I build next?")
+                }
+                className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors"
+              >
+                What project should I build next?
+              </button>
+            </div>
+
+            <div className="bg-white rounded-xl p-3 flex items-center justify-between border border-zinc-100">
+              <input
+                type="text"
+                placeholder="Ask anything..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && handleAskCoach(chatInput)
+                }
+                className="bg-transparent text-[12px] text-zinc-800 placeholder:text-zinc-400 outline-none w-full pr-2"
+              />
+              <button
+                onClick={() => handleAskCoach(chatInput)}
+                className="w-6 h-6 rounded-lg bg-black text-white flex items-center justify-center hover:bg-zinc-800 shrink-0"
+              >
+                <ArrowRightIcon className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-[#e6edde] rounded-[24px] p-5 space-y-4 flex flex-col items-center text-center">
+            <div className="w-full max-w-40 aspect-square relative flex items-center justify-center bg-white/40 rounded-2xl p-4">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-16 h-16 text-[#4d6a34]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0v1.5H3v-1.5M9 7.5h6M9 10.5h3"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-[16px] font-black text-[#2e421e] leading-tight">
+                Developer on the run
+              </h3>
+              <p className="text-[12px] text-[#4d6a34] mt-2 leading-relaxed font-semibold">
+                Expedite your development workflow with AI-powered analytics.
+              </p>
+            </div>
+            <button
+              onClick={handleSyncAll}
+              disabled={isSyncing}
+              className="btn-candy w-full py-3 bg-linear-to-b from-zinc-900 via-zinc-950 to-black text-white border border-zinc-800 rounded-xl text-[12px] font-bold disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isSyncing && <UpdateIcon className="w-3.5 h-3.5 animate-spin" />}
+              <span>
+                {isSyncing ? "Syncing Workspace..." : "Sync all accounts"}
+              </span>
+            </button>
+          </div>
+
+          <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-3.5">
+            <h2 className="text-[16px] font-bold text-black tracking-tight">
+              Public Profile
+            </h2>
+            <div className="bg-white rounded-xl p-3 font-mono text-[11px] text-zinc-500 truncate">
+              dradix.dev/yatharth
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-bold text-zinc-700">
+              <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
+                Open Profile
+              </button>
+              <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
+                Share Link
+              </button>
+              <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
+                Copy Link
+              </button>
+              <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
+                Download CV
+              </button>
+            </div>
+            <button className="btn-candy w-full bg-white rounded-lg py-2 border border-zinc-200 text-[11px] font-bold text-zinc-800 shadow-2xs cursor-pointer">
+              Generate Profile QR Code
+            </button>
+          </div>
         </div>
 
-        <div className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-3.5">
-          <h2 className="text-[16px] font-bold text-black tracking-tight">
-            Public Profile
-          </h2>
-          <div className="bg-white rounded-xl p-3 font-mono text-[11px] text-zinc-500 truncate">
-            dradix.dev/yatharth
-          </div>
-          <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-bold text-zinc-700">
-            <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
-              Open Profile
-            </button>
-            <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
-              Share Link
-            </button>
-            <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
-              Copy Link
-            </button>
-            <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
-              Download CV
-            </button>
-          </div>
-          <button className="btn-candy w-full bg-white rounded-lg py-2 border border-zinc-200 text-[11px] font-bold text-zinc-800 shadow-2xs cursor-pointer">
-            Generate Profile QR Code
-          </button>
-        </div>
-      </div>
-
-      <div className="lg:col-span-3 space-y-8">
-        <div className="space-y-6">
-          <div className="bg-[#18181b] text-white rounded-[28px] p-6 lg:p-8 grid grid-cols-1 md:grid-cols-5 gap-6">
-            <div className="md:col-span-3 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[16px] font-bold text-white tracking-tight flex items-center gap-2">
-                    Coding Velocity
-                  </h3>
-                  <motion.p
-                    key={selectedVelocityMonth}
-                    initial={{ opacity: 0, y: 3 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="text-[11px] text-zinc-400 mt-0.5 font-medium"
-                  >
-                    <span className="text-white font-extrabold">
-                      {velocityData.find(
-                        (d) => d.month === selectedVelocityMonth,
-                      )?.commits || 0}{" "}
-                      commits
-                    </span>{" "}
-                    in {selectedVelocityMonth}
-                  </motion.p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleSyncAll}
-                    disabled={isSyncing}
-                    className="btn-candy flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-linear-to-b from-[#27272a] to-[#18181b] border border-zinc-700/60 text-[10px] font-semibold text-zinc-100 cursor-pointer"
-                    title="Sync Velocity & Profiles"
-                  >
-                    <UpdateIcon
-                      className={`w-2.5 h-2.5 ${isSyncing ? "animate-spin text-emerald-400" : "text-zinc-300"}`}
-                    />
-                    <span>{isSyncing ? "Syncing..." : "Sync Velocity"}</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex gap-1.5 text-[11px] overflow-x-auto pb-1.5 pt-1 scrollbar-none relative">
-                {[
-                  "Jan",
-                  "Feb",
-                  "Mar",
-                  "Apr",
-                  "May",
-                  "Jun",
-                  "Jul",
-                  "Aug",
-                  "Sep",
-                  "Oct",
-                  "Nov",
-                  "Dec",
-                ].map((m) => {
-                  const isSelected = selectedVelocityMonth === m;
-                  const monthCommits =
-                    velocityData.find((d) => d.month === m)?.commits || 0;
-                  return (
+        <div className="lg:col-span-3 space-y-8">
+          <div className="space-y-6">
+            <div className="bg-[#18181b] text-white rounded-[28px] p-6 lg:p-8 grid grid-cols-1 md:grid-cols-5 gap-6">
+              <div className="md:col-span-3 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-[16px] font-bold text-white tracking-tight flex items-center gap-2">
+                      Coding Velocity
+                    </h3>
+                    <motion.p
+                      key={selectedVelocityMonth}
+                      initial={{ opacity: 0, y: 3 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-[11px] text-zinc-400 mt-0.5 font-medium"
+                    >
+                      <span className="text-white font-extrabold">
+                        {velocityData.find(
+                          (d) => d.month === selectedVelocityMonth,
+                        )?.commits || 0}{" "}
+                        commits
+                      </span>{" "}
+                      in {selectedVelocityMonth}
+                    </motion.p>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <button
-                      key={m}
-                      type="button"
-                      onClick={() => setSelectedVelocityMonth(m)}
-                      className={`relative px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer shrink-0 transition-colors ${
-                        isSelected
-                          ? "text-white font-extrabold"
-                          : "text-zinc-400 hover:text-white hover:bg-zinc-800/60"
-                      }`}
-                      title={`${m}: ${monthCommits} commits`}
+                      onClick={handleSyncAll}
+                      disabled={isSyncing}
+                      className="btn-candy flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-linear-to-b from-[#27272a] to-[#18181b] border border-zinc-700/60 text-[10px] font-semibold text-zinc-100 cursor-pointer"
+                      title="Sync Velocity & Profiles"
                     >
-                      {isSelected && (
-                        <motion.div
-                          layoutId="activeVelocityMonthPill"
-                          className="absolute inset-0 bg-[#005c58] rounded-lg shadow-md z-0"
-                          transition={{
-                            type: "spring",
-                            stiffness: 450,
-                            damping: 32,
-                          }}
-                        />
-                      )}
-                      <span className="relative z-10">{m}</span>
+                      <UpdateIcon
+                        className={`w-2.5 h-2.5 ${isSyncing ? "animate-spin text-emerald-400" : "text-zinc-300"}`}
+                      />
+                      <span>{isSyncing ? "Syncing..." : "Sync Velocity"}</span>
                     </button>
-                  );
-                })}
-              </div>
-
-              <div className="h-44 relative mt-3 flex flex-col justify-between pt-6 pb-1">
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 z-0">
-                  <div className="border-b border-zinc-700 w-full" />
-                  <div className="border-b border-zinc-700 w-full" />
-                  <div className="border-b border-zinc-700 w-full" />
+                  </div>
                 </div>
 
-                {(() => {
-                  const totalCommits = velocityData.reduce(
-                    (acc, curr) => acc + curr.commits,
-                    0,
-                  );
-                  const avgCommits =
-                    velocityData.length > 0
-                      ? Math.round(totalCommits / velocityData.length)
-                      : 0;
-                  const maxCommits = Math.max(
-                    ...velocityData.map((d) => d.commits),
-                    1,
-                  );
-                  const avgPercent = Math.min(
-                    90,
-                    Math.max(15, Math.round((avgCommits / maxCommits) * 100)),
-                  );
-
-                  return (
-                    <div
-                      onMouseEnter={() => setIsAvgHovered(true)}
-                      onMouseLeave={() => setIsAvgHovered(false)}
-                      style={{ bottom: `${avgPercent}%` }}
-                      className="absolute left-0 right-0 z-20 group cursor-pointer flex items-center"
-                    >
-                      <div className="absolute -top-3 -bottom-3 inset-x-0 z-10" />
-
-                      <div className="w-full border-b-2 border-dashed border-[#003c3a] opacity-90" />
-
-                      <AnimatePresence>
-                        {isAvgHovered && (
+                <div className="flex gap-1.5 text-[11px] overflow-x-auto pb-1.5 pt-1 scrollbar-none relative">
+                  {[
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                  ].map((m) => {
+                    const isSelected = selectedVelocityMonth === m;
+                    const monthCommits =
+                      velocityData.find((d) => d.month === m)?.commits || 0;
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setSelectedVelocityMonth(m)}
+                        className={`relative px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer shrink-0 transition-colors ${
+                          isSelected
+                            ? "text-white font-extrabold"
+                            : "text-zinc-400 hover:text-white hover:bg-zinc-800/60"
+                        }`}
+                        title={`${m}: ${monthCommits} commits`}
+                      >
+                        {isSelected && (
                           <motion.div
-                            initial={{ opacity: 0, y: 3, scale: 0.96 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 3, scale: 0.96 }}
-                            transition={{ duration: 0.15 }}
-                            className="absolute left-1/2 -translate-x-1/2 -top-8 z-40 bg-[#18181b] border border-zinc-800 text-white px-2 py-0.5 rounded-md shadow-md text-[9px] font-medium whitespace-nowrap pointer-events-none flex items-center gap-1.5"
-                          >
-                            <span className="text-zinc-400">
-                              Avg Monthly Commits:
-                            </span>
-                            <span className="text-emerald-400 font-bold">
-                              {avgCommits}
-                            </span>
-                          </motion.div>
+                            layoutId="activeVelocityMonthPill"
+                            className="absolute inset-0 bg-[#005c58] rounded-lg shadow-md z-0"
+                            transition={{
+                              type: "spring",
+                              stiffness: 450,
+                              damping: 32,
+                            }}
+                          />
                         )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                })()}
+                        <span className="relative z-10">{m}</span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-                <div className="relative w-full h-36 flex items-end justify-between px-1 z-10 gap-1.5">
+                <div className="h-44 relative mt-3 flex flex-col justify-between pt-6 pb-1">
+                  <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 z-0">
+                    <div className="border-b border-zinc-700 w-full" />
+                    <div className="border-b border-zinc-700 w-full" />
+                    <div className="border-b border-zinc-700 w-full" />
+                  </div>
+
                   {(() => {
+                    const totalCommits = velocityData.reduce(
+                      (acc, curr) => acc + curr.commits,
+                      0,
+                    );
+                    const avgCommits =
+                      velocityData.length > 0
+                        ? Math.round(totalCommits / velocityData.length)
+                        : 0;
                     const maxCommits = Math.max(
                       ...velocityData.map((d) => d.commits),
                       1,
                     );
-                    return velocityData.map((entry) => {
-                      const isSelected = selectedVelocityMonth === entry.month;
-                      const isHovered = hoveredBar?.month === entry.month;
-                      const isActiveBar =
-                        isHovered || (isSelected && !hoveredBar);
-                      const heightPercent = Math.max(
-                        12,
-                        Math.round((entry.commits / maxCommits) * 100),
-                      );
+                    const avgPercent = Math.min(
+                      90,
+                      Math.max(15, Math.round((avgCommits / maxCommits) * 100)),
+                    );
 
-                      return (
-                        <div
-                          key={entry.month}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setSelectedVelocityMonth(entry.month)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setSelectedVelocityMonth(entry.month);
-                            }
-                          }}
-                          onMouseEnter={() => setHoveredBar(entry)}
-                          onMouseLeave={() => setHoveredBar(null)}
-                          className="flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group focus:outline-none"
-                        >
-                          {isActiveBar && (
+                    return (
+                      <div
+                        onMouseEnter={() => setIsAvgHovered(true)}
+                        onMouseLeave={() => setIsAvgHovered(false)}
+                        style={{ bottom: `${avgPercent}%` }}
+                        className="absolute left-0 right-0 z-20 group cursor-pointer flex items-center"
+                      >
+                        <div className="absolute -top-3 -bottom-3 inset-x-0 z-10" />
+
+                        <div className="w-full border-b-2 border-dashed border-[#003c3a] opacity-90" />
+
+                        <AnimatePresence>
+                          {isAvgHovered && (
                             <motion.div
-                              layoutId="floatingVelocityBadge"
-                              className="absolute -top-7 z-30 bg-[#18181b] border border-emerald-500/40 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xl whitespace-nowrap pointer-events-none"
-                              transition={{
-                                type: "spring",
-                                stiffness: 380,
-                                damping: 26,
-                              }}
+                              initial={{ opacity: 0, y: 3, scale: 0.96 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 3, scale: 0.96 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute left-1/2 -translate-x-1/2 -top-8 z-40 bg-[#18181b] border border-zinc-800 text-white px-2 py-0.5 rounded-md shadow-md text-[9px] font-medium whitespace-nowrap pointer-events-none flex items-center gap-1.5"
                             >
+                              <span className="text-zinc-400">
+                                Avg Monthly Commits:
+                              </span>
                               <span className="text-emerald-400 font-bold">
-                                {entry.commits}
-                              </span>{" "}
-                              commits
+                                {avgCommits}
+                              </span>
                             </motion.div>
                           )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })()}
 
-                          {isActiveBar && (
+                  <div className="relative w-full h-36 flex items-end justify-between px-1 z-10 gap-1.5">
+                    {(() => {
+                      const maxCommits = Math.max(
+                        ...velocityData.map((d) => d.commits),
+                        1,
+                      );
+                      return velocityData.map((entry) => {
+                        const isSelected =
+                          selectedVelocityMonth === entry.month;
+                        const isHovered = hoveredBar?.month === entry.month;
+                        const isActiveBar =
+                          isHovered || (isSelected && !hoveredBar);
+                        const heightPercent = Math.max(
+                          12,
+                          Math.round((entry.commits / maxCommits) * 100),
+                        );
+
+                        return (
+                          <div
+                            key={entry.month}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() =>
+                              setSelectedVelocityMonth(entry.month)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                setSelectedVelocityMonth(entry.month);
+                              }
+                            }}
+                            onMouseEnter={() => setHoveredBar(entry)}
+                            onMouseLeave={() => setHoveredBar(null)}
+                            className="flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group focus:outline-none"
+                          >
+                            {isActiveBar && (
+                              <motion.div
+                                layoutId="floatingVelocityBadge"
+                                className="absolute -top-7 z-30 bg-[#18181b] border border-emerald-500/40 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xl whitespace-nowrap pointer-events-none"
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 380,
+                                  damping: 26,
+                                }}
+                              >
+                                <span className="text-emerald-400 font-bold">
+                                  {entry.commits}
+                                </span>{" "}
+                                commits
+                              </motion.div>
+                            )}
+
+                            {isActiveBar && (
+                              <motion.div
+                                layoutId="glowingVelocityBeam"
+                                className="absolute inset-x-0 bottom-0 top-0 bg-emerald-500/15 rounded-t-lg z-0 pointer-events-none"
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 350,
+                                  damping: 26,
+                                }}
+                              />
+                            )}
+
                             <motion.div
-                              layoutId="glowingVelocityBeam"
-                              className="absolute inset-x-0 bottom-0 top-0 bg-emerald-500/15 rounded-t-lg z-0 pointer-events-none"
+                              className="w-full rounded-t-md relative z-10 overflow-hidden"
+                              initial={false}
+                              animate={{
+                                height: `${heightPercent}%`,
+                                scaleY: isSelected || isHovered ? 1.04 : 1,
+                                boxShadow:
+                                  isSelected || isHovered
+                                    ? "0px 0px 18px rgba(0, 229, 191, 0.35)"
+                                    : "0px 0px 0px rgba(0, 0, 0, 0)",
+                              }}
                               transition={{
                                 type: "spring",
                                 stiffness: 350,
-                                damping: 26,
+                                damping: 25,
                               }}
-                            />
-                          )}
+                            >
+                              {/* Inactive Base Gradient Layer */}
+                              <motion.div
+                                className="absolute inset-0 bg-linear-to-t from-[#18181b] to-[#27272a]"
+                                initial={false}
+                                animate={{
+                                  opacity: isSelected || isHovered ? 0 : 1,
+                                }}
+                                transition={{
+                                  duration: 0.35,
+                                  ease: [0.4, 0, 0.2, 1],
+                                }}
+                              />
 
-                          <motion.div
-                            className="w-full rounded-t-md relative z-10 overflow-hidden"
-                            initial={false}
-                            animate={{
-                              height: `${heightPercent}%`,
-                              scaleY: isSelected || isHovered ? 1.04 : 1,
-                              boxShadow:
-                                isSelected || isHovered
-                                  ? "0px 0px 18px rgba(0, 229, 191, 0.35)"
-                                  : "0px 0px 0px rgba(0, 0, 0, 0)",
-                            }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 350,
-                              damping: 25,
-                            }}
-                          >
-                            {/* Inactive Base Gradient Layer */}
-                            <motion.div
-                              className="absolute inset-0 bg-linear-to-t from-[#18181b] to-[#27272a]"
-                              initial={false}
-                              animate={{
-                                opacity: isSelected || isHovered ? 0 : 1,
-                              }}
-                              transition={{
-                                duration: 0.35,
-                                ease: [0.4, 0, 0.2, 1],
-                              }}
-                            />
+                              {/* Active Vibrant Gradient Layer */}
+                              <motion.div
+                                className="absolute inset-0 bg-linear-to-t from-[#005c58] to-[#00e5bf]"
+                                initial={false}
+                                animate={{
+                                  opacity: isSelected || isHovered ? 1 : 0,
+                                }}
+                                transition={{
+                                  duration: 0.35,
+                                  ease: [0.4, 0, 0.2, 1],
+                                }}
+                              />
 
-                            {/* Active Vibrant Gradient Layer */}
-                            <motion.div
-                              className="absolute inset-0 bg-linear-to-t from-[#005c58] to-[#00e5bf]"
-                              initial={false}
-                              animate={{
-                                opacity: isSelected || isHovered ? 1 : 0,
-                              }}
-                              transition={{
-                                duration: 0.35,
-                                ease: [0.4, 0, 0.2, 1],
-                              }}
-                            />
+                              {/* Diagonal Masked Lines Overlay Layer */}
+                              <motion.div
+                                className="absolute inset-0 pointer-events-none"
+                                initial={false}
+                                animate={{
+                                  opacity: isSelected || isHovered ? 0 : 0.85,
+                                }}
+                                transition={{
+                                  duration: 0.35,
+                                  ease: [0.4, 0, 0.2, 1],
+                                }}
+                                style={{
+                                  backgroundImage: `repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.4) 0px, rgba(255, 255, 255, 0.4) 1.5px, transparent 1.5px, transparent 7px)`,
+                                  maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0) 100%)`,
+                                  WebkitMaskImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0) 100%)`,
+                                }}
+                              />
+                            </motion.div>
 
-                            {/* Diagonal Masked Lines Overlay Layer */}
-                            <motion.div
-                              className="absolute inset-0 pointer-events-none"
-                              initial={false}
-                              animate={{
-                                opacity: isSelected || isHovered ? 0 : 0.85,
-                              }}
-                              transition={{
-                                duration: 0.35,
-                                ease: [0.4, 0, 0.2, 1],
-                              }}
-                              style={{
-                                backgroundImage: `repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.4) 0px, rgba(255, 255, 255, 0.4) 1.5px, transparent 1.5px, transparent 7px)`,
-                                maskImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0) 100%)`,
-                                WebkitMaskImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0) 100%)`,
-                              }}
-                            />
-                          </motion.div>
-
-                          <span
-                            className={`text-[10px] mt-1.5 transition-colors font-medium ${
-                              isSelected
-                                ? "text-emerald-400 font-bold"
-                                : "text-zinc-500 group-hover:text-zinc-300"
-                            }`}
-                          >
-                            {entry.month}
-                          </span>
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-            </div>
-
-            <div className="md:col-span-2 space-y-4 border-t md:border-t-0 md:border-l border-[#27272a] pt-6 md:pt-0 md:pl-6 flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[16px] font-bold text-white tracking-tight">
-                  Profile Traffic
-                </h3>
-                <div className="flex items-center gap-1.5">
-                  <button className="w-8 h-8 rounded-lg bg-[#27272a] flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 text-zinc-300"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                      />
-                    </svg>
-                  </button>
-                  <button className="w-8 h-8 rounded-lg bg-[#27272a] flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 text-zinc-300"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-black text-white">716,084</p>
-                <span className="text-[10px] text-[#005c58] bg-[#003c3a]/15 rounded-md px-1.5 py-0.5">
-                  32.2% ↑ Views
-                </span>
-              </div>
-
-              <div className="h-32 relative flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={languagesList}
-                      cx="50%"
-                      cy="85%"
-                      startAngle={180}
-                      endAngle={0}
-                      innerRadius={50}
-                      outerRadius={65}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {languagesList.map((entry, index) => {
-                        const isSelected = hoveredLanguage?.name === entry.name;
-                        const isAnyHovered = !!hoveredLanguage;
-                        return (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={entry.color}
-                            className="cursor-pointer outline-none"
-                            style={{
-                              opacity: isAnyHovered
-                                ? isSelected
-                                  ? 1
-                                  : 0.35
-                                : 1,
-                              transform: isSelected
-                                ? "scale(1.05)"
-                                : "scale(1)",
-                              transformOrigin: "center center",
-                              transition:
-                                "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                            }}
-                            onMouseEnter={() => setHoveredLanguage(entry)}
-                            onMouseLeave={() => setHoveredLanguage(null)}
-                          />
+                            <span
+                              className={`text-[10px] mt-1.5 transition-colors font-medium ${
+                                isSelected
+                                  ? "text-emerald-400 font-bold"
+                                  : "text-zinc-500 group-hover:text-zinc-300"
+                              }`}
+                            >
+                              {entry.month}
+                            </span>
+                          </div>
                         );
-                      })}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                {(() => {
-                  const activeLang = hoveredLanguage ||
-                    languagesList[0] || { name: "TypeScript", value: 42 };
-                  return (
-                    <div className="absolute bottom-2 flex flex-col items-center pointer-events-none h-10 justify-center">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={activeLang.name}
-                          initial={{ opacity: 0, y: 5, scale: 0.94 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -5, scale: 0.94 }}
-                          transition={{
-                            duration: 0.22,
-                            ease: [0.16, 1, 0.3, 1],
-                          }}
-                          className="flex flex-col items-center"
-                        >
-                          <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-extrabold">
-                            {activeLang.name}
-                          </p>
-                          <p className="text-[20px] font-black text-white leading-none mt-0.5 tracking-tight">
-                            {activeLang.value}%
-                          </p>
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
-                  );
-                })()}
+                      });
+                    })()}
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-[10px] text-zinc-400 pt-1">
-                {languagesList.map((lang) => {
-                  const isHovered = hoveredLanguage?.name === lang.name;
-                  return (
-                    <div
-                      key={lang.name}
-                      onMouseEnter={() => setHoveredLanguage(lang)}
-                      onMouseLeave={() => setHoveredLanguage(null)}
-                      className={`flex items-center gap-1.5 p-1 rounded-md transition-all cursor-pointer ${
-                        isHovered
-                          ? "bg-zinc-800/80 text-white"
-                          : "hover:text-zinc-200"
-                      }`}
-                    >
-                      <div
-                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
-                        style={{ backgroundColor: lang.color }}
-                      />
-                      <span className="truncate font-medium">{lang.name}</span>
-                      <span className="ml-auto font-black text-white">
-                        {lang.value}%
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div id="activity" className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-[15px] font-bold text-black tracking-tight font-heading">
-                    {activeActivityToggle} Activity
+              <div className="md:col-span-2 space-y-4 border-t md:border-t-0 md:border-l border-[#27272a] pt-6 md:pt-0 md:pl-6 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[16px] font-bold text-white tracking-tight">
+                    Profile Traffic
                   </h3>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">
-                    Hours coded & commits pushed
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <button className="w-8 h-8 rounded-lg bg-[#27272a] flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-zinc-300"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                        />
+                      </svg>
+                    </button>
+                    <button className="w-8 h-8 rounded-lg bg-[#27272a] flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-zinc-300"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <SegmentedSlider
-                  options={["Daily", "Weekly", "Monthly", "Yearly"] as const}
-                  value={activeActivityToggle}
-                  onChange={setActiveActivityToggle}
-                  theme="light"
-                />
-              </div>
 
-              <div className="h-40">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={
-                      activeActivityToggle === "Daily"
-                        ? dailyActivityList
-                        : activeActivityToggle === "Weekly"
-                          ? weeklyActivityList
-                          : activeActivityToggle === "Monthly"
-                            ? monthlyActivityList
-                            : yearlyActivityList
-                    }
-                    margin={{ top: 5, right: 10, left: -25, bottom: 0 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="#e5e7eb"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="day"
-                      tick={{ fill: "#9ca3af", fontSize: 10 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: "#9ca3af", fontSize: 10 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip
-                      content={({
-                        active,
-                        payload,
-                      }: {
-                        active?: boolean;
-                        payload?: readonly {
-                          value?:
-                            | string
-                            | number
-                            | readonly (string | number)[];
-                          payload?: { day: string };
-                        }[];
-                      }) => {
-                        if (
-                          active &&
-                          payload &&
-                          payload.length &&
-                          payload[0].payload
-                        ) {
-                          return (
-                            <div className="bg-white text-zinc-950 p-2.5 rounded-xl shadow-md border border-zinc-100 text-[11px] font-bold">
-                              <p className="text-zinc-500 mb-1">
-                                {payload[0].payload.day}
-                              </p>
-                              {showHours && (
-                                <p className="text-[#005c58]">
-                                  {payload[0].value} Coding Hours
-                                </p>
-                              )}
-                              {showCommits && payload[1] && (
-                                <p className="text-[#3b82f6]">
-                                  {payload[1].value} Commits
-                                </p>
-                              )}
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    {showHours && (
-                      <Line
-                        type="monotone"
-                        dataKey="hours"
-                        stroke="#005c58"
-                        strokeWidth={2.5}
-                        dot={false}
-                        activeDot={{
-                          r: 5,
-                          stroke: "#ffffff",
-                          strokeWidth: 1.5,
-                        }}
-                      />
-                    )}
-                    {showCommits && (
-                      <Line
-                        type="monotone"
-                        dataKey="commits"
-                        stroke="#3b82f6"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{
-                          r: 5,
-                          stroke: "#ffffff",
-                          strokeWidth: 1.5,
-                        }}
-                      />
-                    )}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-200 text-center">
-                <button
-                  onClick={() => setShowHours(!showHours)}
-                  className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showHours ? "bg-[#003c3a]/15" : "opacity-40"}`}
-                >
-                  <p className="text-[15px] font-black text-[#003c3a]">
-                    {activityTotals.totalHours}
-                  </p>
-                  <p className="text-[9px] text-[#003c3a] uppercase font-bold">
-                    Hours
-                  </p>
-                </button>
-                <button
-                  onClick={() => setShowCommits(!showCommits)}
-                  className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showCommits ? "bg-[#3b82f6]/10" : "opacity-40"}`}
-                >
-                  <p className="text-[15px] font-black text-[#1d4ed8]">
-                    {activityTotals.totalCommits}
-                  </p>
-                  <p className="text-[9px] text-[#1d4ed8] uppercase font-bold">
-                    Commits
-                  </p>
-                </button>
-                <div className="flex-1 flex flex-col items-center py-1">
-                  <p className="text-[15px] font-black text-black">
-                    {activityTotals.totalProblems}
-                  </p>
-                  <p className="text-[9px] text-zinc-400 uppercase font-bold">
-                    Problems
-                  </p>
-                </div>
-                <div className="flex-1 flex flex-col items-center py-1">
-                  <p className="text-[15px] font-black text-black">
-                    {activityTotals.newRepos}
-                  </p>
-                  <p className="text-[9px] text-zinc-400 uppercase font-bold">
-                    New Repos
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="md:col-span-1 bg-[#f4f4f5] rounded-[24px] p-5 flex flex-col justify-between">
-              <div>
-                <h3 className="text-[15px] font-bold text-black tracking-tight">
-                  Today&apos;s Goals
-                </h3>
-                <p className="text-[10px] text-zinc-400 mt-0.5">
-                  Click tasks to update daily goals
-                </p>
-              </div>
-              <div className="space-y-2 mt-3">
-                {todayGoals.map((goal, index) => (
-                  <button
-                    type="button"
-                    key={index}
-                    onClick={() => toggleGoal(index)}
-                    className="w-full text-left bg-white rounded-lg p-2.5 flex items-center gap-2 cursor-pointer hover:bg-zinc-50 transition-colors"
-                  >
-                    <div
-                      className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 border ${goal.done ? "bg-[#003c3a] border-[#003c3a]" : "border-zinc-300"}`}
-                    >
-                      {goal.done && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-black" />
-                      )}
-                    </div>
-                    <span
-                      className={`text-[11px] font-semibold truncate ${goal.done ? "line-through text-zinc-400" : "text-zinc-800"}`}
-                    >
-                      {goal.l}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              <div className="mt-3 pt-2">
-                <div className="flex justify-between text-[10px] font-semibold text-zinc-500 mb-1">
-                  <span>Goals Completed</span>
-                  <span>{goalsPct}%</span>
-                </div>
-                <div className="w-full h-1.5 bg-white rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#003c3a] rounded-full transition-all duration-500"
-                    style={{ width: `${goalsPct}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div id="projects" className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[15px] font-bold text-black tracking-tight font-heading">
-                    Projects
-                  </h2>
-                  <span className="text-[11px] font-bold text-zinc-400 bg-zinc-100 rounded-full px-2 py-0.5">
-                    {projectsList.length} Total
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-black text-white">716,084</p>
+                  <span className="text-[10px] text-[#005c58] bg-[#003c3a]/15 rounded-md px-1.5 py-0.5">
+                    32.2% ↑ Views
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleOpenAddModal}
-                  className="btn-candy flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-b from-zinc-900 via-zinc-950 to-black border border-zinc-800 text-white rounded-xl text-[10px] font-bold cursor-pointer"
-                >
-                  <PlusIcon className="w-3.5 h-3.5" />
-                  <span>Add Project</span>
-                </button>
-              </div>
 
-              <div className="relative grid grid-cols-4 bg-zinc-50 border border-dashed border-zinc-200 rounded-xl p-1 gap-1 w-full max-w-110 select-none shrink-0">
-                <div
-                  className="absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-out shadow-xs"
-                  style={{
-                    width: "calc(25% - 5px)",
-                    left: `calc(${["All", "Live", "In Progress", "Archived"].indexOf(activeTab) * 25}% + ${4 - ["All", "Live", "In Progress", "Archived"].indexOf(activeTab)}px)`,
-                  }}
-                />
-                {["All", "Live", "In Progress", "Archived"].map((tab) => {
-                  const isActive = activeTab === tab;
-                  const count =
-                    tab === "All"
-                      ? projectsList.length
-                      : projectsList.filter((p) => p.status === tab).length;
+                <div className="h-32 relative flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={languagesList}
+                        cx="50%"
+                        cy="85%"
+                        startAngle={180}
+                        endAngle={0}
+                        innerRadius={50}
+                        outerRadius={65}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {languagesList.map((entry, index) => {
+                          const isSelected =
+                            hoveredLanguage?.name === entry.name;
+                          const isAnyHovered = !!hoveredLanguage;
+                          return (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={entry.color}
+                              className="cursor-pointer outline-none"
+                              style={{
+                                opacity: isAnyHovered
+                                  ? isSelected
+                                    ? 1
+                                    : 0.35
+                                  : 1,
+                                transform: isSelected
+                                  ? "scale(1.05)"
+                                  : "scale(1)",
+                                transformOrigin: "center center",
+                                transition:
+                                  "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                              }}
+                              onMouseEnter={() => setHoveredLanguage(entry)}
+                              onMouseLeave={() => setHoveredLanguage(null)}
+                            />
+                          );
+                        })}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  {(() => {
+                    const activeLang = hoveredLanguage ||
+                      languagesList[0] || { name: "TypeScript", value: 42 };
+                    return (
+                      <div className="absolute bottom-2 flex flex-col items-center pointer-events-none h-10 justify-center">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={activeLang.name}
+                            initial={{ opacity: 0, y: 5, scale: 0.94 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -5, scale: 0.94 }}
+                            transition={{
+                              duration: 0.22,
+                              ease: [0.16, 1, 0.3, 1],
+                            }}
+                            className="flex flex-col items-center"
+                          >
+                            <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-extrabold">
+                              {activeLang.name}
+                            </p>
+                            <p className="text-[20px] font-black text-white leading-none mt-0.5 tracking-tight">
+                              {activeLang.value}%
+                            </p>
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })()}
+                </div>
 
-                  return (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setActiveTab(tab)}
-                      className={`relative z-10 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors duration-300 cursor-pointer ${
-                        isActive
-                          ? "text-white"
-                          : "text-zinc-500 hover:text-zinc-900"
-                      }`}
-                    >
-                      <span>{tab}</span>
-                      <span
-                        className={`px-1.5 py-0.5 text-[8px] sm:text-[9px] rounded-md transition-all duration-300 ${
-                          isActive
-                            ? "bg-zinc-800 text-white font-bold"
-                            : "bg-zinc-200 text-zinc-650"
+                <div className="grid grid-cols-2 gap-2 text-[10px] text-zinc-400 pt-1">
+                  {languagesList.map((lang) => {
+                    const isHovered = hoveredLanguage?.name === lang.name;
+                    return (
+                      <div
+                        key={lang.name}
+                        onMouseEnter={() => setHoveredLanguage(lang)}
+                        onMouseLeave={() => setHoveredLanguage(null)}
+                        className={`flex items-center gap-1.5 p-1 rounded-md transition-all cursor-pointer ${
+                          isHovered
+                            ? "bg-zinc-800/80 text-white"
+                            : "hover:text-zinc-200"
                         }`}
                       >
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <div
+                          className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+                          style={{ backgroundColor: lang.color }}
+                        />
+                        <span className="truncate font-medium">
+                          {lang.name}
+                        </span>
+                        <span className="ml-auto font-black text-white">
+                          {lang.value}%
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            {sortedProjects.length === 0 ? (
-              <div className="my-4 p-10 border-2 border-dashed border-zinc-200 rounded-2xl flex flex-col items-center justify-center text-center gap-3 bg-white/70">
-                <div className="space-y-1">
-                  <p className="text-[14px] font-bold text-zinc-900">
-                    No projects found
-                  </p>
-                  <p className="text-[12px] text-zinc-500 max-w-sm font-medium">
-                    {activeTab === "All"
-                      ? "You haven't added any projects yet. Click '+ Add Project' to create your first project."
-                      : `No projects currently found in '${activeTab}' status.`}
-                  </p>
+            <div
+              id="activity"
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            >
+              <div className="md:col-span-2 bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-[15px] font-bold text-black tracking-tight font-heading">
+                      {activeActivityToggle} Activity
+                    </h3>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">
+                      Hours coded & commits pushed
+                    </p>
+                  </div>
+                  <SegmentedSlider
+                    options={["Daily", "Weekly", "Monthly", "Yearly"] as const}
+                    value={activeActivityToggle}
+                    onChange={setActiveActivityToggle}
+                    theme="light"
+                  />
+                </div>
+
+                <div className="h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={
+                        activeActivityToggle === "Daily"
+                          ? dailyActivityList
+                          : activeActivityToggle === "Weekly"
+                            ? weeklyActivityList
+                            : activeActivityToggle === "Monthly"
+                              ? monthlyActivityList
+                              : yearlyActivityList
+                      }
+                      margin={{ top: 5, right: 10, left: -25, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="#e5e7eb"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="day"
+                        tick={{ fill: "#9ca3af", fontSize: 10 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fill: "#9ca3af", fontSize: 10 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        content={({
+                          active,
+                          payload,
+                        }: {
+                          active?: boolean;
+                          payload?: readonly {
+                            value?:
+                              | string
+                              | number
+                              | readonly (string | number)[];
+                            payload?: { day: string };
+                          }[];
+                        }) => {
+                          if (
+                            active &&
+                            payload &&
+                            payload.length &&
+                            payload[0].payload
+                          ) {
+                            return (
+                              <div className="bg-white text-zinc-950 p-2.5 rounded-xl shadow-md border border-zinc-100 text-[11px] font-bold">
+                                <p className="text-zinc-500 mb-1">
+                                  {payload[0].payload.day}
+                                </p>
+                                {showHours && (
+                                  <p className="text-[#005c58]">
+                                    {payload[0].value} Coding Hours
+                                  </p>
+                                )}
+                                {showCommits && payload[1] && (
+                                  <p className="text-[#3b82f6]">
+                                    {payload[1].value} Commits
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      {showHours && (
+                        <Line
+                          type="monotone"
+                          dataKey="hours"
+                          stroke="#005c58"
+                          strokeWidth={2.5}
+                          dot={false}
+                          activeDot={{
+                            r: 5,
+                            stroke: "#ffffff",
+                            strokeWidth: 1.5,
+                          }}
+                        />
+                      )}
+                      {showCommits && (
+                        <Line
+                          type="monotone"
+                          dataKey="commits"
+                          stroke="#3b82f6"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{
+                            r: 5,
+                            stroke: "#ffffff",
+                            strokeWidth: 1.5,
+                          }}
+                        />
+                      )}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-200 text-center">
+                  <button
+                    onClick={() => setShowHours(!showHours)}
+                    className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showHours ? "bg-[#003c3a]/15" : "opacity-40"}`}
+                  >
+                    <p className="text-[15px] font-black text-[#003c3a]">
+                      {activityTotals.totalHours}
+                    </p>
+                    <p className="text-[9px] text-[#003c3a] uppercase font-bold">
+                      Hours
+                    </p>
+                  </button>
+                  <button
+                    onClick={() => setShowCommits(!showCommits)}
+                    className={`flex-1 flex flex-col items-center py-1 rounded-xl transition-all ${showCommits ? "bg-[#3b82f6]/10" : "opacity-40"}`}
+                  >
+                    <p className="text-[15px] font-black text-[#1d4ed8]">
+                      {activityTotals.totalCommits}
+                    </p>
+                    <p className="text-[9px] text-[#1d4ed8] uppercase font-bold">
+                      Commits
+                    </p>
+                  </button>
+                  <div className="flex-1 flex flex-col items-center py-1">
+                    <p className="text-[15px] font-black text-black">
+                      {activityTotals.totalProblems}
+                    </p>
+                    <p className="text-[9px] text-zinc-400 uppercase font-bold">
+                      Problems
+                    </p>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center py-1">
+                    <p className="text-[15px] font-black text-black">
+                      {activityTotals.newRepos}
+                    </p>
+                    <p className="text-[9px] text-zinc-400 uppercase font-bold">
+                      New Repos
+                    </p>
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#f4f4f5] text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none cursor-pointer">
-                      <th
-                        onClick={() => handleSort("name")}
-                        className="py-3 px-2 hover:text-black transition-colors"
+
+              <div className="md:col-span-1 bg-[#f4f4f5] rounded-[24px] p-5 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-[15px] font-bold text-black tracking-tight">
+                    Today&apos;s Goals
+                  </h3>
+                  <p className="text-[10px] text-zinc-400 mt-0.5">
+                    Click tasks to update daily goals
+                  </p>
+                </div>
+                <div className="space-y-2 mt-3">
+                  {todayGoals.map((goal, index) => (
+                    <button
+                      type="button"
+                      key={index}
+                      onClick={() => toggleGoal(index)}
+                      className="w-full text-left bg-white rounded-lg p-2.5 flex items-center gap-2 cursor-pointer hover:bg-zinc-50 transition-colors"
+                    >
+                      <div
+                        className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 border ${goal.done ? "bg-[#003c3a] border-[#003c3a]" : "border-zinc-300"}`}
                       >
-                        Project Name{" "}
-                        {sortField === "name" &&
-                          (sortDirection === "asc" ? "▲" : "▼")}
-                      </th>
-                      <th className="py-3 px-2">Tech Stack</th>
-                      <th className="py-3 px-2">Platform</th>
-                      <th
-                        onClick={() => handleSort("views")}
-                        className="py-3 px-2 hover:text-black transition-colors"
+                        {goal.done && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-black" />
+                        )}
+                      </div>
+                      <span
+                        className={`text-[11px] font-semibold truncate ${goal.done ? "line-through text-zinc-400" : "text-zinc-800"}`}
                       >
-                        Views / Likes{" "}
-                        {sortField === "views" &&
-                          (sortDirection === "asc" ? "▲" : "▼")}
-                      </th>
-                      <th
-                        onClick={() => handleSort("stars")}
-                        className="py-3 px-2 hover:text-black transition-colors"
-                      >
-                        Stars{" "}
-                        {sortField === "stars" &&
-                          (sortDirection === "asc" ? "▲" : "▼")}
-                      </th>
-                      <th className="py-3 px-2">Status</th>
-                      <th className="py-3 px-2"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#f4f4f5] text-[13px]">
-                    {sortedProjects.map((proj) => {
-                      const isEditing = editingProjectId === proj.id;
-                      const hasChanges =
-                        isEditing &&
-                        (projectFormState.name !== proj.name ||
-                          projectFormState.stack !== proj.stack ||
-                          projectFormState.platform !== proj.platform ||
-                          projectFormState.status !== proj.status ||
-                          Number(projectFormState.views) !== proj.views ||
-                          Number(projectFormState.likes) !== proj.likes ||
-                          Number(projectFormState.stars) !== proj.stars);
+                        {goal.l}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3 pt-2">
+                  <div className="flex justify-between text-[10px] font-semibold text-zinc-500 mb-1">
+                    <span>Goals Completed</span>
+                    <span>{goalsPct}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-white rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#003c3a] rounded-full transition-all duration-500"
+                      style={{ width: `${goalsPct}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div
+              id="projects"
+              className="space-y-5 w-full max-w-full overflow-hidden"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3.5 w-full">
+                <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[15px] sm:text-[16px] font-extrabold text-black tracking-tight font-heading">
+                      Projects & Code Repositories
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleOpenAddModal}
+                    className="btn-candy flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-b from-zinc-900 via-zinc-950 to-black border border-zinc-800 text-white rounded-xl text-[10px] sm:text-[11px] font-bold cursor-pointer hover:shadow-md transition-all active:scale-95 shrink-0"
+                  >
+                    <PlusIcon className="w-3.5 h-3.5" />
+                    <span>Add Project</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="relative grid grid-cols-3 bg-zinc-100/90 border border-zinc-200/80 rounded-2xl p-1 gap-1 h-9 sm:h-10 w-64 sm:w-76 select-none shrink-0 items-center">
+                    <div
+                      className="absolute top-1 bottom-1 bg-white rounded-xl transition-all duration-300 ease-out shadow-xs border border-zinc-200/60"
+                      style={{
+                        width: "calc(33.333% - 4px)",
+                        left: `calc(${["All", "Live", "In Progress"].indexOf(activeTab) * 33.333}% + ${4 - ["All", "Live", "In Progress"].indexOf(activeTab)}px)`,
+                      }}
+                    />
+                    {["All", "Live", "In Progress"].map((tab) => {
+                      const isActive = activeTab === tab;
+                      const count =
+                        tab === "All"
+                          ? projectsList.length
+                          : projectsList.filter((p) => p.status === tab).length;
 
                       return (
-                        <tr
-                          key={proj.id}
-                          className={`transition-colors ${isEditing ? "bg-zinc-50/80" : "hover:bg-zinc-50/50"}`}
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => setActiveTab(tab)}
+                          className={`relative z-10 flex items-center justify-center gap-1.5 h-7 sm:h-8 rounded-xl text-[10px] sm:text-[11px] font-bold transition-colors duration-300 cursor-pointer ${
+                            isActive
+                              ? "text-zinc-950 font-extrabold"
+                              : "text-zinc-500 hover:text-zinc-900"
+                          }`}
                         >
-                          <td className="py-3.5 px-2">
-                            {isEditing ? (
-                              <div className="flex items-center gap-2">
-                                <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center text-[9px] font-bold text-zinc-500 shrink-0">
-                                  {projectFormState.name
-                                    ? projectFormState.name[0]?.toUpperCase() ||
-                                      "P"
-                                    : "P"}
-                                </div>
-                                <input
-                                  type="text"
-                                  value={projectFormState.name}
-                                  onChange={(e) =>
-                                    setProjectFormState({
-                                      ...projectFormState,
-                                      name: e.target.value,
-                                    })
-                                  }
-                                  className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] font-bold text-zinc-900 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-28"
-                                />
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center text-[9px] font-bold text-zinc-500">
-                                  {proj.name[0].toUpperCase()}
-                                </div>
-                                <span className="font-bold text-zinc-900">
-                                  {proj.name}
-                                </span>
-                              </div>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-2 text-zinc-500">
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                value={projectFormState.stack}
-                                onChange={(e) =>
-                                  setProjectFormState({
-                                    ...projectFormState,
-                                    stack: e.target.value,
-                                  })
-                                }
-                                className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-36"
-                              />
-                            ) : (
-                              proj.stack
-                            )}
-                          </td>
-                          <td className="py-3.5 px-2 text-zinc-650 font-semibold">
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                value={projectFormState.platform}
-                                onChange={(e) =>
-                                  setProjectFormState({
-                                    ...projectFormState,
-                                    platform: e.target.value,
-                                  })
-                                }
-                                className="rounded border border-zinc-200 px-2 py-0.5 text-[12px] text-zinc-650 font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-24"
-                              />
-                            ) : (
-                              proj.platform
-                            )}
-                          </td>
-                          <td className="py-3.5 px-2 text-zinc-500">
-                            {isEditing ? (
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={projectFormState.views}
-                                  onChange={(e) =>
-                                    setProjectFormState({
-                                      ...projectFormState,
-                                      views: parseInt(e.target.value) || 0,
-                                    })
-                                  }
-                                  className="rounded border border-zinc-200 px-1 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-16 text-center font-semibold"
-                                  title="Views"
-                                />
-                                <span className="text-zinc-300">/</span>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={projectFormState.likes}
-                                  onChange={(e) =>
-                                    setProjectFormState({
-                                      ...projectFormState,
-                                      likes: parseInt(e.target.value) || 0,
-                                    })
-                                  }
-                                  className="rounded border border-zinc-200 px-1 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-14 text-center font-semibold"
-                                  title="Likes"
-                                />
-                              </div>
-                            ) : (
-                              `${proj.views} / ${proj.likes}`
-                            )}
-                          </td>
-                          <td className="py-3.5 px-2 text-zinc-500">
-                            {isEditing ? (
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={projectFormState.stars}
-                                  onChange={(e) =>
-                                    setProjectFormState({
-                                      ...projectFormState,
-                                      stars: parseInt(e.target.value) || 0,
-                                    })
-                                  }
-                                  className="rounded border border-zinc-200 px-1.5 py-0.5 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 w-14 text-center font-semibold"
-                                />
-                                <span className="text-zinc-400">★</span>
-                              </div>
-                            ) : (
-                              `${proj.stars} ★`
-                            )}
-                          </td>
-                          <td className="py-3.5 px-2">
-                            {isEditing ? (
-                              <select
-                                value={projectFormState.status}
-                                onChange={(e) =>
-                                  setProjectFormState({
-                                    ...projectFormState,
-                                    status: e.target.value,
-                                  })
-                                }
-                                className="rounded border border-zinc-200 px-1.5 py-0.5 text-[11px] font-bold text-zinc-800 bg-white focus:outline-none focus:ring-1 focus:ring-black/10 focus:border-zinc-300 cursor-pointer"
-                              >
-                                <option value="Live">Live</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Archived">Archived</option>
-                              </select>
-                            ) : (
-                              <div className="flex items-center gap-1.5">
-                                <div
-                                  className="w-1.5 h-1.5 rounded-full"
-                                  style={{ backgroundColor: proj.statusColor }}
-                                />
-                                <span className="font-bold text-[12px] text-zinc-800">
-                                  {proj.status}
-                                </span>
-                              </div>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-2 text-right">
-                            {isEditing ? (
-                              <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={handleInlineSave}
-                                  disabled={!hasChanges}
-                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-[#005c58] hover:bg-[#003c3a] text-[10px] font-bold text-white rounded-lg transition-colors cursor-pointer disabled:opacity-40"
-                                >
-                                  <CheckCircledIcon className="w-3.5 h-3.5" />
-                                  <span>Save</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={handleCancelEdit}
-                                  className="flex items-center gap-1 px-2 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-[10px] font-bold text-zinc-600 rounded-lg transition-colors cursor-pointer"
-                                >
-                                  <CrossCircledIcon className="w-3.5 h-3.5" />
-                                  <span>Cancel</span>
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenEditModal(proj)}
-                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f4f4f5] hover:bg-zinc-200 text-[10px] font-bold text-zinc-700 rounded-lg transition-colors cursor-pointer"
-                                >
-                                  <Pencil2Icon className="w-3.5 h-3.5 text-zinc-500" />
-                                  <span>Edit</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedProject(proj);
-                                    setProjectModalType("delete");
-                                  }}
-                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-[10px] font-bold text-red-600 rounded-lg transition-colors cursor-pointer"
-                                >
-                                  <TrashIcon className="w-3.5 h-3.5 text-red-500" />
-                                  <span>Delete</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedProject(proj);
-                                    setProjectModalType("analytics");
-                                  }}
-                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-[#003c3a]/10 hover:bg-[#003c3a]/25 text-[10px] font-bold text-[#003c3a] rounded-lg transition-colors cursor-pointer"
-                                >
-                                  <BarChartIcon className="w-3.5 h-3.5 text-[#003c3a]" />
-                                  <span>Analytics</span>
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
+                          <span>{tab}</span>
+                          <span
+                            className={`px-1.5 py-0.5 text-[8px] rounded-md transition-all duration-300 leading-none flex items-center justify-center ${
+                              isActive
+                                ? "bg-zinc-900 text-white font-bold"
+                                : "bg-zinc-200/70 text-zinc-650"
+                            }`}
+                          >
+                            {count}
+                          </span>
+                        </button>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </div>
+
+                  <div className="flex items-center bg-zinc-100/90 border border-zinc-200/80 rounded-2xl p-1 gap-0.5 h-9 sm:h-10 select-none shrink-0">
+                    <button
+                      type="button"
+                      title="Grid Card View"
+                      onClick={() => setProjectViewMode("grid")}
+                      className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                        projectViewMode === "grid"
+                          ? "bg-white text-zinc-950 shadow-xs border border-zinc-200/60"
+                          : "text-zinc-400 hover:text-zinc-700"
+                      }`}
+                    >
+                      <GridIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      title="Table View"
+                      onClick={() => setProjectViewMode("table")}
+                      className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                        projectViewMode === "table"
+                          ? "bg-white text-zinc-950 shadow-xs border border-zinc-200/60"
+                          : "text-zinc-400 hover:text-zinc-700"
+                      }`}
+                    >
+                      <ListBulletIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
+
+              {sortedProjects.length === 0 ? (
+                <div className="my-4 p-10 border-2 border-dashed border-zinc-200 rounded-2xl flex flex-col items-center justify-center text-center gap-3 bg-white/70">
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-100 flex items-center justify-center text-zinc-400">
+                    <GlobeIcon className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[14px] font-bold text-zinc-900">
+                      No projects found
+                    </p>
+                    <p className="text-[12px] text-zinc-500 max-w-sm font-medium">
+                      {activeTab === "All"
+                        ? "You haven't added any projects yet. Click '+ Add Project' to create your first project."
+                        : `No projects currently found in '${activeTab}' status.`}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleOpenAddModal}
+                    className="mt-1 px-4 py-2 bg-zinc-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
+                  >
+                    + Add Project Now
+                  </button>
+                </div>
+              ) : projectViewMode === "grid" ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {sortedProjects.map((proj) => {
+                    const techList = proj.stack
+                      ? proj.stack
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean)
+                      : [];
+
+                    return (
+                      <div
+                        key={proj.id}
+                        className="group relative bg-white rounded-2xl border border-zinc-200/80 shadow-xs hover:shadow-md transition-all duration-300 p-5 flex flex-col justify-between hover:border-zinc-300"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-zinc-100 to-zinc-200/80 border border-zinc-200 flex items-center justify-center text-[13px] font-extrabold text-zinc-800 shrink-0 shadow-2xs">
+                                {proj.name ? proj.name[0].toUpperCase() : "P"}
+                              </div>
+                              <div>
+                                <h3 className="font-extrabold text-zinc-950 text-[14px] leading-snug tracking-tight group-hover:text-[#005c58] transition-colors">
+                                  {proj.name}
+                                </h3>
+                                <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium mt-0.5">
+                                  <GlobeIcon className="w-3 h-3 text-zinc-400" />
+                                  <span>{proj.platform || "Web"}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {proj.status === "Live" ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Live
+                              </span>
+                            ) : proj.status === "In Progress" ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200/80 shrink-0">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                In Progress
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-zinc-100 text-zinc-600 border border-zinc-200 shrink-0">
+                                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                                Archived
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-[12px] text-zinc-500 leading-relaxed line-clamp-2 min-h-9 font-normal">
+                            {proj.description || "No description provided."}
+                          </p>
+
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {techList.slice(0, 4).map((tech, i) => (
+                              <span
+                                key={i}
+                                className="px-2 py-0.5 text-[10px] font-semibold bg-zinc-100/90 text-zinc-700 rounded-md border border-zinc-200/60"
+                              >
+                                {tech}
+                              </span>
+                            ))}
+                            {techList.length > 4 && (
+                              <span className="px-1.5 py-0.5 text-[9px] font-bold bg-zinc-100 text-zinc-500 rounded-md border border-zinc-200">
+                                +{techList.length - 4}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="pt-4 mt-4 border-t border-zinc-100 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-3 text-[11px] font-semibold text-zinc-500">
+                            <span
+                              className="flex items-center gap-1"
+                              title="Views"
+                            >
+                              <EyeOpenIcon className="w-3.5 h-3.5 text-zinc-400" />
+                              {proj.views || 0}
+                            </span>
+                            <span
+                              className="flex items-center gap-1"
+                              title="Likes"
+                            >
+                              <HeartIcon className="w-3.5 h-3.5 text-rose-400" />
+                              {proj.likes || 0}
+                            </span>
+                            <span
+                              className="flex items-center gap-1"
+                              title="Stars"
+                            >
+                              <StarIcon className="w-3.5 h-3.5 text-amber-400" />
+                              {proj.stars || 0}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            {proj.demoUrl && (
+                              <a
+                                href={proj.demoUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Live Demo"
+                                className="p-1.5 text-zinc-500 hover:text-[#005c58] hover:bg-[#005c58]/10 rounded-lg transition-all"
+                              >
+                                <ExternalLinkIcon className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                            {proj.githubUrl && (
+                              <a
+                                href={proj.githubUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="GitHub Repository"
+                                className="p-1.5 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg transition-all"
+                              >
+                                <GitHubLogoIcon className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(proj)}
+                              className="p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-lg transition-all cursor-pointer"
+                              title="Edit Project"
+                            >
+                              <Pencil2Icon className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedProject(proj);
+                                setProjectModalType("analytics");
+                              }}
+                              className="p-1.5 text-zinc-400 hover:text-[#005c58] hover:bg-[#005c58]/10 rounded-lg transition-all cursor-pointer"
+                              title="Project Analytics"
+                            >
+                              <BarChartIcon className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedProject(proj);
+                                setProjectModalType("delete");
+                              }}
+                              className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                              title="Delete Project"
+                            >
+                              <TrashIcon className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border border-zinc-200/80 shadow-2xs bg-white">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-zinc-50/80 border-b border-zinc-200/80 text-[11px] font-bold text-zinc-500 uppercase tracking-wider select-none">
+                        <th
+                          onClick={() => handleSort("name")}
+                          className="py-3 px-4 hover:text-black transition-colors cursor-pointer"
+                        >
+                          Project Details{" "}
+                          {sortField === "name" &&
+                            (sortDirection === "asc" ? "▲" : "▼")}
+                        </th>
+                        <th className="py-3 px-3">Status</th>
+                        <th className="py-3 px-3">Tech Stack</th>
+                        <th className="py-3 px-3">Platform & Links</th>
+                        <th
+                          onClick={() => handleSort("views")}
+                          className="py-3 px-3 hover:text-black transition-colors cursor-pointer"
+                        >
+                          Metrics{" "}
+                          {sortField === "views" &&
+                            (sortDirection === "asc" ? "▲" : "▼")}
+                        </th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-100 text-[13px]">
+                      {sortedProjects.map((proj) => {
+                        const isEditing = editingProjectId === proj.id;
+                        const hasChanges =
+                          isEditing &&
+                          (projectFormState.name !== proj.name ||
+                            projectFormState.stack !== proj.stack ||
+                            projectFormState.platform !== proj.platform ||
+                            projectFormState.status !== proj.status ||
+                            Number(projectFormState.views) !== proj.views ||
+                            Number(projectFormState.likes) !== proj.likes ||
+                            Number(projectFormState.stars) !== proj.stars);
+
+                        const techList = proj.stack
+                          ? proj.stack
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean)
+                          : [];
+
+                        return (
+                          <tr
+                            key={proj.id}
+                            className={`transition-colors ${isEditing ? "bg-zinc-50/80" : "hover:bg-zinc-50/60"}`}
+                          >
+                            <td className="py-3.5 px-4">
+                              {isEditing ? (
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={projectFormState.name}
+                                    onChange={(e) =>
+                                      setProjectFormState({
+                                        ...projectFormState,
+                                        name: e.target.value,
+                                      })
+                                    }
+                                    className="rounded-lg border border-zinc-200 px-2.5 py-1 text-[12px] font-bold text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 w-36"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-zinc-100 border border-zinc-200/80 flex items-center justify-center text-[11px] font-extrabold text-zinc-800 shrink-0 mt-0.5">
+                                    {proj.name
+                                      ? proj.name[0].toUpperCase()
+                                      : "P"}
+                                  </div>
+                                  <div className="space-y-0.5">
+                                    <span className="font-extrabold text-zinc-950 text-[13px] block">
+                                      {proj.name}
+                                    </span>
+                                    {proj.description && (
+                                      <p className="text-[11px] text-zinc-400 line-clamp-1 max-w-xs">
+                                        {proj.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-3">
+                              {isEditing ? (
+                                <select
+                                  value={projectFormState.status}
+                                  onChange={(e) =>
+                                    setProjectFormState({
+                                      ...projectFormState,
+                                      status: e.target.value,
+                                    })
+                                  }
+                                  className="rounded-lg border border-zinc-200 px-2 py-1 text-[11px] font-bold text-zinc-800 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 cursor-pointer"
+                                >
+                                  <option value="Live">Live</option>
+                                  <option value="In Progress">
+                                    In Progress
+                                  </option>
+                                  <option value="Archived">Archived</option>
+                                </select>
+                              ) : proj.status === "Live" ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  Live
+                                </span>
+                              ) : proj.status === "In Progress" ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200/80">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                  In Progress
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-zinc-100 text-zinc-600 border border-zinc-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                                  Archived
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-3">
+                              {isEditing ? (
+                                <input
+                                  type="text"
+                                  value={projectFormState.stack}
+                                  onChange={(e) =>
+                                    setProjectFormState({
+                                      ...projectFormState,
+                                      stack: e.target.value,
+                                    })
+                                  }
+                                  className="rounded-lg border border-zinc-200 px-2 py-1 text-[12px] text-zinc-600 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 w-32"
+                                />
+                              ) : (
+                                <div className="flex flex-wrap gap-1 max-w-xs">
+                                  {techList.map((t, i) => (
+                                    <span
+                                      key={i}
+                                      className="px-2 py-0.5 text-[10px] font-semibold bg-zinc-100 text-zinc-700 rounded-md border border-zinc-200/60"
+                                    >
+                                      {t}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-3">
+                              {isEditing ? (
+                                <input
+                                  type="text"
+                                  value={projectFormState.platform}
+                                  onChange={(e) =>
+                                    setProjectFormState({
+                                      ...projectFormState,
+                                      platform: e.target.value,
+                                    })
+                                  }
+                                  className="rounded-lg border border-zinc-200 px-2 py-1 text-[12px] text-zinc-650 font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-black/10 w-24"
+                                />
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-[12px] text-zinc-700">
+                                    {proj.platform || "Web"}
+                                  </span>
+                                  {(proj.demoUrl || proj.githubUrl) && (
+                                    <div className="flex items-center gap-1 border-l border-zinc-200 pl-2">
+                                      {proj.demoUrl && (
+                                        <a
+                                          href={proj.demoUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          title="Live Demo"
+                                          className="text-zinc-400 hover:text-[#005c58] transition-colors"
+                                        >
+                                          <ExternalLinkIcon className="w-3.5 h-3.5" />
+                                        </a>
+                                      )}
+                                      {proj.githubUrl && (
+                                        <a
+                                          href={proj.githubUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          title="GitHub Repository"
+                                          className="text-zinc-400 hover:text-zinc-950 transition-colors"
+                                        >
+                                          <GitHubLogoIcon className="w-3.5 h-3.5" />
+                                        </a>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-3">
+                              {isEditing ? (
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={projectFormState.views}
+                                    onChange={(e) =>
+                                      setProjectFormState({
+                                        ...projectFormState,
+                                        views: parseInt(e.target.value) || 0,
+                                      })
+                                    }
+                                    className="rounded border border-zinc-200 px-1 py-0.5 text-[11px] text-zinc-600 bg-white focus:outline-none w-12 text-center font-semibold"
+                                    title="Views"
+                                  />
+                                  <span className="text-zinc-300">/</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={projectFormState.likes}
+                                    onChange={(e) =>
+                                      setProjectFormState({
+                                        ...projectFormState,
+                                        likes: parseInt(e.target.value) || 0,
+                                      })
+                                    }
+                                    className="rounded border border-zinc-200 px-1 py-0.5 text-[11px] text-zinc-600 bg-white focus:outline-none w-12 text-center font-semibold"
+                                    title="Likes"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2.5 text-[11px] font-semibold text-zinc-600">
+                                  <span
+                                    className="flex items-center gap-1"
+                                    title="Views"
+                                  >
+                                    <EyeOpenIcon className="w-3 h-3 text-zinc-400" />
+                                    {proj.views || 0}
+                                  </span>
+                                  <span
+                                    className="flex items-center gap-1"
+                                    title="Likes"
+                                  >
+                                    <HeartIcon className="w-3 h-3 text-rose-400" />
+                                    {proj.likes || 0}
+                                  </span>
+                                  <span
+                                    className="flex items-center gap-1"
+                                    title="Stars"
+                                  >
+                                    <StarIcon className="w-3 h-3 text-amber-400" />
+                                    {proj.stars || 0}
+                                  </span>
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              {isEditing ? (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={handleInlineSave}
+                                    disabled={!hasChanges}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-[#005c58] hover:bg-[#003c3a] text-[10px] font-bold text-white rounded-lg transition-colors cursor-pointer disabled:opacity-40"
+                                  >
+                                    <CheckCircledIcon className="w-3.5 h-3.5" />
+                                    <span>Save</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={handleCancelEdit}
+                                    className="flex items-center gap-1 px-2 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-[10px] font-bold text-zinc-600 rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    <CrossCircledIcon className="w-3.5 h-3.5" />
+                                    <span>Cancel</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditModal(proj)}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-[10px] font-bold text-zinc-700 rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    <Pencil2Icon className="w-3.5 h-3.5 text-zinc-500" />
+                                    <span>Edit</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedProject(proj);
+                                      setProjectModalType("delete");
+                                    }}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-[10px] font-bold text-red-600 rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    <TrashIcon className="w-3.5 h-3.5 text-red-500" />
+                                    <span>Delete</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedProject(proj);
+                                      setProjectModalType("analytics");
+                                    }}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-[#003c3a]/10 hover:bg-[#003c3a]/25 text-[10px] font-bold text-[#003c3a] rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    <BarChartIcon className="w-3.5 h-3.5 text-[#003c3a]" />
+                                    <span>Analytics</span>
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
 
           <div
@@ -3402,9 +3674,7 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-        </div>
 
-        <div className="space-y-6">
           <SkillsSection projectsList={projectsList} />
 
           <div
@@ -3495,9 +3765,7 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-6">
           <div
             id="achievements"
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
@@ -3506,14 +3774,14 @@ export default function DashboardPage() {
               <h3 className="text-[15px] font-bold text-black tracking-tight">
                 Achievement Center
               </h3>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {achievementBadges.map((badge) => (
                   <div
                     key={badge.label}
-                    className={`bg-white rounded-xl p-3 flex flex-col items-center justify-center gap-2 border border-zinc-100 ${badge.unlocked ? "" : "opacity-40 grayscale"}`}
+                    className={`bg-white rounded-xl p-2.5 flex flex-col items-center justify-center gap-1.5 border border-zinc-100 min-w-0 ${badge.unlocked ? "" : "opacity-40 grayscale"}`}
                   >
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-[12px] font-black"
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black shrink-0"
                       style={{
                         backgroundColor: badge.color + "15",
                         color: badge.color,
@@ -3521,14 +3789,14 @@ export default function DashboardPage() {
                     >
                       {badge.icon}
                     </div>
-                    <span className="text-[9px] font-bold text-zinc-500 text-center leading-tight">
+                    <span className="text-[9px] font-bold text-zinc-600 text-center leading-tight truncate max-w-full px-0.5">
                       {badge.label}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <div className="bg-white rounded-xl p-3 flex justify-between text-[11px] font-bold text-zinc-600">
+              <div className="bg-white rounded-xl p-3 flex items-center justify-between text-[11px] font-bold text-zinc-600">
                 <span>Hackathons: 8</span>
                 <span>Wins: 2</span>
                 <span>Certificates: 12</span>
@@ -3546,19 +3814,26 @@ export default function DashboardPage() {
                 {leaderboardRankings.map((user) => (
                   <div
                     key={user.rank}
-                    className={`bg-white rounded-xl p-3 flex items-center justify-between border ${user.isYou ? "border-[#003c3a]" : "border-transparent"}`}
+                    className={`bg-white rounded-xl p-2.5 px-3 flex items-center justify-between gap-2 border ${user.isYou ? "border-[#003c3a] ring-1 ring-[#003c3a]/20" : "border-transparent"}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-[12px] font-black text-zinc-400">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[11px] font-black text-zinc-400 shrink-0">
                         #{user.rank}
                       </span>
-                      <span className="text-[12px] font-bold text-zinc-800">
+                      <span className="text-[12px] font-bold text-zinc-900 truncate">
                         {user.name}
                       </span>
                     </div>
-                    <div className="flex gap-4 text-right text-[11px] font-bold text-zinc-500">
-                      <span>{user.xp} XP</span>
-                      <span className="text-black">{user.score} Score</span>
+                    <div className="flex items-center gap-2 text-right shrink-0">
+                      <span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-md">
+                        {user.xp} XP
+                      </span>
+                      <span className="text-[11px] font-extrabold text-zinc-950">
+                        {user.score}{" "}
+                        <span className="text-[9px] text-zinc-400 font-normal">
+                          Score
+                        </span>
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -3694,29 +3969,29 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
-        <footer className="pt-4 border-t border-[#f4f4f5] flex flex-wrap items-center justify-between gap-4 text-[11px] text-zinc-400 font-semibold">
-          <div className="flex items-center gap-4">
-            <span>Storage Used: 2.4 MB / 100 MB</span>
-            <span>Last Sync: 2 min ago</span>
-            <span>v0.1.3-beta</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-zinc-600 transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-zinc-600 transition-colors">
-              Support Portal
-            </a>
-            <a href="#" className="hover:text-zinc-600 transition-colors">
-              Submit Feedback
-            </a>
-            <a href="#" className="hover:text-zinc-600 transition-colors">
-              Documentation
-            </a>
-          </div>
-        </footer>
       </div>
+
+      <footer className="mt-8 pt-4 border-t border-zinc-200/80 flex flex-wrap items-center justify-between gap-4 text-[11px] text-zinc-400 font-semibold w-full">
+        <div className="flex flex-wrap items-center gap-4">
+          <span>Storage Used: 2.4 MB / 100 MB</span>
+          <span>Last Sync: 2 min ago</span>
+          <span>v0.1.3-beta</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <a href="#" className="hover:text-zinc-600 transition-colors">
+            Privacy Policy
+          </a>
+          <a href="#" className="hover:text-zinc-600 transition-colors">
+            Support Portal
+          </a>
+          <a href="#" className="hover:text-zinc-600 transition-colors">
+            Submit Feedback
+          </a>
+          <a href="#" className="hover:text-zinc-600 transition-colors">
+            Documentation
+          </a>
+        </div>
+      </footer>
 
       {projectModalType === "add" && addProjectStep === "github_select" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-all duration-300 ease-in-out text-left animate-fade-in">
@@ -4602,6 +4877,6 @@ export default function DashboardPage() {
             </div>
           );
         })()}
-    </div>
+    </>
   );
 }
