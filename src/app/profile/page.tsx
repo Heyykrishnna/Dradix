@@ -584,7 +584,7 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
           <span
             className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${data.isHighest ? "bg-[#005c58] text-white" : "bg-[#005c58]/10 text-[#005c58]"}`}
           >
-            {data.percentage}% {data.isHighest ? " (Peak)" : ""}
+            {data.percentage}%
           </span>
         </p>
         <div className="space-y-1.5">
@@ -623,18 +623,13 @@ const ActivityStatsChart = ({
     return data.length
       ? data
       : [
-          { day: "Jan", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Feb", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Mar", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Apr", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "May", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Jun", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Jul", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Aug", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Sep", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Oct", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Nov", commits: 0, problems: 0, total: 0, percentage: 0 },
-          { day: "Dec", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Mon", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Tue", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Wed", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Thu", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Fri", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Sat", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Sun", commits: 0, problems: 0, total: 0, percentage: 0 },
         ];
   }, [data]);
 
@@ -667,8 +662,8 @@ const ActivityStatsChart = ({
 
   if (isLoading) {
     return (
-      <div className="h-56 w-full flex items-end justify-between gap-2 px-4 py-6 bg-zinc-50/50 rounded-2xl animate-pulse">
-        {[20, 35, 60, 45, 80, 55, 30, 40, 75, 50, 25, 15].map((h, i) => (
+      <div className="h-56 w-full flex items-end justify-between gap-3 px-4 py-6 bg-zinc-50/50 rounded-2xl animate-pulse">
+        {[40, 65, 30, 80, 55, 25, 20].map((h, i) => (
           <div
             key={i}
             className="w-full bg-zinc-200/70 rounded-t-md"
@@ -698,11 +693,11 @@ const ActivityStatsChart = ({
           </svg>
         </div>
         <p className="text-xs font-semibold text-zinc-800">
-          No Monthly Activity Sync Data Yet
+          No Activity Sync Data Yet
         </p>
         <p className="text-[11px] text-zinc-500 max-w-xs mt-1">
           Connect your GitHub or coding profiles to dynamically calculate and
-          display your monthly activity.
+          display your weekly activity.
         </p>
         {onSyncAll && (
           <button
