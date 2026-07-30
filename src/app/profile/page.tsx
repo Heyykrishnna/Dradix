@@ -646,15 +646,13 @@ const ActivityStatsChart = ({
     return maxVal > 0 ? maxIdx : -1;
   }, [chartData]);
 
-  const [activeDayIndex, setActiveDayIndex] = useState<number>(
-    highestIndex >= 0 ? highestIndex : 0,
-  );
-
-  useEffect(() => {
-    if (highestIndex >= 0) {
-      setActiveDayIndex(highestIndex);
-    }
-  }, [highestIndex]);
+  const [hoveredDayIndex, setHoveredDayIndex] = useState<number | null>(null);
+  const activeDayIndex =
+    hoveredDayIndex !== null
+      ? hoveredDayIndex
+      : highestIndex >= 0
+        ? highestIndex
+        : 0;
 
   const hasActivity = chartData.some(
     (item) => item.total > 0 || item.percentage > 0,
@@ -749,13 +747,14 @@ const ActivityStatsChart = ({
           data={chartData}
           margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
           barCategoryGap="15%"
+          onMouseLeave={() => setHoveredDayIndex(null)}
           onMouseMove={(state) => {
             if (
               state &&
               typeof state.activeTooltipIndex === "number" &&
-              state.activeTooltipIndex !== activeDayIndex
+              state.activeTooltipIndex !== hoveredDayIndex
             ) {
-              setActiveDayIndex(state.activeTooltipIndex);
+              setHoveredDayIndex(state.activeTooltipIndex);
             }
           }}
         >
