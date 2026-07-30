@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -35,7 +41,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { useSkills } from "@/context/SkillsContext";
+import { useSkills, MASTER_SKILLS_LIST, Skill } from "@/context/SkillsContext";
 import SegmentedSlider from "./components/SegmentedSlider";
 import { apiFetch } from "@/lib/api";
 import Loader from "@/components/Loader";
@@ -341,16 +347,60 @@ function SkillsSection({ projectsList }: { projectsList: Project[] }) {
   const activeSkill = hoveredSkill;
   const [renderedSkill, setRenderedSkill] = useState<string | null>(null);
 
+  const displaySkills = useMemo(() => {
+    const existingNames = new Set(userSkills.map((s) => s.name.toLowerCase()));
+    const extraSkills: Skill[] = [];
+
+    projectsList.forEach((proj) => {
+      if (!proj.stack) return;
+      const tags = proj.stack
+        .split(/[,\s/]+/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+      tags.forEach((tag) => {
+        const tagClean = tag.toLowerCase().replace(/[\.\s-]/g, "");
+        if (tagClean.length < 2) return;
+
+        const masterMatch = MASTER_SKILLS_LIST.find((m) => {
+          const mClean = m.name.toLowerCase().replace(/[\.\s-]/g, "");
+          return (
+            mClean === tagClean ||
+            mClean.includes(tagClean) ||
+            tagClean.includes(mClean)
+          );
+        });
+
+        if (masterMatch) {
+          const mNameLower = masterMatch.name.toLowerCase();
+          if (
+            !existingNames.has(mNameLower) &&
+            !extraSkills.some((e) => e.name.toLowerCase() === mNameLower)
+          ) {
+            extraSkills.push({
+              ...masterMatch,
+              relatedProjects: [proj.name],
+            });
+          }
+        }
+      });
+    });
+
+    return [...userSkills, ...extraSkills];
+  }, [userSkills, projectsList]);
+
   return (
     <div id="skills" className="bg-[#f4f4f5] rounded-[24px] p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-[15px] font-bold text-black tracking-tight">
+        <h3 className="text-[15px] font-bold text-black tracking-tight font-heading">
           Tech Stack &amp; Skills
         </h3>
+        <span className="text-[11px] font-extrabold text-zinc-600 bg-white rounded-full px-2.5 py-0.5 border border-zinc-200/80">
+          {displaySkills.length} Active
+        </span>
       </div>
 
       <div className="flex items-stretch gap-3 overflow-x-auto py-3 px-5 -mx-5 scrollbar-thin">
-        {userSkills.map((skill) => {
+        {displaySkills.map((skill) => {
           const isHovered = hoveredSkill === skill.name;
           const cfg = levelConfig[skill.level] ?? levelConfig.Beginner;
           const circumference = 2 * Math.PI * 18;
@@ -365,8 +415,10 @@ function SkillsSection({ projectsList }: { projectsList: Project[] }) {
                 setRenderedSkill(skill.name);
               }}
               onMouseLeave={() => setHoveredSkill(null)}
-              className={`relative shrink-0 flex flex-col items-center gap-2 rounded-2xl px-4 py-4 w-27.5 transition-all duration-300 ${
-                isHovered ? "bg-zinc-100 shadow-sm" : "bg-white"
+              className={`relative shrink-0 flex flex-col items-center gap-2 rounded-2xl px-4 py-4 w-27.5 transition-all duration-300 cursor-pointer ${
+                isHovered
+                  ? "bg-zinc-100 shadow-sm border border-zinc-200/80 scale-[1.02]"
+                  : "bg-white border border-transparent"
               }`}
             >
               <div className="relative w-14 h-14 flex items-center justify-center">
@@ -449,6 +501,7 @@ function SkillsSection({ projectsList }: { projectsList: Project[] }) {
             <SkillProjectPanel
               activeSkill={renderedSkill}
               projectsList={projectsList}
+              allSkills={displaySkills}
             />
           </div>
         </div>
@@ -460,25 +513,66 @@ function SkillsSection({ projectsList }: { projectsList: Project[] }) {
 function SkillProjectPanel({
   activeSkill,
   projectsList,
+  allSkills,
 }: {
   activeSkill: string | null;
   projectsList: Project[];
+  allSkills: Skill[];
 }) {
-  const { userSkills } = useSkills();
   if (!activeSkill) return null;
-  const skill = userSkills.find((s) => s.name === activeSkill);
+  const skill = allSkills.find((s) => s.name === activeSkill);
   if (!skill) return null;
-  const projects = projectsList.filter((p) =>
-    skill.relatedProjects.includes(p.name),
-  );
+
+  const skillClean = skill.name.toLowerCase().replace(/[\.\s-]/g, "");
+
+  const projects = projectsList.filter((p) => {
+    if (
+      skill.relatedProjects &&
+      skill.relatedProjects.some(
+        (rp) => rp.toLowerCase() === p.name.toLowerCase(),
+      )
+    ) {
+      return true;
+    }
+    if (p.stack) {
+      const stackTags = p.stack
+        .split(/[,\s/]+/)
+        .map((t) =>
+          t
+            .trim()
+            .toLowerCase()
+            .replace(/[\.\s-]/g, ""),
+        )
+        .filter(Boolean);
+      if (
+        stackTags.some(
+          (tag) =>
+            tag === skillClean ||
+            tag.includes(skillClean) ||
+            skillClean.includes(tag),
+        )
+      ) {
+        return true;
+      }
+    }
+    if (
+      p.name.toLowerCase().includes(skill.name.toLowerCase()) ||
+      (p.description &&
+        p.description.toLowerCase().includes(skill.name.toLowerCase()))
+    ) {
+      return true;
+    }
+    return false;
+  });
+
   const cfg = levelConfig[skill.level] ?? levelConfig.Beginner;
 
   return (
-    <div className="bg-white rounded-2xl p-5 space-y-4 shadow-sm">
+    <div className="bg-white rounded-2xl p-5 space-y-4 shadow-sm border border-zinc-200/60">
       <div className="flex items-center gap-3">
         <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${skill.color}20` }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border border-zinc-100"
+          style={{ backgroundColor: `${skill.color}15` }}
         >
           <Image
             src={skill.logo}
@@ -489,8 +583,12 @@ function SkillProjectPanel({
           />
         </div>
         <div>
-          <p className="text-[14px] font-black text-black leading-none">
-            {skill.name}
+          <p className="text-[14px] font-black text-black leading-none flex items-center gap-2">
+            <span>{skill.name}</span>
+            <span className="text-[10px] font-bold text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200/80">
+              {projects.length} {projects.length === 1 ? "Project" : "Projects"}{" "}
+              Linked
+            </span>
           </p>
           <p className="text-[10px] text-zinc-400 mt-1">
             {skill.pct}% proficiency &middot;{" "}
@@ -508,34 +606,48 @@ function SkillProjectPanel({
       {projects.length > 0 ? (
         <div className="space-y-2">
           <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
-            Projects using {skill.name}
+            Projects Built With {skill.name}
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {projects.map((proj) => (
               <div
                 key={proj.id}
-                className="flex items-center justify-between bg-[#f4f4f5] rounded-xl p-3 hover:bg-zinc-100 hover:shadow-sm transition-all duration-200"
+                className="flex items-center justify-between bg-[#f4f4f5] rounded-xl p-3.5 hover:bg-zinc-100 hover:shadow-sm border border-zinc-200/60 transition-all duration-200"
               >
-                <div className="min-w-0">
-                  <p className="text-[12px] font-bold text-black truncate">
-                    {proj.name}
-                  </p>
-                  <p className="text-[9px] text-zinc-400 truncate mt-0.5">
-                    {proj.stack} &middot; {proj.platform}
+                <div className="min-w-0 space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[12px] font-extrabold text-black truncate">
+                      {proj.name}
+                    </p>
+                    {proj.demoUrl && (
+                      <a
+                        href={proj.demoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-zinc-400 hover:text-[#005c58] transition-colors"
+                        title="Live Demo"
+                      >
+                        <ExternalLinkIcon className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                  <p className="text-[9px] text-zinc-500 font-medium truncate">
+                    {proj.stack} &middot; {proj.platform || "Web"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-3">
                   <span
-                    className="text-[8px] font-black px-2 py-0.5 rounded-full"
+                    className="text-[8px] font-black px-2 py-0.5 rounded-full border border-current/20"
                     style={{
-                      backgroundColor: `${proj.statusColor}18`,
-                      color: proj.statusColor,
+                      backgroundColor: `${proj.statusColor || "#003c3a"}18`,
+                      color: proj.statusColor || "#003c3a",
                     }}
                   >
                     {proj.status}
                   </span>
-                  <span className="text-[9px] text-zinc-500 font-semibold">
-                    ★ {proj.stars}
+                  <span className="text-[9px] text-zinc-500 font-semibold flex items-center gap-0.5">
+                    <StarIcon className="w-3 h-3 text-amber-400" />{" "}
+                    {proj.stars || 0}
                   </span>
                 </div>
               </div>
@@ -543,9 +655,16 @@ function SkillProjectPanel({
           </div>
         </div>
       ) : (
-        <p className="text-[11px] text-zinc-400 italic">
-          No listed projects yet for {skill.name}.
-        </p>
+        <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-100 text-center">
+          <p className="text-[11px] text-zinc-500 font-medium">
+            No projects explicitly tagged with{" "}
+            <strong className="text-zinc-900">{skill.name}</strong> yet.
+          </p>
+          <p className="text-[10px] text-zinc-400 mt-0.5">
+            Add or edit a project and include &quot;{skill.name}&quot; in its
+            Tech Stack to link it automatically!
+          </p>
+        </div>
       )}
     </div>
   );
