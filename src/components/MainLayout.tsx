@@ -179,7 +179,20 @@ export default function MainLayout({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const categoryContentRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [dropdownLeft, setDropdownLeft] = useState(0);
+  const [dropdownHeight, setDropdownHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (hoveredIndex !== null && categoryContentRefs.current[hoveredIndex]) {
+      const el = categoryContentRefs.current[hoveredIndex];
+      if (el) {
+        setDropdownHeight(el.scrollHeight + 32);
+      }
+    } else {
+      setDropdownHeight(null);
+    }
+  }, [hoveredIndex]);
 
   const activeIndex = navigationConfig.findIndex((cat) => {
     if (cat.href === "/dashboard") return pathname === "/dashboard";
@@ -414,7 +427,7 @@ export default function MainLayout({
             </nav>
 
             <div
-              className={`absolute top-full pt-2 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] origin-top z-50 ${
+              className={`absolute top-full pt-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top z-50 ${
                 activeHover
                   ? "opacity-100 scale-100 pointer-events-auto"
                   : "opacity-0 scale-95 pointer-events-none"
@@ -424,22 +437,30 @@ export default function MainLayout({
                 transform: `translateX(-50%) ${activeHover ? "scale(1)" : "scale(0.95)"}`,
               }}
             >
-              <div className="w-70 bg-white rounded-2xl shadow-xl border border-zinc-100 p-0 py-4 overflow-hidden">
+              <div
+                className="w-70 bg-white rounded-2xl shadow-xl border border-zinc-100 p-0 py-4 overflow-hidden transition-[height] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                style={{
+                  height: dropdownHeight ? `${dropdownHeight}px` : "auto",
+                }}
+              >
                 <div
-                  className="flex transition-transform duration-300 ease-out"
+                  className="flex items-start transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   style={{
                     width: `${navigationConfig.length * 280}px`,
                     transform: `translateX(-${(hoveredIndex ?? 0) * 280}px)`,
                   }}
                 >
-                  {navigationConfig.map((cat) => (
+                  {navigationConfig.map((cat, idx) => (
                     <div
                       key={cat.label}
-                      className="w-70 px-4 space-y-2 shrink-0"
+                      ref={(el) => {
+                        categoryContentRefs.current[idx] = el;
+                      }}
+                      className="w-70 px-4 space-y-2 shrink-0 transition-opacity duration-200"
+                      style={{
+                        opacity: hoveredIndex === idx ? 1 : 0.3,
+                      }}
                     >
-                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-2 mb-1">
-                        {cat.label} Submenu
-                      </p>
                       <div className="grid grid-cols-1 gap-1">
                         {cat.subItems.map((sub) => (
                           <Link
@@ -449,12 +470,12 @@ export default function MainLayout({
                               handleMouseLeave();
                               handleHashLinkClick(e, sub.href);
                             }}
-                            className="flex flex-col p-2.5 rounded-xl hover:bg-zinc-50 transition-colors text-left"
+                            className="flex flex-col p-2.5 rounded-xl hover:bg-zinc-50/80 transition-all duration-200 hover:translate-x-0.5 text-left"
                           >
                             <span className="text-[13px] font-bold text-zinc-900">
                               {sub.label}
                             </span>
-                            <span className="text-[11px] text-zinc-400 mt-0.5">
+                            <span className="text-[11px] text-zinc-400 mt-0.5 leading-snug">
                               {sub.desc}
                             </span>
                           </Link>
