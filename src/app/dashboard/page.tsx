@@ -3053,7 +3053,7 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={handleOpenAddModal}
-                    className="mt-1 px-4 py-2 bg-zinc-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
+                    className="btn-candy mt-1 px-4 py-2 bg-zinc-900 text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
                   >
                     + Add Project Now
                   </button>
@@ -4466,7 +4466,7 @@ export default function DashboardPage() {
                     className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-bold transition-all"
                   >
                     <option value="Live">Live</option>
-                    <option value="In Progress">In Progress</option>
+                    <option value="In Progress">Progress</option>
                     <option value="Archived">Archived</option>
                   </select>
                 </div>
