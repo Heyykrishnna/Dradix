@@ -13,7 +13,6 @@ import {
   PlusIcon,
   TrashIcon,
   Pencil2Icon,
-  BarChartIcon,
   Cross2Icon,
   ExternalLinkIcon,
   EyeOpenIcon,
@@ -814,16 +813,10 @@ export default function DashboardPage() {
   );
 
   const [projectModalType, setProjectModalType] = useState<
-    "add" | "edit" | "delete" | "analytics" | null
+    "add" | "edit" | "delete" | null
   >(null);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [analyticsMetric, setAnalyticsMetric] = useState<
-    "views" | "likes" | "stars"
-  >("views");
-  const [hoveredDataPoint, setHoveredDataPoint] = useState<MonthlyStats | null>(
-    null,
-  );
   const [projectFormState, setProjectFormState] = useState({
     name: "",
     stack: "",
@@ -1273,38 +1266,6 @@ export default function DashboardPage() {
     }
     setProjectModalType(null);
     setSelectedProject(null);
-  };
-
-  const getProjectMonthlyStats = (proj: Project | null) => {
-    if (!proj) return [];
-    const seed = proj.name.length;
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const baseViews = proj.views / 12;
-    const baseLikes = proj.likes / 12;
-    const baseStars = proj.stars / 12;
-
-    return months.map((month, idx) => {
-      const factor = 0.5 + Math.sin(idx + seed) * 0.3 + idx / 24;
-      return {
-        month,
-        views: Math.round(baseViews * factor * 1.2),
-        likes: Math.round(baseLikes * factor * 1.2),
-        stars: Math.round(baseStars * factor * 1.2),
-      };
-    });
   };
 
   const [activeTab, setActiveTab] = useState("All");
@@ -3213,17 +3174,6 @@ export default function DashboardPage() {
                               type="button"
                               onClick={() => {
                                 setSelectedProject(proj);
-                                setProjectModalType("analytics");
-                              }}
-                              className="p-1.5 text-zinc-400 hover:text-[#005c58] hover:bg-[#005c58]/10 rounded-lg transition-all cursor-pointer"
-                              title="Project Analytics"
-                            >
-                              <BarChartIcon className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedProject(proj);
                                 setProjectModalType("delete");
                               }}
                               className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
@@ -3530,17 +3480,6 @@ export default function DashboardPage() {
                                   >
                                     <TrashIcon className="w-3.5 h-3.5 text-red-500" />
                                     <span>Delete</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedProject(proj);
-                                      setProjectModalType("analytics");
-                                    }}
-                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-[#003c3a]/10 hover:bg-[#003c3a]/25 text-[10px] font-bold text-[#003c3a] rounded-lg transition-colors cursor-pointer"
-                                  >
-                                    <BarChartIcon className="w-3.5 h-3.5 text-[#003c3a]" />
-                                    <span>Analytics</span>
                                   </button>
                                 </div>
                               )}
@@ -4590,293 +4529,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-
-      {projectModalType === "analytics" &&
-        selectedProject &&
-        (() => {
-          const stats = getProjectMonthlyStats(selectedProject);
-          const maxVal = Math.max(...stats.map((d) => d[analyticsMetric])) || 1;
-
-          const points = stats.map((d, i) => ({
-            x: (i / 11) * 500 + 40,
-            y: 200 - (d[analyticsMetric] / maxVal) * 150 - 20,
-            data: d,
-          }));
-
-          const pathD = points
-            .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
-            .join(" ");
-          const areaD = points.length
-            ? `${pathD} L ${points[points.length - 1].x} 180 L ${points[0].x} 180 Z`
-            : "";
-
-          const themeColor = selectedProject.statusColor || "#003c3a";
-
-          return (
-            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out text-left animate-fade-in">
-              <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col animate-scale-in text-left max-h-[90vh]">
-                <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <h3 className="text-[16px] font-extrabold text-black tracking-tight font-heading leading-tight">
-                        {selectedProject.name} Analytics
-                      </h3>
-                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mt-0.5">
-                        Performance Metrics & Traffic
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProjectModalType(null);
-                      setSelectedProject(null);
-                      setHoveredDataPoint(null);
-                    }}
-                    className="p-1.5 text-zinc-400 hover:text-zinc-650 hover:bg-zinc-50 rounded-xl transition-all duration-300 ease-in-out hover:scale-110 active:scale-90 cursor-pointer"
-                  >
-                    <Cross2Icon className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="p-6 space-y-6 overflow-y-auto">
-                  <div className="grid grid-cols-3 gap-4">
-                    {(["views", "likes", "stars"] as const).map((metric) => {
-                      const label =
-                        metric === "views"
-                          ? "Views"
-                          : metric === "likes"
-                            ? "Likes"
-                            : "Stars";
-                      const value = selectedProject[metric];
-                      const isActive = analyticsMetric === metric;
-
-                      return (
-                        <button
-                          key={metric}
-                          type="button"
-                          onClick={() => {
-                            setAnalyticsMetric(metric);
-                            setHoveredDataPoint(null);
-                          }}
-                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                            isActive
-                              ? "bg-zinc-950 border-transparent shadow-md"
-                              : "bg-zinc-50 border-zinc-100 hover:border-zinc-200"
-                          }`}
-                        >
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                            {label}
-                          </p>
-                          <p
-                            className={`text-xl font-extrabold mt-1 ${isActive ? "text-white" : "text-zinc-900"}`}
-                          >
-                            {value.toLocaleString()}
-                          </p>
-                          <div className="flex items-center gap-1 mt-1 text-[9px] font-bold text-emerald-500">
-                            <span>↑ 12.4%</span>
-                            <span
-                              className={`${isActive ? "text-zinc-500" : "text-zinc-400"} font-normal`}
-                            >
-                              vs last mo.
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="bg-zinc-50 rounded-2xl p-5 border border-zinc-100 relative">
-                    <div className="flex justify-between items-center mb-4">
-                      <p className="text-[12px] font-bold text-zinc-700">
-                        Monthly Trend ({analyticsMetric.toUpperCase()})
-                      </p>
-                      {hoveredDataPoint && (
-                        <div className="text-[11px] font-bold text-zinc-900 bg-white border border-zinc-200 px-2 py-0.5 rounded-lg shadow-sm">
-                          {hoveredDataPoint.month}:{" "}
-                          <span
-                            className="font-extrabold"
-                            style={{ color: themeColor }}
-                          >
-                            {hoveredDataPoint[analyticsMetric].toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="w-full overflow-hidden select-none">
-                      <svg
-                        className="w-full h-60 overflow-visible"
-                        viewBox="0 0 580 200"
-                        onMouseLeave={() => setHoveredDataPoint(null)}
-                      >
-                        <defs>
-                          <linearGradient
-                            id="chartGradient"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="0%"
-                              stopColor={themeColor}
-                              stopOpacity="0.25"
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor={themeColor}
-                              stopOpacity="0.0"
-                            />
-                          </linearGradient>
-                        </defs>
-
-                        {[0, 1, 2, 3].map((g) => {
-                          const y = 30 + g * 50;
-                          return (
-                            <line
-                              key={g}
-                              x1="40"
-                              y1={y}
-                              x2="540"
-                              y2={y}
-                              stroke="#e4e4e7"
-                              strokeWidth="1"
-                              strokeDasharray="4 4"
-                            />
-                          );
-                        })}
-
-                        {hoveredDataPoint &&
-                          (() => {
-                            const hp = points.find(
-                              (p) => p.data.month === hoveredDataPoint.month,
-                            );
-                            if (!hp) return null;
-                            return (
-                              <line
-                                x1={hp.x}
-                                y1={20}
-                                x2={hp.x}
-                                y2={180}
-                                stroke={themeColor}
-                                strokeWidth="1.5"
-                                strokeDasharray="4 4"
-                                className="pointer-events-none transition-all duration-150"
-                              />
-                            );
-                          })()}
-
-                        {areaD && (
-                          <path
-                            d={areaD}
-                            fill="url(#chartGradient)"
-                            className="transition-all duration-500 pointer-events-none"
-                          />
-                        )}
-
-                        {pathD && (
-                          <path
-                            d={pathD}
-                            fill="none"
-                            stroke={themeColor}
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="transition-all duration-500 pointer-events-none"
-                          />
-                        )}
-
-                        {points.map((p, idx) => {
-                          const isHovered =
-                            hoveredDataPoint?.month === p.data.month;
-                          return (
-                            <circle
-                              key={idx}
-                              cx={p.x}
-                              cy={p.y}
-                              r={isHovered ? 6 : 4}
-                              fill="white"
-                              stroke={themeColor}
-                              strokeWidth={isHovered ? "3.5" : "2.5"}
-                              className="transition-all duration-150 pointer-events-none"
-                            />
-                          );
-                        })}
-
-                        {hoveredDataPoint &&
-                          (() => {
-                            const hp = points.find(
-                              (p) => p.data.month === hoveredDataPoint.month,
-                            );
-                            if (!hp) return null;
-                            const val =
-                              hoveredDataPoint[
-                                analyticsMetric
-                              ].toLocaleString();
-                            return (
-                              <g className="pointer-events-none transition-all duration-200">
-                                <rect
-                                  x={hp.x - 45}
-                                  y={hp.y - 37}
-                                  width="90"
-                                  height="24"
-                                  rx="6"
-                                  fill="#18181b"
-                                />
-                                <text
-                                  x={hp.x}
-                                  y={hp.y - 22}
-                                  textAnchor="middle"
-                                  fill="white"
-                                  fontSize="10"
-                                  fontWeight="black"
-                                >
-                                  {val}
-                                </text>
-                                <polygon
-                                  points={`${hp.x - 4},${hp.y - 13} ${hp.x + 4},${hp.y - 13} ${hp.x},${hp.y - 9}`}
-                                  fill="#18181b"
-                                />
-                              </g>
-                            );
-                          })()}
-
-                        {points.map((p, idx) => (
-                          <rect
-                            key={`hover-col-${idx}`}
-                            x={p.x - 22.7}
-                            y={15}
-                            width={45.4}
-                            height={170}
-                            fill="transparent"
-                            className="cursor-pointer"
-                            onMouseEnter={() => setHoveredDataPoint(p.data)}
-                          />
-                        ))}
-
-                        {points.map((p, idx) => (
-                          <text
-                            key={idx}
-                            x={p.x}
-                            y="195"
-                            textAnchor="middle"
-                            fill="#888"
-                            fontSize="9"
-                            fontWeight="bold"
-                            className="pointer-events-none"
-                          >
-                            {p.data.month}
-                          </text>
-                        ))}
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
     </>
   );
 }
