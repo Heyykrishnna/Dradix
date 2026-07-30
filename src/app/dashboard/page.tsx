@@ -895,9 +895,14 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    const initGitHubRepos = async () => {
+      await fetchAuthenticatedGitHubRepos();
+    };
+    void initGitHubRepos();
+
     const handleOAuthMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === "GITHUB_OAUTH_SUCCESS") {
-        fetchAuthenticatedGitHubRepos();
+        void fetchAuthenticatedGitHubRepos();
       }
     };
     window.addEventListener("message", handleOAuthMessage);
@@ -3976,7 +3981,22 @@ export default function DashboardPage() {
             </div>
 
             <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
-              {!isGitHubConnected ? (
+              {isFetchingRepos ? (
+                <div className="py-12 space-y-4 text-center bg-zinc-50 border border-zinc-200/80 rounded-2xl p-8 flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-900 text-white flex items-center justify-center shadow-xs">
+                    <UpdateIcon className="w-6 h-6 animate-spin text-white" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <h4 className="text-sm font-extrabold text-zinc-900 tracking-tight font-heading">
+                      Fetching your GitHub repositories...
+                    </h4>
+                    <p className="text-xs text-zinc-500 max-w-sm mx-auto font-medium leading-relaxed">
+                      Connecting to GitHub and loading all your public & private
+                      repositories for you.
+                    </p>
+                  </div>
+                </div>
+              ) : !isGitHubConnected ? (
                 <div className="py-6 space-y-4 text-center bg-zinc-50 border border-zinc-200/80 rounded-2xl p-6">
                   <div className="w-12 h-12 rounded-2xl bg-zinc-900 text-white flex items-center justify-center mx-auto shadow-xs">
                     <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -4025,13 +4045,9 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   <div className="p-3.5 rounded-2xl bg-zinc-900 text-white flex items-center justify-between shadow-xs">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                       <div>
                         <span className="text-xs font-extrabold text-white block">
                           Connected as @{connectedGitHubUsername}
-                        </span>
-                        <span className="text-[10px] text-zinc-400 font-medium">
-                          Public & Private Repositories Sync Active
                         </span>
                       </div>
                     </div>
