@@ -461,11 +461,13 @@ const initialProfile: Omit<ProfileState, "skills"> = {
 
 interface WeeklyActivityItem {
   day: string;
+  month?: string;
   date?: string;
   commits: number;
   problems: number;
   total: number;
   percentage: number;
+  isHighest?: boolean;
 }
 
 interface ActivityStatsChartProps {
@@ -491,23 +493,34 @@ interface CustomTickProps {
   payload?: { value: string };
   index?: number;
   activeIndex?: number;
+  highestIndex?: number;
 }
 
 const CustomTick = (props: CustomTickProps) => {
-  const { x = 0, y = 0, payload, index, activeIndex } = props;
+  const { x = 0, y = 0, payload, index, activeIndex, highestIndex } = props;
   const isActive = index === activeIndex;
+  const isHighest = index === highestIndex;
+  const isHighlighted = isActive || isHighest;
+
   return (
     <g transform={`translate(${x},${y})`}>
-      {isActive ? (
-        <rect x={-22} y={6} width={44} height={18} rx={9} fill="#18181b" />
+      {isHighlighted ? (
+        <rect
+          x={-18}
+          y={6}
+          width={36}
+          height={18}
+          rx={9}
+          fill={isActive ? "#18181b" : "#005c58"}
+        />
       ) : null}
       <text
         x={0}
-        y={isActive ? 18 : 19}
+        y={isHighlighted ? 18 : 19}
         textAnchor="middle"
-        fill={isActive ? "#ffffff" : "#a1a1aa"}
+        fill={isHighlighted ? "#ffffff" : "#a1a1aa"}
         fontSize={10}
-        fontWeight={isActive ? 700 : 500}
+        fontWeight={isHighlighted ? 700 : 500}
       >
         {payload?.value}
       </text>
@@ -522,18 +535,31 @@ interface CustomLabelProps {
   value?: number;
   index?: number;
   activeIndex?: number;
+  highestIndex?: number;
 }
 
 const CustomLabel = (props: CustomLabelProps) => {
-  const { x = 0, y = 0, width = 0, value, index, activeIndex } = props;
+  const {
+    x = 0,
+    y = 0,
+    width = 0,
+    value,
+    index,
+    activeIndex,
+    highestIndex,
+  } = props;
   const isActive = index === activeIndex;
+  const isHighest = index === highestIndex;
+
+  if (value === undefined || value === 0) return null;
+
   return (
     <text
       x={x + width / 2}
       y={y - 8}
-      fill={isActive ? "#18181b" : "#a1a1aa"}
-      fontSize={10}
-      fontWeight={isActive ? 700 : 500}
+      fill={isActive ? "#18181b" : isHighest ? "#005c58" : "#a1a1aa"}
+      fontSize={isHighest || isActive ? 10.5 : 9}
+      fontWeight={isHighest || isActive ? 800 : 500}
       textAnchor="middle"
     >
       {value}%
@@ -555,8 +581,10 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
       <div className="bg-white/95 backdrop-blur-md border border-zinc-200/80 shadow-lg rounded-2xl p-3.5 text-[11px] text-zinc-700 min-w-44 transition-all duration-200">
         <p className="font-bold text-zinc-900 text-[12px] mb-2 border-b border-zinc-100 pb-1.5 flex items-center justify-between">
           <span>{data.day} Activity</span>
-          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#005c58]/10 text-[#005c58]">
-            {data.percentage}%
+          <span
+            className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${data.isHighest ? "bg-[#005c58] text-white" : "bg-[#005c58]/10 text-[#005c58]"}`}
+          >
+            {data.percentage}% {data.isHighest ? " (Peak)" : ""}
           </span>
         </p>
         <div className="space-y-1.5">
@@ -591,26 +619,56 @@ const ActivityStatsChart = ({
   onSyncAll,
   isSyncing = false,
 }: ActivityStatsChartProps) => {
-  const [activeDayIndex, setActiveDayIndex] = useState<number>(0);
+  const chartData = useMemo(() => {
+    return data.length
+      ? data
+      : [
+          { day: "Jan", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Feb", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Mar", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Apr", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "May", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Jun", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Jul", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Aug", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Sep", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Oct", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Nov", commits: 0, problems: 0, total: 0, percentage: 0 },
+          { day: "Dec", commits: 0, problems: 0, total: 0, percentage: 0 },
+        ];
+  }, [data]);
 
-  const chartData = data.length
-    ? data
-    : [
-        { day: "Mon", commits: 0, problems: 0, total: 0, percentage: 0 },
-        { day: "Tue", commits: 0, problems: 0, total: 0, percentage: 0 },
-        { day: "Wed", commits: 0, problems: 0, total: 0, percentage: 0 },
-        { day: "Thu", commits: 0, problems: 0, total: 0, percentage: 0 },
-        { day: "Fri", commits: 0, problems: 0, total: 0, percentage: 0 },
-        { day: "Sat", commits: 0, problems: 0, total: 0, percentage: 0 },
-        { day: "Sun", commits: 0, problems: 0, total: 0, percentage: 0 },
-      ];
+  const highestIndex = useMemo(() => {
+    if (!chartData.length) return -1;
+    let maxIdx = -1;
+    let maxVal = 0;
+    chartData.forEach((item, idx) => {
+      if (item.total > maxVal) {
+        maxVal = item.total;
+        maxIdx = idx;
+      }
+    });
+    return maxVal > 0 ? maxIdx : -1;
+  }, [chartData]);
 
-  const hasActivity = chartData.some((item) => item.total > 0 || item.percentage > 0);
+  const [activeDayIndex, setActiveDayIndex] = useState<number>(
+    highestIndex >= 0 ? highestIndex : 0,
+  );
+
+  useEffect(() => {
+    if (highestIndex >= 0) {
+      setActiveDayIndex(highestIndex);
+    }
+  }, [highestIndex]);
+
+  const hasActivity = chartData.some(
+    (item) => item.total > 0 || item.percentage > 0,
+  );
 
   if (isLoading) {
     return (
-      <div className="h-56 w-full flex items-end justify-between gap-3 px-4 py-6 bg-zinc-50/50 rounded-2xl animate-pulse">
-        {[40, 65, 30, 80, 55, 25, 20].map((h, i) => (
+      <div className="h-56 w-full flex items-end justify-between gap-2 px-4 py-6 bg-zinc-50/50 rounded-2xl animate-pulse">
+        {[20, 35, 60, 45, 80, 55, 30, 40, 75, 50, 25, 15].map((h, i) => (
           <div
             key={i}
             className="w-full bg-zinc-200/70 rounded-t-md"
@@ -625,13 +683,26 @@ const ActivityStatsChart = ({
     return (
       <div className="h-56 w-full flex flex-col items-center justify-center border border-dashed border-zinc-200 rounded-2xl bg-zinc-50/40 p-6 text-center">
         <div className="w-10 h-10 rounded-full bg-[#005c58]/10 text-[#005c58] flex items-center justify-center mb-2">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
           </svg>
         </div>
-        <p className="text-xs font-semibold text-zinc-800">No Activity Sync Data Yet</p>
+        <p className="text-xs font-semibold text-zinc-800">
+          No Monthly Activity Sync Data Yet
+        </p>
         <p className="text-[11px] text-zinc-500 max-w-xs mt-1">
-          Connect your GitHub or coding profiles to dynamically calculate and display your weekly activity.
+          Connect your GitHub or coding profiles to dynamically calculate and
+          display your monthly activity.
         </p>
         {onSyncAll && (
           <button
@@ -641,9 +712,24 @@ const ActivityStatsChart = ({
           >
             {isSyncing ? (
               <>
-                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                <svg
+                  className="w-3.5 h-3.5 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  />
                 </svg>
                 <span>Syncing...</span>
               </>
@@ -667,6 +753,7 @@ const ActivityStatsChart = ({
         <BarChart
           data={chartData}
           margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
+          barCategoryGap="15%"
           onMouseMove={(state) => {
             if (
               state &&
@@ -683,6 +770,16 @@ const ActivityStatsChart = ({
               <stop offset="100%" stopColor="#005c58" />
             </linearGradient>
             <linearGradient
+              id="highestActivityGrad"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+            >
+              <stop offset="0%" stopColor="#00c9a7" stopOpacity={0.88} />
+              <stop offset="100%" stopColor="#005c58" stopOpacity={0.88} />
+            </linearGradient>
+            <linearGradient
               id="inactiveActivityGrad"
               x1="0"
               y1="0"
@@ -697,31 +794,50 @@ const ActivityStatsChart = ({
             dataKey="day"
             tickLine={false}
             axisLine={false}
-            tick={<CustomTick activeIndex={activeDayIndex} />}
+            tick={
+              <CustomTick
+                activeIndex={activeDayIndex}
+                highestIndex={highestIndex}
+              />
+            }
           />
           <YAxis hide />
           <Tooltip cursor={false} content={<CustomTooltip />} />
-          <Bar dataKey="percentage" radius={[6, 6, 6, 6]} maxBarSize={60}>
+          <Bar dataKey="percentage" radius={[7, 7, 7, 7]} maxBarSize={72}>
             {chartData.map((entry, index) => {
               const isActive = index === activeDayIndex;
+              const isHighest = index === highestIndex;
+
+              let fillGradient = "url(#inactiveActivityGrad)";
+              if (isActive) {
+                fillGradient = "url(#activeActivityGrad)";
+              } else if (isHighest) {
+                fillGradient = "url(#highestActivityGrad)";
+              }
+
               return (
                 <Cell
                   key={`cell-${index}`}
-                  fill={
-                    isActive
-                      ? "url(#activeActivityGrad)"
-                      : "url(#inactiveActivityGrad)"
-                  }
+                  fill={fillGradient}
                   style={{
-                    transition: "fill 0.25s ease, opacity 0.25s ease, transform 0.25s ease",
+                    transition:
+                      "fill 0.25s ease, opacity 0.25s ease, transform 0.25s ease",
                     cursor: "pointer",
+                    filter: isHighest
+                      ? "drop-shadow(0px 3px 6px rgba(0, 201, 167, 0.35))"
+                      : undefined,
                   }}
                 />
               );
             })}
             <LabelList
               dataKey="percentage"
-              content={<CustomLabel activeIndex={activeDayIndex} />}
+              content={
+                <CustomLabel
+                  activeIndex={activeDayIndex}
+                  highestIndex={highestIndex}
+                />
+              }
             />
           </Bar>
         </BarChart>
@@ -869,7 +985,9 @@ export default function ProfilePage() {
     last_synced?: string | null;
   }
 
-  const [weeklyActivityList, setWeeklyActivityList] = useState<WeeklyActivityItem[]>([
+  const [weeklyActivityList, setWeeklyActivityList] = useState<
+    WeeklyActivityItem[]
+  >([
     { day: "Mon", commits: 0, problems: 0, total: 0, percentage: 0 },
     { day: "Tue", commits: 0, problems: 0, total: 0, percentage: 0 },
     { day: "Wed", commits: 0, problems: 0, total: 0, percentage: 0 },
@@ -928,7 +1046,10 @@ export default function ProfilePage() {
           data: CodingProfilesApiResponse;
         }>("/coding-profiles");
         if (res && res.data) {
-          if (res.data.weekly_activity && Array.isArray(res.data.weekly_activity)) {
+          if (
+            res.data.weekly_activity &&
+            Array.isArray(res.data.weekly_activity)
+          ) {
             setWeeklyActivityList(res.data.weekly_activity);
           }
           if (res.data.last_synced) {
@@ -1002,7 +1123,10 @@ export default function ProfilePage() {
         data: CodingProfilesApiResponse;
       }>("/coding-profiles");
       if (res && res.data) {
-        if (res.data.weekly_activity && Array.isArray(res.data.weekly_activity)) {
+        if (
+          res.data.weekly_activity &&
+          Array.isArray(res.data.weekly_activity)
+        ) {
           setWeeklyActivityList(res.data.weekly_activity);
         }
         if (res.data.last_synced) {
@@ -1067,7 +1191,10 @@ export default function ProfilePage() {
         data: CodingProfilesApiResponse;
       }>("/coding-profiles");
       if (res && res.data) {
-        if (res.data.weekly_activity && Array.isArray(res.data.weekly_activity)) {
+        if (
+          res.data.weekly_activity &&
+          Array.isArray(res.data.weekly_activity)
+        ) {
           setWeeklyActivityList(res.data.weekly_activity);
         }
         if (res.data.last_synced) {
@@ -2797,18 +2924,35 @@ export default function ProfilePage() {
                     </span>
                     {lastSyncedTime && (
                       <span className="text-[9px] font-medium text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
-                        Synced {new Date(lastSyncedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        Synced{" "}
+                        {new Date(lastSyncedTime).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-4 mt-1.5">
                     <div className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-500">
-                      <span className="w-2 h-2 rounded-full bg-linear-to-b from-[#00c9a7] to-[#005c58]" />
-                      <span>Daily Contributions</span>
+                      <span>Monthly Contributions</span>
                     </div>
                     <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-medium">
-                      <span>• {weeklyActivityList.reduce((acc, curr) => acc + curr.commits, 0)} Commits</span>
-                      <span>• {weeklyActivityList.reduce((acc, curr) => acc + curr.problems, 0)} Problems</span>
+                      <span>
+                        •{" "}
+                        {weeklyActivityList.reduce(
+                          (acc, curr) => acc + curr.commits,
+                          0,
+                        )}{" "}
+                        Commits
+                      </span>
+                      <span>
+                        •{" "}
+                        {weeklyActivityList.reduce(
+                          (acc, curr) => acc + curr.problems,
+                          0,
+                        )}{" "}
+                        Problems
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -2820,13 +2964,20 @@ export default function ProfilePage() {
                     title="Sync live activity stats"
                     className="p-1.5 text-zinc-500 hover:text-[#005c58] hover:bg-zinc-100 rounded-lg transition-all disabled:opacity-50"
                   >
-                    <svg className={`w-3.5 h-3.5 ${isSyncingAllPlatforms ? 'animate-spin text-[#005c58]' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    <svg
+                      className={`w-3.5 h-3.5 ${isSyncingAllPlatforms ? "animate-spin text-[#005c58]" : ""}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
                     </svg>
                   </button>
-                  <span className="text-[10px] font-bold text-zinc-600 bg-zinc-100 rounded-lg px-2.5 py-1.5">
-                    This Week
-                  </span>
                 </div>
               </div>
 
