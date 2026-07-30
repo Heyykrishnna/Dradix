@@ -2128,7 +2128,7 @@ export default function DashboardPage() {
                 </span>
               </div>
               <div className="flex gap-2 mt-2">
-                <button className="flex-1 py-2 bg-black hover:bg-zinc-900 text-white rounded-lg text-[11px] font-bold transition-all cursor-pointer">
+                <button className="btn-candy flex-1 py-2 bg-zinc-900 text-white rounded-lg text-[11px] font-bold transition-all cursor-pointer">
                   Improve Profile
                 </button>
               </div>
@@ -2942,7 +2942,7 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={handleOpenAddModal}
-                    className="btn-candy flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-b from-zinc-900 via-zinc-950 to-black border border-zinc-800 text-white rounded-xl text-[10px] sm:text-[11px] font-bold cursor-pointer hover:shadow-md transition-all active:scale-95 shrink-0"
+                    className="btn-candy flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-b from-zinc-900 via-zinc-950 to-black border border-zinc-800 text-white rounded-xl text-[10px] sm:text-[11px] font-bold cursor-pointer transition-all active:scale-95 shrink-0"
                   >
                     <PlusIcon className="w-3.5 h-3.5" />
                     <span>Add Project</span>
