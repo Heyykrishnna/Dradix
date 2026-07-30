@@ -353,8 +353,6 @@ const languageData = [
   { name: "Go", value: 9, color: "#005c58" },
 ];
 
-// skillsList has been moved to SkillsContext
-
 const dailyActivityData = [
   { day: "6am", hours: 0.8, commits: 2, problems: 1 },
   { day: "9am", hours: 1.5, commits: 4, problems: 2 },
@@ -631,6 +629,101 @@ function TechStackDropdown({
         Select up to 3 tools from the dropdown above or type manually (separated
         by commas).
       </p>
+    </div>
+  );
+}
+
+function FormattedCoachMessage({
+  text,
+  sender,
+}: {
+  text: string;
+  sender: "user" | "coach";
+}) {
+  if (sender === "user") {
+    return <p className="leading-relaxed font-medium">{text}</p>;
+  }
+
+  let formattedText = text;
+
+  formattedText = formattedText
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<\/?(think|thought|comment|message|reasoning|system|prompt)[^>]*>/gi, "")
+    .replace(/(\d+\.\s+\*\*)/g, "\n$1");
+
+  const lines = formattedText
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const formatInlineText = (inlineStr: string) => {
+    const parts = inlineStr.split(/(\*\*.*?\*\*|`.*?`|\*.*?\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={i} className="font-black text-zinc-950">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      if (part.startsWith("`") && part.endsWith("`")) {
+        return (
+          <code
+            key={i}
+            className="px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-900 font-mono text-[10px] font-bold"
+          >
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+      if (part.startsWith("*") && part.endsWith("*")) {
+        return (
+          <em key={i} className="italic text-zinc-800">
+            {part.slice(1, -1)}
+          </em>
+        );
+      }
+      return part;
+    });
+  };
+
+  return (
+    <div className="space-y-2 text-zinc-800 leading-relaxed font-normal text-[11px]">
+      {lines.map((line, idx) => {
+        const numMatch = line.match(/^(\d+)\.\s+(.*)$/);
+        if (numMatch) {
+          const [, num, content] = numMatch;
+          return (
+            <div key={idx} className="flex items-start gap-2 my-1 pl-0.5">
+              <span className="shrink-0 w-4 h-4 rounded-full bg-zinc-900 text-white text-[9px] font-extrabold flex items-center justify-center mt-0.5 shadow-xs">
+                {num}
+              </span>
+              <div className="flex-1 text-[11px] leading-relaxed">
+                {formatInlineText(content)}
+              </div>
+            </div>
+          );
+        }
+
+        const bulletMatch = line.match(/^[*•-]\s+(.*)$/);
+        if (bulletMatch) {
+          const [, content] = bulletMatch;
+          return (
+            <div key={idx} className="flex items-start gap-2 my-1 pl-0.5">
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-zinc-900 mt-1.5" />
+              <div className="flex-1 text-[11px] leading-relaxed">
+                {formatInlineText(content)}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <p key={idx} className="text-[11px] leading-relaxed">
+            {formatInlineText(line)}
+          </p>
+        );
+      })}
     </div>
   );
 }
@@ -2252,26 +2345,50 @@ export default function DashboardPage() {
     );
   };
 
-  const handleAskCoach = (query: string) => {
-    if (!query.trim()) return;
-    const userMessage = { sender: "user" as const, text: query };
+  const [isAskingCoach, setIsAskingCoach] = useState<boolean>(false);
+
+  const handleAskCoach = async (query: string) => {
+    if (!query.trim() || isAskingCoach) return;
+    const userMsgText = query.trim();
+    const userMessage = { sender: "user" as const, text: userMsgText };
+
     setMessages((prev) => [...prev, userMessage]);
     setChatInput("");
+    setIsAskingCoach(true);
 
-    setTimeout(() => {
-      let reply = "";
-      if (query.toLowerCase().includes("resume")) {
-        reply =
-          "Based on my analysis of your GitHub profile, you should highlight Next.js and TypeScript on your resume. Your resume score is currently 82%. Adding System Design details will help hit 90%.";
-      } else if (query.toLowerCase().includes("project")) {
-        reply =
-          "I recommend building a backend caching utility in Rust or Go (e.g., a Redis-like storage client) to strengthen your full-stack balance.";
+    try {
+      const currentHistory = [...messages, userMessage];
+      const res = await apiFetch<{ data: { reply: string } }>(
+        "/ai/coach/chat",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            message: userMsgText,
+            chatHistory: currentHistory.slice(-6),
+          }),
+        },
+      );
+
+      if (res && res.data && res.data.reply) {
+        setMessages((prev) => [
+          ...prev,
+          { sender: "coach", text: res.data.reply },
+        ]);
       } else {
-        reply =
-          "To prepare for Google, focus on Graph algorithms on LeetCode and practice scaling system architectures (sharding & caching pipelines).";
+        throw new Error("No response text");
       }
-      setMessages((prev) => [...prev, { sender: "coach", text: reply }]);
-    }, 600);
+    } catch (err) {
+      console.error("AI Coach request error:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "coach",
+          text: `Guidance for: "${userMsgText}". Based on your active developer profile, focus on mastering System Design trade-offs, writing clean modular code, and detailing measurable outcomes in your top projects.`,
+        },
+      ]);
+    } finally {
+      setIsAskingCoach(false);
+    }
   };
 
   const handleSyncAll = async () => {
@@ -2565,9 +2682,9 @@ export default function DashboardPage() {
               autoScroll={true}
               defaultScrollPosition="end"
             >
-              <MessageScroller className="bg-white rounded-xl p-3 h-48 text-[11px] relative">
+              <MessageScroller className="bg-white rounded-2xl p-3.5 h-64 sm:h-72 text-[11px] relative border border-zinc-200/60 shadow-xs">
                 <MessageScrollerViewport className="scrollbar-thin">
-                  <MessageScrollerContent className="gap-2.5">
+                  <MessageScrollerContent className="gap-3">
                     {messages.map((m, idx) => (
                       <MessageScrollerItem
                         key={idx}
@@ -2575,16 +2692,35 @@ export default function DashboardPage() {
                         scrollAnchor={idx === messages.length - 1}
                         className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
                       >
-                        <span className="text-[9px] text-zinc-400 font-bold mb-0.5">
-                          {m.sender === "user" ? "You" : "Coach"}
+                        <span className="text-[9px] text-zinc-400 font-extrabold mb-0.5 uppercase tracking-wider">
+                          {m.sender === "user" ? "You" : "AI Coach"}
                         </span>
-                        <p
-                          className={`p-2.5 rounded-xl max-w-[85%] leading-relaxed ${m.sender === "user" ? "bg-black text-white rounded-tr-none" : "bg-zinc-100 text-zinc-800 rounded-tl-none"}`}
+                        <div
+                          className={`p-3 rounded-2xl max-w-[90%] leading-relaxed ${
+                            m.sender === "user"
+                              ? "bg-zinc-900 text-white rounded-tr-none shadow-xs"
+                              : "bg-zinc-50 border border-zinc-200/80 text-zinc-800 rounded-tl-none shadow-xs"
+                          }`}
                         >
-                          {m.text}
-                        </p>
+                          <FormattedCoachMessage text={m.text} sender={m.sender} />
+                        </div>
                       </MessageScrollerItem>
                     ))}
+                    {isAskingCoach && (
+                      <MessageScrollerItem
+                        messageId="msg-typing"
+                        scrollAnchor={true}
+                        className="flex flex-col items-start"
+                      >
+                        <span className="text-[9px] text-zinc-400 font-bold mb-0.5">
+                          Coach
+                        </span>
+                        <div className="p-2.5 rounded-xl bg-zinc-100 text-zinc-500 text-[11px] font-medium flex items-center gap-2 rounded-tl-none">
+                          <UpdateIcon className="w-3.5 h-3.5 animate-spin text-zinc-700" />
+                          <span>AI Coach is thinking...</span>
+                        </div>
+                      </MessageScrollerItem>
+                    )}
                   </MessageScrollerContent>
                 </MessageScrollerViewport>
                 <MessageScrollerButton />
@@ -2593,35 +2729,44 @@ export default function DashboardPage() {
 
             <div className="space-y-1.5">
               <button
+                type="button"
+                disabled={isAskingCoach}
                 onClick={() => handleAskCoach("How can I improve my resume?")}
-                className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors"
+                className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 How can I improve my resume?
               </button>
               <button
+                type="button"
+                disabled={isAskingCoach}
                 onClick={() =>
                   handleAskCoach("What project should I build next?")
                 }
-                className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors"
+                className="w-full text-left bg-white rounded-lg p-2 text-[10px] text-zinc-500 hover:text-zinc-900 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 What project should I build next?
               </button>
             </div>
 
-            <div className="bg-white rounded-xl p-3 flex items-center justify-between border border-zinc-100">
+            <div className="bg-white rounded-xl p-3 flex items-center justify-between border border-zinc-100 shadow-xs">
               <input
                 type="text"
-                placeholder="Ask anything..."
+                disabled={isAskingCoach}
+                placeholder={
+                  isAskingCoach ? "AI Coach is typing..." : "Ask anything..."
+                }
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) =>
                   e.key === "Enter" && handleAskCoach(chatInput)
                 }
-                className="bg-transparent text-[12px] text-zinc-800 placeholder:text-zinc-400 outline-none w-full pr-2"
+                className="bg-transparent text-[12px] text-zinc-800 placeholder:text-zinc-400 outline-none w-full pr-2 font-medium disabled:opacity-50"
               />
               <button
+                type="button"
+                disabled={isAskingCoach || !chatInput.trim()}
                 onClick={() => handleAskCoach(chatInput)}
-                className="w-6 h-6 rounded-lg bg-black text-white flex items-center justify-center hover:bg-zinc-800 shrink-0"
+                className="w-6 h-6 rounded-lg bg-black text-white flex items-center justify-center hover:bg-zinc-800 shrink-0 disabled:opacity-40 cursor-pointer"
               >
                 <ArrowRightIcon className="w-3.5 h-3.5" />
               </button>
@@ -2917,7 +3062,6 @@ export default function DashboardPage() {
                                 damping: 25,
                               }}
                             >
-                              {/* Inactive Base Gradient Layer */}
                               <motion.div
                                 className="absolute inset-0 bg-linear-to-t from-[#18181b] to-[#27272a]"
                                 initial={false}
@@ -2930,7 +3074,6 @@ export default function DashboardPage() {
                                 }}
                               />
 
-                              {/* Active Vibrant Gradient Layer */}
                               <motion.div
                                 className="absolute inset-0 bg-linear-to-t from-[#005c58] to-[#00e5bf]"
                                 initial={false}
@@ -2943,7 +3086,6 @@ export default function DashboardPage() {
                                 }}
                               />
 
-                              {/* Diagonal Masked Lines Overlay Layer */}
                               <motion.div
                                 className="absolute inset-0 pointer-events-none"
                                 initial={false}
