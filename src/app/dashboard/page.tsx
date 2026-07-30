@@ -2991,14 +2991,24 @@ export default function DashboardPage() {
                     })}
                   </div>
 
-                  <div className="flex items-center bg-zinc-100/90 border border-zinc-200/80 rounded-2xl p-1 gap-0.5 h-9 sm:h-10 select-none shrink-0">
+                  <div className="relative flex items-center bg-zinc-100/90 border border-zinc-200/80 rounded-2xl p-1 gap-1 h-9 sm:h-10 select-none shrink-0">
+                    <div
+                      className="absolute top-1 bottom-1 bg-white rounded-xl transition-all duration-300 ease-out shadow-xs border border-zinc-200/60"
+                      style={{
+                        width: "calc(50% - 6px)",
+                        left:
+                          projectViewMode === "grid"
+                            ? "4px"
+                            : "calc(50% + 2px)",
+                      }}
+                    />
                     <button
                       type="button"
                       title="Grid Card View"
                       onClick={() => setProjectViewMode("grid")}
-                      className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                      className={`relative z-10 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition-colors duration-300 cursor-pointer ${
                         projectViewMode === "grid"
-                          ? "bg-white text-zinc-950 shadow-xs border border-zinc-200/60"
+                          ? "text-zinc-950 font-extrabold"
                           : "text-zinc-400 hover:text-zinc-700"
                       }`}
                     >
@@ -3008,9 +3018,9 @@ export default function DashboardPage() {
                       type="button"
                       title="Table View"
                       onClick={() => setProjectViewMode("table")}
-                      className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                      className={`relative z-10 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl text-[11px] font-bold transition-colors duration-300 cursor-pointer ${
                         projectViewMode === "table"
-                          ? "bg-white text-zinc-950 shadow-xs border border-zinc-200/60"
+                          ? "text-zinc-950 font-extrabold"
                           : "text-zinc-400 hover:text-zinc-700"
                       }`}
                     >
