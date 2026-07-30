@@ -459,15 +459,21 @@ const initialProfile: Omit<ProfileState, "skills"> = {
   rewardPoints: 250,
 };
 
-const weeklyActivityData = [
-  { day: "Mon", commits: 800, problems: 1450, total: 2250, percentage: 14.5 },
-  { day: "Tue", commits: 1200, problems: 2800, total: 4000, percentage: 28.0 },
-  { day: "Wed", commits: 900, problems: 2100, total: 3000, percentage: 22.0 },
-  { day: "Thu", commits: 700, problems: 1600, total: 2300, percentage: 16.2 },
-  { day: "Fri", commits: 500, problems: 1100, total: 1600, percentage: 11.7 },
-  { day: "Sat", commits: 200, problems: 450, total: 650, percentage: 4.6 },
-  { day: "Sun", commits: 150, problems: 250, total: 400, percentage: 3.0 },
-];
+interface WeeklyActivityItem {
+  day: string;
+  date?: string;
+  commits: number;
+  problems: number;
+  total: number;
+  percentage: number;
+}
+
+interface ActivityStatsChartProps {
+  data?: WeeklyActivityItem[];
+  isLoading?: boolean;
+  onSyncAll?: () => void;
+  isSyncing?: boolean;
+}
 
 const profileViewsData = [
   { day: "09", views: 0 },
@@ -538,13 +544,7 @@ const CustomLabel = (props: CustomLabelProps) => {
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{
-    payload: {
-      day: string;
-      commits: number;
-      problems: number;
-      total: number;
-      percentage: number;
-    };
+    payload: WeeklyActivityItem;
   }>;
 }
 
@@ -552,9 +552,9 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white/95 backdrop-blur-md border border-zinc-200/80 shadow-lg rounded-2xl p-3.5 text-[11px] text-zinc-700 min-w-40 transition-all duration-200">
+      <div className="bg-white/95 backdrop-blur-md border border-zinc-200/80 shadow-lg rounded-2xl p-3.5 text-[11px] text-zinc-700 min-w-44 transition-all duration-200">
         <p className="font-bold text-zinc-900 text-[12px] mb-2 border-b border-zinc-100 pb-1.5 flex items-center justify-between">
-          <span>{data.day} Stats</span>
+          <span>{data.day} Activity</span>
           <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#005c58]/10 text-[#005c58]">
             {data.percentage}%
           </span>
@@ -585,8 +585,76 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   return null;
 };
 
-const ActivityStatsChart = () => {
-  const [activeDayIndex, setActiveDayIndex] = useState<number>(1);
+const ActivityStatsChart = ({
+  data = [],
+  isLoading = false,
+  onSyncAll,
+  isSyncing = false,
+}: ActivityStatsChartProps) => {
+  const [activeDayIndex, setActiveDayIndex] = useState<number>(0);
+
+  const chartData = data.length
+    ? data
+    : [
+        { day: "Mon", commits: 0, problems: 0, total: 0, percentage: 0 },
+        { day: "Tue", commits: 0, problems: 0, total: 0, percentage: 0 },
+        { day: "Wed", commits: 0, problems: 0, total: 0, percentage: 0 },
+        { day: "Thu", commits: 0, problems: 0, total: 0, percentage: 0 },
+        { day: "Fri", commits: 0, problems: 0, total: 0, percentage: 0 },
+        { day: "Sat", commits: 0, problems: 0, total: 0, percentage: 0 },
+        { day: "Sun", commits: 0, problems: 0, total: 0, percentage: 0 },
+      ];
+
+  const hasActivity = chartData.some((item) => item.total > 0 || item.percentage > 0);
+
+  if (isLoading) {
+    return (
+      <div className="h-56 w-full flex items-end justify-between gap-3 px-4 py-6 bg-zinc-50/50 rounded-2xl animate-pulse">
+        {[40, 65, 30, 80, 55, 25, 20].map((h, i) => (
+          <div
+            key={i}
+            className="w-full bg-zinc-200/70 rounded-t-md"
+            style={{ height: `${h}%` }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (!hasActivity) {
+    return (
+      <div className="h-56 w-full flex flex-col items-center justify-center border border-dashed border-zinc-200 rounded-2xl bg-zinc-50/40 p-6 text-center">
+        <div className="w-10 h-10 rounded-full bg-[#005c58]/10 text-[#005c58] flex items-center justify-center mb-2">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <p className="text-xs font-semibold text-zinc-800">No Activity Sync Data Yet</p>
+        <p className="text-[11px] text-zinc-500 max-w-xs mt-1">
+          Connect your GitHub or coding profiles to dynamically calculate and display your weekly activity.
+        </p>
+        {onSyncAll && (
+          <button
+            onClick={onSyncAll}
+            disabled={isSyncing}
+            className="mt-3.5 px-3.5 py-1.5 rounded-lg bg-[#005c58] text-white text-[11px] font-bold hover:bg-[#004845] transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+          >
+            {isSyncing ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <span>Syncing...</span>
+              </>
+            ) : (
+              <span>Sync Platforms Now</span>
+            )}
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="h-56 w-full min-w-0 min-h-0">
@@ -597,7 +665,7 @@ const ActivityStatsChart = () => {
         minHeight={0}
       >
         <BarChart
-          data={weeklyActivityData}
+          data={chartData}
           margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
           onMouseMove={(state) => {
             if (
@@ -621,8 +689,8 @@ const ActivityStatsChart = () => {
               x2="0"
               y2="1"
             >
-              <stop offset="0%" stopColor="#00c9a7" stopOpacity={0.12} />
-              <stop offset="100%" stopColor="#005c58" stopOpacity={0.12} />
+              <stop offset="0%" stopColor="#00c9a7" stopOpacity={0.15} />
+              <stop offset="100%" stopColor="#005c58" stopOpacity={0.15} />
             </linearGradient>
           </defs>
           <XAxis
@@ -633,8 +701,8 @@ const ActivityStatsChart = () => {
           />
           <YAxis hide />
           <Tooltip cursor={false} content={<CustomTooltip />} />
-          <Bar dataKey="percentage" radius={[5, 5, 5, 5]} maxBarSize={60}>
-            {weeklyActivityData.map((entry, index) => {
+          <Bar dataKey="percentage" radius={[6, 6, 6, 6]} maxBarSize={60}>
+            {chartData.map((entry, index) => {
               const isActive = index === activeDayIndex;
               return (
                 <Cell
@@ -645,7 +713,8 @@ const ActivityStatsChart = () => {
                       : "url(#inactiveActivityGrad)"
                   }
                   style={{
-                    transition: "fill 0.25s ease, opacity 0.25s ease",
+                    transition: "fill 0.25s ease, opacity 0.25s ease, transform 0.25s ease",
+                    cursor: "pointer",
                   }}
                 />
               );
@@ -794,7 +863,22 @@ export default function ProfilePage() {
   interface CodingProfilesApiResponse {
     github?: GithubResponseItem | null;
     coding_profiles?: CodingProfileResponseItem[];
+    weekly_activity?: WeeklyActivityItem[];
+    total_commits?: number;
+    total_problems?: number;
+    last_synced?: string | null;
   }
+
+  const [weeklyActivityList, setWeeklyActivityList] = useState<WeeklyActivityItem[]>([
+    { day: "Mon", commits: 0, problems: 0, total: 0, percentage: 0 },
+    { day: "Tue", commits: 0, problems: 0, total: 0, percentage: 0 },
+    { day: "Wed", commits: 0, problems: 0, total: 0, percentage: 0 },
+    { day: "Thu", commits: 0, problems: 0, total: 0, percentage: 0 },
+    { day: "Fri", commits: 0, problems: 0, total: 0, percentage: 0 },
+    { day: "Sat", commits: 0, problems: 0, total: 0, percentage: 0 },
+    { day: "Sun", commits: 0, problems: 0, total: 0, percentage: 0 },
+  ]);
+  const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
 
   const [platformHandles, setPlatformHandles] = useState<
     Record<string, string>
@@ -844,6 +928,13 @@ export default function ProfilePage() {
           data: CodingProfilesApiResponse;
         }>("/coding-profiles");
         if (res && res.data) {
+          if (res.data.weekly_activity && Array.isArray(res.data.weekly_activity)) {
+            setWeeklyActivityList(res.data.weekly_activity);
+          }
+          if (res.data.last_synced) {
+            setLastSyncedTime(res.data.last_synced);
+          }
+
           if (res.data.github) {
             const gh = res.data.github;
             setPlatformHandles((prev) => ({ ...prev, github: gh.username }));
@@ -911,6 +1002,13 @@ export default function ProfilePage() {
         data: CodingProfilesApiResponse;
       }>("/coding-profiles");
       if (res && res.data) {
+        if (res.data.weekly_activity && Array.isArray(res.data.weekly_activity)) {
+          setWeeklyActivityList(res.data.weekly_activity);
+        }
+        if (res.data.last_synced) {
+          setLastSyncedTime(res.data.last_synced);
+        }
+
         if (platformId === "github" && res.data.github) {
           const gh = res.data.github;
           setPlatformStats((prev) => ({
@@ -969,6 +1067,13 @@ export default function ProfilePage() {
         data: CodingProfilesApiResponse;
       }>("/coding-profiles");
       if (res && res.data) {
+        if (res.data.weekly_activity && Array.isArray(res.data.weekly_activity)) {
+          setWeeklyActivityList(res.data.weekly_activity);
+        }
+        if (res.data.last_synced) {
+          setLastSyncedTime(res.data.last_synced);
+        }
+
         if (res.data.github) {
           const gh = res.data.github;
           setPlatformStats((prev) => ({
@@ -2686,30 +2791,57 @@ export default function ProfilePage() {
             <div className="md:col-span-2 bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-5 space-y-4">
               <div className="flex items-center justify-between pb-2">
                 <div>
-                  <span className="text-[14px] font-bold text-zinc-900 font-heading">
-                    Activity Stats
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] font-bold text-zinc-900 font-heading">
+                      Activity Stats
+                    </span>
+                    {lastSyncedTime && (
+                      <span className="text-[9px] font-medium text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+                        Synced {new Date(lastSyncedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-4 mt-1.5">
                     <div className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-500">
                       <span className="w-2 h-2 rounded-full bg-linear-to-b from-[#00c9a7] to-[#005c58]" />
                       <span>Daily Contributions</span>
                     </div>
+                    <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-medium">
+                      <span>• {weeklyActivityList.reduce((acc, curr) => acc + curr.commits, 0)} Commits</span>
+                      <span>• {weeklyActivityList.reduce((acc, curr) => acc + curr.problems, 0)} Problems</span>
+                    </div>
                   </div>
                 </div>
 
-                <span className="text-[10px] font-bold text-zinc-600 bg-zinc-100 rounded-lg px-2.5 py-1.5">
-                  This Week
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSyncAllPlatforms}
+                    disabled={isSyncingAllPlatforms}
+                    title="Sync live activity stats"
+                    className="p-1.5 text-zinc-500 hover:text-[#005c58] hover:bg-zinc-100 rounded-lg transition-all disabled:opacity-50"
+                  >
+                    <svg className={`w-3.5 h-3.5 ${isSyncingAllPlatforms ? 'animate-spin text-[#005c58]' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                  <span className="text-[10px] font-bold text-zinc-600 bg-zinc-100 rounded-lg px-2.5 py-1.5">
+                    This Week
+                  </span>
+                </div>
               </div>
 
-              <ActivityStatsChart />
+              <ActivityStatsChart
+                data={weeklyActivityList}
+                isLoading={isPlatformsLoading}
+                onSyncAll={handleSyncAllPlatforms}
+                isSyncing={isSyncingAllPlatforms}
+              />
             </div>
 
             <div className="md:col-span-1 bg-white rounded-3xl border border-dashed border-zinc-200 shadow-sm p-5 flex flex-col justify-between">
               <span className="text-[14px] font-bold text-zinc-900 font-heading block pb-2 border-b border-zinc-100">
                 Profile Gauge
               </span>
-
               <div className="relative flex items-center justify-center py-4">
                 <div className="w-36 h-36 flex items-center justify-center">
                   <PieChart width={144} height={144}>
@@ -2739,7 +2871,6 @@ export default function ProfilePage() {
                   </span>
                 </div>
               </div>
-
               <div className="text-center px-2">
                 <p className="text-[11px] font-semibold text-zinc-800 leading-tight">
                   Your developer score is high!
