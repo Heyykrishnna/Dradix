@@ -67,6 +67,121 @@ const ErrorQuestionTooltip = ({ message }: { message: string }) => {
   );
 };
 
+const POPULAR_TECH_OPTIONS = [
+  "TypeScript",
+  "JavaScript",
+  "Python",
+  "Java",
+  "C++",
+  "C#",
+  "Go",
+  "Rust",
+  "PHP",
+  "Ruby",
+  "Swift",
+  "Kotlin",
+  "Dart",
+  "Scala",
+  "Elixir",
+  "Haskell",
+  "Zig",
+  "Lua",
+  "HTML5",
+  "CSS3",
+  "SQL",
+  "Bash",
+  "React",
+  "Next.js",
+  "Vue.js",
+  "Nuxt.js",
+  "Svelte",
+  "SvelteKit",
+  "Angular",
+  "SolidJS",
+  "Astro",
+  "Redux",
+  "Zustand",
+  "Tailwind CSS",
+  "Bootstrap",
+  "Sass",
+  "Framer Motion",
+  "Radix UI",
+  "Shadcn UI",
+  "Chakra UI",
+  "Material UI",
+  "Webpack",
+  "Vite",
+  "Turbopack",
+  "Node.js",
+  "Express",
+  "NestJS",
+  "Fastify",
+  "Django",
+  "Flask",
+  "FastAPI",
+  "Spring Boot",
+  "ASP.NET Core",
+  "Laravel",
+  "Ruby on Rails",
+  "Gin",
+  "Fiber",
+  "GraphQL",
+  "REST API",
+  "gRPC",
+  "WebSocket",
+  "tRPC",
+  "Socket.io",
+  "PostgreSQL",
+  "MySQL",
+  "SQLite",
+  "MongoDB",
+  "Redis",
+  "Elasticsearch",
+  "Supabase",
+  "Firebase",
+  "DynamoDB",
+  "Cassandra",
+  "Prisma",
+  "Drizzle ORM",
+  "TypeORM",
+  "AWS",
+  "Google Cloud",
+  "Azure",
+  "Docker",
+  "Kubernetes",
+  "Terraform",
+  "Ansible",
+  "Vercel",
+  "Netlify",
+  "Render",
+  "Railway",
+  "Cloudflare",
+  "NGINX",
+  "GitHub Actions",
+  "React Native",
+  "Flutter",
+  "iOS (SwiftUI)",
+  "Android (Jetpack Compose)",
+  "Electron",
+  "Tauri",
+  "PyTorch",
+  "TensorFlow",
+  "OpenAI API",
+  "LangChain",
+  "Hugging Face",
+  "Pandas",
+  "NumPy",
+  "Scikit-Learn",
+  "Jest",
+  "Vitest",
+  "Cypress",
+  "Playwright",
+  "Git",
+  "GitHub",
+  "Figma",
+  "Stripe",
+];
+
 const DevScoreTooltip = () => {
   return (
     <div className="relative group inline-flex items-center z-40">
@@ -340,6 +455,185 @@ const levelConfig: Record<string, { label: string; bg: string; text: string }> =
       text: "text-[#f43f5e]",
     },
   };
+
+function TechStackDropdown({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedList = useMemo(() => {
+    return value
+      ? value
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+  }, [value]);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchQuery.trim()) return POPULAR_TECH_OPTIONS;
+    const q = searchQuery.toLowerCase();
+    return POPULAR_TECH_OPTIONS.filter((t) => t.toLowerCase().includes(q));
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleTech = (tech: string) => {
+    const isSelected = selectedList.some(
+      (t) => t.toLowerCase() === tech.toLowerCase(),
+    );
+    let updated: string[];
+    if (isSelected) {
+      updated = selectedList.filter(
+        (t) => t.toLowerCase() !== tech.toLowerCase(),
+      );
+    } else {
+      if (selectedList.length >= 3) return;
+      updated = [...selectedList, tech];
+    }
+    onChange(updated.join(", "));
+  };
+
+  const removeTech = (tech: string) => {
+    const updated = selectedList.filter(
+      (t) => t.toLowerCase() !== tech.toLowerCase(),
+    );
+    onChange(updated.join(", "));
+  };
+
+  return (
+    <div className="relative space-y-2" ref={dropdownRef}>
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+          Tech Stack &amp; Tools Used
+        </label>
+        <span
+          className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border transition-all ${
+            selectedList.length === 3
+              ? "bg-amber-100 text-amber-800 border-amber-300"
+              : "bg-zinc-100 text-zinc-600 border-zinc-200/80"
+          }`}
+        >
+          {selectedList.length}/3 Selected
+        </span>
+      </div>
+
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full min-h-11 rounded-xl border border-zinc-200 px-3 py-2 bg-white flex items-center justify-between gap-2 cursor-pointer hover:border-zinc-300 transition-all shadow-xs"
+      >
+        <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+          {selectedList.length > 0 ? (
+            selectedList.map((tech) => (
+              <span
+                key={tech}
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-zinc-900 text-white text-[11px] font-extrabold shadow-xs shrink-0"
+              >
+                <span>{tech}</span>
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeTech(tech);
+                  }}
+                  className="hover:text-red-400 text-zinc-400 text-[12px] font-bold px-0.5"
+                >
+                  &times;
+                </span>
+              </span>
+            ))
+          ) : (
+            <span className="text-[12px] text-zinc-400 font-medium select-none">
+              Click to select up to 3 technologies...
+            </span>
+          )}
+        </div>
+        <span className="text-zinc-400 text-[11px] font-bold shrink-0 ml-1">
+          {isOpen ? "▲" : "▼"}
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-2xl border border-zinc-200 shadow-xl p-2.5 space-y-2 animate-scale-in">
+          <input
+            type="text"
+            placeholder="Search tech stack or tools..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full rounded-xl border border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-800 bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-semibold"
+          />
+
+          <div className="max-h-48 overflow-y-auto scrollbar-thin space-y-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((tech) => {
+                const isSelected = selectedList.some(
+                  (t) => t.toLowerCase() === tech.toLowerCase(),
+                );
+                const isMaxReached = selectedList.length >= 3 && !isSelected;
+
+                return (
+                  <button
+                    key={tech}
+                    type="button"
+                    disabled={isMaxReached}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTech(tech);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center justify-between transition-colors ${
+                      isSelected
+                        ? "bg-zinc-900 text-white font-extrabold"
+                        : isMaxReached
+                          ? "text-zinc-300 bg-zinc-50 cursor-not-allowed opacity-50"
+                          : "text-zinc-700 hover:bg-zinc-100"
+                    }`}
+                  >
+                    <span>{tech}</span>
+                    {isSelected && <span>✓</span>}
+                  </button>
+                );
+              })
+            ) : (
+              <p className="text-[11px] text-zinc-400 italic p-2 text-center">
+                No matching tech found.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      <input
+        type="text"
+        required
+        placeholder="e.g. Next.js, TypeScript, PostgreSQL"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-semibold transition-all mt-1"
+      />
+      <p className="text-[10px] text-zinc-400 font-medium">
+        Select up to 3 tools from the dropdown above or type manually (separated
+        by commas).
+      </p>
+    </div>
+  );
+}
 
 function SkillsSection({ projectsList }: { projectsList: Project[] }) {
   const { userSkills } = useSkills();
@@ -1081,7 +1375,7 @@ export default function DashboardPage() {
     setSelectedRepoName(repo.name);
     const techStack =
       repo.topics && repo.topics.length > 0
-        ? repo.topics.join(", ")
+        ? repo.topics.slice(0, 3).join(", ")
         : repo.language || "";
 
     setProjectFormState((prev) => ({
@@ -4405,21 +4699,11 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
-                    Tech Stack *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Next.js, TypeScript, PostgreSQL"
+                  <TechStackDropdown
                     value={projectFormState.stack}
-                    onChange={(e) =>
-                      setProjectFormState({
-                        ...projectFormState,
-                        stack: e.target.value,
-                      })
+                    onChange={(val) =>
+                      setProjectFormState((prev) => ({ ...prev, stack: val }))
                     }
-                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-zinc-300 font-semibold transition-all"
                   />
                 </div>
               </div>
