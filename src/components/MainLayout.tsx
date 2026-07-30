@@ -175,6 +175,17 @@ export default function MainLayout({
       .toUpperCase()
       .slice(0, 2) || "YK";
 
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -373,8 +384,14 @@ export default function MainLayout({
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col selection:bg-zinc-200">
-      <header className="w-full bg-[#fdfdfd] border-b border-[#f4f4f5] px-6 py-4 flex flex-col sticky top-0 z-50 transition-all duration-300">
-        <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between">
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 w-full flex flex-col transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          scrolled
+            ? "bg-white/96 backdrop-blur-2xl backdrop-saturate-180 border-b border-zinc-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.08)] py-3"
+            : "bg-white/90 backdrop-blur-md border-b border-zinc-200/50 py-4 shadow-2xs"
+        }`}
+      >
+        <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between px-6">
           <Link href="/dashboard" className="flex items-center gap-2.5">
             <span className="text-black font-extrabold text-[14px] tracking-tight">
               dradix
@@ -663,7 +680,11 @@ export default function MainLayout({
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 py-8">
+      <main
+        className={`flex-1 w-full max-w-[1600px] mx-auto px-6 pb-8 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          scrolled ? "pt-19.25" : "pt-21.25"
+        }`}
+      >
         {children}
       </main>
     </div>

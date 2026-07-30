@@ -7,7 +7,7 @@ export default function TopNav() {
   const [searchFocused, setSearchFocused] = useState(false);
 
   return (
-    <header className="h-14 bg-[#101010] flex items-center px-6 gap-4 sticky top-0 z-30">
+    <header className="h-14 bg-[#101010] flex items-center px-6 gap-4 fixed top-0 left-0 right-0 z-30">
       <div className="flex-1">
         <h1 className="text-[15px] font-bold text-white">Overview</h1>
         <p className="text-[11px] text-[#555]">

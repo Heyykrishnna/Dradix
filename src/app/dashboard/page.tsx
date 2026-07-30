@@ -805,7 +805,7 @@ function SkillsSection({ projectsList }: { projectsList: Project[] }) {
                 setRenderedSkill(skill.name);
               }}
               onMouseLeave={() => setHoveredSkill(null)}
-              className={`relative shrink-0 flex flex-col items-center gap-2 rounded-2xl px-4 py-4 w-27.5 transition-all duration-300 cursor-pointer ${
+              className={`relative shrink-0 flex flex-col items-center gap-2 rounded-2xl px-4 py-4 w-27.5 transition-all duration-300  ${
                 isHovered
                   ? "bg-zinc-100 shadow-sm border border-zinc-200/80 scale-[1.02]"
                   : "bg-white border border-transparent"
@@ -995,9 +995,6 @@ function SkillProjectPanel({
 
       {projects.length > 0 ? (
         <div className="space-y-2">
-          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
-            Projects Built With {skill.name}
-          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {projects.map((proj) => (
               <div
