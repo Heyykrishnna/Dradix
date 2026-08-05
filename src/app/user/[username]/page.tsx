@@ -1595,8 +1595,18 @@ export default function PublicUserProfilePage() {
                 </div>
               ))
             ) : (
-              <div className="col-span-2 p-6 text-center border-2 border-dotted border-zinc-200 rounded-2xl bg-zinc-50 text-zinc-500 text-[12px]">
-                No featured projects listed yet.
+              <div className="col-span-2 p-4 sm:p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#015451]/10 text-[#015451] flex items-center justify-center font-medium text-xs border border-[#015451]/20 shrink-0">
+                  <FaArrowUpRightFromSquare className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-semibold text-zinc-900">
+                    No Featured Projects Listed
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 font-normal">
+                    Showcase applications, repository links, and technical architectures will appear here once configured.
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -1621,9 +1631,19 @@ export default function PublicUserProfilePage() {
                 </span>
               ))
             ) : (
-              <p className="text-[12px] text-zinc-500 font-normal">
-                No skills specified.
-              </p>
+              <div className="w-full p-4 sm:p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#015451]/10 text-[#015451] flex items-center justify-center font-medium text-xs border border-[#015451]/20 shrink-0">
+                  <FaBookmark className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-semibold text-zinc-900">
+                    No Skills Configured
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 font-normal">
+                    Technical competencies and primary programming languages will appear here once configured.
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         </section>
@@ -1661,9 +1681,19 @@ export default function PublicUserProfilePage() {
                   </div>
                 ))
               ) : (
-                <p className="text-[12px] text-zinc-500 font-normal">
-                  No work experience entries.
-                </p>
+                <div className="w-full p-4 sm:p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#015451]/10 text-[#015451] flex items-center justify-center font-medium text-xs border border-[#015451]/20 shrink-0">
+                    <FaBriefcase className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold text-zinc-900">
+                      No Work Experience Listed
+                    </h4>
+                    <p className="text-[11px] text-zinc-500 font-normal">
+                      Career history and engineering roles will be displayed here.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -1701,9 +1731,19 @@ export default function PublicUserProfilePage() {
                   </div>
                 ))
               ) : (
-                <p className="text-[12px] text-zinc-500 font-normal">
-                  No education entries.
-                </p>
+                <div className="w-full p-4 sm:p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#015451]/10 text-[#015451] flex items-center justify-center font-medium text-xs border border-[#015451]/20 shrink-0">
+                    <FaGraduationCap className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold text-zinc-900">
+                      No Education Listed
+                    </h4>
+                    <p className="text-[11px] text-zinc-500 font-normal">
+                      Academic background and qualifications will appear here.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </div>
