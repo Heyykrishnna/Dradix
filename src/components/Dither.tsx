@@ -1,8 +1,6 @@
 /* eslint-disable */
-import React, { useRef, useEffect, forwardRef, useMemo, useState, Component, ReactNode } from "react";
+import React, { useRef, useEffect, useMemo, useState, Component, ReactNode } from "react";
 import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
-import { EffectComposer, wrapEffect } from "@react-three/postprocessing";
-import { Effect } from "postprocessing";
 import * as THREE from "three";
 
 const waveVertexShader = `
@@ -16,7 +14,7 @@ void main() {
 }
 `;
 
-const waveFragmentShader = `
+const unifiedDitherFragmentShader = `
 precision highp float;
 uniform vec2 resolution;
 uniform float time;
@@ -27,6 +25,8 @@ uniform vec3 waveColor;
 uniform vec2 mousePos;
 uniform int enableMouseInteraction;
 uniform float mouseRadius;
+uniform float colorNum;
+uniform float pixelSize;
 
 vec4 mod289(vec4 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
 vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
@@ -79,27 +79,6 @@ float pattern(vec2 p) {
   return fbm(p + fbm(p2)); 
 }
 
-void main() {
-  vec2 uv = gl_FragCoord.xy / resolution.xy;
-  uv -= 0.5;
-  uv.x *= resolution.x / resolution.y;
-  float f = pattern(uv);
-  if (enableMouseInteraction == 1) {
-    vec2 mouseNDC = (mousePos / resolution - 0.5) * vec2(1.0, -1.0);
-    mouseNDC.x *= resolution.x / resolution.y;
-    float dist = length(uv - mouseNDC);
-    float effect = 1.0 - smoothstep(0.0, mouseRadius, dist);
-    f -= 0.5 * effect;
-  }
-  vec3 col = mix(vec3(0.0), waveColor, f);
-  gl_FragColor = vec4(col, 1.0);
-}
-`;
-
-const ditherFragmentShader = `
-precision highp float;
-uniform float colorNum;
-uniform float pixelSize;
 const float bayerMatrix8x8[64] = float[64](
   0.0/64.0, 48.0/64.0, 12.0/64.0, 60.0/64.0,  3.0/64.0, 51.0/64.0, 15.0/64.0, 63.0/64.0,
   32.0/64.0,16.0/64.0, 44.0/64.0, 28.0/64.0, 35.0/64.0,19.0/64.0, 47.0/64.0, 31.0/64.0,
@@ -123,52 +102,23 @@ vec3 dither(vec2 uv, vec3 color) {
   return floor(color * (colorNum - 1.0) + 0.5) / (colorNum - 1.0);
 }
 
-void mainImage(in vec4 inputColor, in vec2 uv, out vec4 outputColor) {
-  vec2 normalizedPixelSize = pixelSize / resolution;
-  vec2 uvPixel = normalizedPixelSize * floor(uv / normalizedPixelSize);
-  vec4 color = texture2D(inputBuffer, uvPixel);
-  color.rgb = dither(uv, color.rgb);
-  outputColor = color;
+void main() {
+  vec2 uv = gl_FragCoord.xy / resolution.xy;
+  vec2 noiseUv = uv - 0.5;
+  noiseUv.x *= resolution.x / resolution.y;
+  float f = pattern(noiseUv);
+  if (enableMouseInteraction == 1) {
+    vec2 mouseNDC = (mousePos / resolution - 0.5) * vec2(1.0, -1.0);
+    mouseNDC.x *= resolution.x / resolution.y;
+    float dist = length(noiseUv - mouseNDC);
+    float effect = 1.0 - smoothstep(0.0, mouseRadius, dist);
+    f -= 0.5 * effect;
+  }
+  vec3 col = mix(vec3(0.0), waveColor, f);
+  col = dither(uv, col);
+  gl_FragColor = vec4(col, 1.0);
 }
 `;
-
-class RetroEffectImpl extends Effect {
-  public uniforms: Map<string, THREE.Uniform<number>>;
-  constructor() {
-    const uniforms = new Map<string, THREE.Uniform<number>>([
-      ["colorNum", new THREE.Uniform(4.0)],
-      ["pixelSize", new THREE.Uniform(2.0)],
-    ]);
-    super("RetroEffect", ditherFragmentShader, { uniforms });
-    this.uniforms = uniforms;
-  }
-  set colorNum(value: number) {
-    this.uniforms.get("colorNum")!.value = value;
-  }
-  get colorNum(): number {
-    return this.uniforms.get("colorNum")!.value;
-  }
-  set pixelSize(value: number) {
-    this.uniforms.get("pixelSize")!.value = value;
-  }
-  get pixelSize(): number {
-    return this.uniforms.get("pixelSize")!.value;
-  }
-}
-
-const WrappedRetroEffect = wrapEffect(RetroEffectImpl);
-
-const RetroEffect = forwardRef<
-  RetroEffectImpl,
-  { colorNum: number; pixelSize: number }
->((props, ref) => {
-  const { colorNum, pixelSize } = props;
-  return (
-    <WrappedRetroEffect ref={ref} colorNum={colorNum} pixelSize={pixelSize} />
-  );
-});
-
-RetroEffect.displayName = "RetroEffect";
 
 interface WaveUniforms {
   [key: string]: THREE.IUniform;
@@ -181,6 +131,8 @@ interface WaveUniforms {
   mousePos: THREE.Uniform<THREE.Vector2>;
   enableMouseInteraction: THREE.Uniform<number>;
   mouseRadius: THREE.Uniform<number>;
+  colorNum: THREE.Uniform<number>;
+  pixelSize: THREE.Uniform<number>;
 }
 
 interface DitheredWavesProps {
@@ -221,6 +173,8 @@ function DitheredWaves({
       mousePos: new THREE.Uniform(new THREE.Vector2(0, 0)),
       enableMouseInteraction: new THREE.Uniform(enableMouseInteraction ? 1 : 0),
       mouseRadius: new THREE.Uniform(mouseRadius),
+      colorNum: new THREE.Uniform(colorNum),
+      pixelSize: new THREE.Uniform(pixelSize),
     }),
     [],
   );
@@ -249,6 +203,8 @@ function DitheredWaves({
       u.waveFrequency.value = waveFrequency;
     if (u.waveAmplitude.value !== waveAmplitude)
       u.waveAmplitude.value = waveAmplitude;
+    if (u.colorNum.value !== colorNum) u.colorNum.value = colorNum;
+    if (u.pixelSize.value !== pixelSize) u.pixelSize.value = pixelSize;
 
     if (!prevColor.current.every((v, i) => v === waveColor[i])) {
       u.waveColor.value.set(...waveColor);
@@ -279,14 +235,10 @@ function DitheredWaves({
         <planeGeometry args={[1, 1]} />
         <shaderMaterial
           vertexShader={waveVertexShader}
-          fragmentShader={waveFragmentShader}
+          fragmentShader={unifiedDitherFragmentShader}
           uniforms={waveUniforms}
         />
       </mesh>
-
-      <EffectComposer>
-        <RetroEffect colorNum={colorNum} pixelSize={pixelSize} />
-      </EffectComposer>
 
       <mesh
         onPointerMove={handlePointerMove}

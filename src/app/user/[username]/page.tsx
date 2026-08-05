@@ -2,8 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/api";
@@ -186,7 +185,7 @@ export default function PublicUserProfilePage() {
   const username = decodeURIComponent(rawUsername || "");
 
   const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [isProfileNotFound, setIsProfileNotFound] = useState(false);
   const [userData, setUserData] = useState<PublicUserData | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -212,7 +211,7 @@ export default function PublicUserProfilePage() {
 
     async function fetchPublicProfile() {
       setLoading(true);
-      setNotFound(false);
+      setIsProfileNotFound(false);
       try {
         const res = await apiFetch<{
           success: boolean;
@@ -223,7 +222,7 @@ export default function PublicUserProfilePage() {
         if (res && res.success && res.data) {
           setUserData(res.data);
         } else {
-          setNotFound(true);
+          setIsProfileNotFound(true);
         }
       } catch (err) {
         console.error("Failed to load public profile:", err);
@@ -388,7 +387,7 @@ export default function PublicUserProfilePage() {
             },
           });
         } else {
-          setNotFound(true);
+          setIsProfileNotFound(true);
         }
       } finally {
         setLoading(false);
@@ -680,40 +679,12 @@ export default function PublicUserProfilePage() {
     );
   }
 
-  if (notFound || !userData) {
-    return (
-      <div className="min-h-screen bg-white text-zinc-900 flex flex-col items-center justify-center p-6 font-sans">
-        <div className="max-w-md w-full text-center border-2 border-dotted border-zinc-300 rounded-2xl p-6 bg-zinc-50/50 shadow-xs">
-          <div className="w-12 h-12 rounded-xl bg-[#015451]/10 text-[#015451] border-2 border-dotted border-[#015451]/30 flex items-center justify-center mx-auto mb-3 text-lg font-semibold">
-            ?
-          </div>
-          <p className="text-[11px] font-semibold text-zinc-900 uppercase tracking-wider mb-1">
-            Profile Not Found
-          </p>
-          <h1 className="text-xl font-semibold text-zinc-900 tracking-tight mb-1.5">
-            User @{username || "unknown"} does not exist
-          </h1>
-          <p className="text-[12px] text-zinc-500 mb-5 leading-relaxed font-normal">
-            The developer profile you are trying to view might have been moved,
-            renamed, or hasn&apos;t been set up yet.
-          </p>
-          <div className="flex gap-2.5 justify-center">
-            <Link
-              href="/explore"
-              className="px-4 py-2 rounded-xl bg-[#015451] text-white text-[12px] font-semibold hover:bg-[#01413e] transition-all shadow-xs"
-            >
-              Explore Developers
-            </Link>
-            <Link
-              href="/dashboard"
-              className="px-4 py-2 rounded-xl bg-zinc-200 text-zinc-800 text-[12px] font-semibold hover:bg-zinc-300 transition-all"
-            >
-              Go to Dashboard
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+  if (isProfileNotFound || (!loading && !userData)) {
+    notFound();
+  }
+
+  if (!userData) {
+    return null;
   }
 
   const displayName = userData.first_name
