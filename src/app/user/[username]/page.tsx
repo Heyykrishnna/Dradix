@@ -13,7 +13,6 @@ import {
   FaCircleCheck,
   FaGraduationCap,
   FaGlobe,
-  FaGithub,
   FaLinkedin,
   FaLocationDot,
   FaShareNodes,
@@ -21,16 +20,13 @@ import {
   FaRegBookmark,
   FaPaperPlane,
   FaArrowUpRightFromSquare,
-  FaCode,
   FaStar,
   FaEye,
   FaDownload,
   FaChartLine,
-  FaTrophy,
-  FaFire,
-  FaBolt,
   FaXmark,
   FaCalendarDays,
+  FaGithub,
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -75,7 +71,7 @@ const parseDitherColor = (val: unknown): [number, number, number] => {
       }
     }
   }
-  return [0.004, 0.33, 0.32]; // Default #015451
+  return [0.004, 0.33, 0.32];
 };
 
 interface WeeklyActivityItem {
@@ -212,7 +208,6 @@ export default function PublicUserProfilePage() {
         }
       } catch (err) {
         console.error("Failed to load public profile:", err);
-        // Demo fallback data if user doesn't exist in backend DB yet
         if (
           username.toLowerCase() === "yatharthk" ||
           username.toLowerCase() === "demo"
@@ -388,7 +383,6 @@ export default function PublicUserProfilePage() {
     return parseDitherColor(userData?.dither_color || "#015451");
   }, [userData?.dither_color]);
 
-  // Dynamic calculations from real user profile data
   const developerScore = useMemo(() => {
     if (userData?.developer_score) return userData.developer_score;
     const commits = userData?.github?.total_commits || 0;
@@ -637,7 +631,7 @@ export default function PublicUserProfilePage() {
       <div className="min-h-screen bg-white text-zinc-900 flex flex-col items-center justify-center space-y-3 font-sans">
         <div className="w-10 h-10 border-3 border-dotted border-[#015451] border-t-transparent rounded-full animate-spin" />
         <p className="text-[12px] font-medium tracking-wide text-zinc-500">
-          Loading AI Synced Profile...
+          Loading Developer Profile...
         </p>
       </div>
     );
@@ -686,9 +680,6 @@ export default function PublicUserProfilePage() {
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans pb-32 sm:pb-40 selection:bg-[#015451]/20 selection:text-[#015451]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 space-y-6">
-        {/* ========================================================================= */}
-        {/* DRADIX APP LOGO & BRAND TOP BAR */}
-        {/* ========================================================================= */}
         <div className="flex items-center justify-between border-b-2 border-dotted border-zinc-200 pb-3">
           <div className="flex items-center gap-2.5">
             <div className="flex items-baseline gap-2">
@@ -702,11 +693,7 @@ export default function PublicUserProfilePage() {
           </div>
         </div>
 
-        {/* ========================================================================= */}
-        {/* HEADER SECTION (CLEAN PROFILE HEADER: DITHER CANVAS + OVERLAPPING AVATAR) */}
-        {/* ========================================================================= */}
         <section className="relative bg-white rounded-2xl overflow-hidden border-2 border-dotted border-zinc-200 shadow-xs">
-          {/* Top Dither Canvas Background */}
           <div className="h-56 sm:h-72 w-full relative overflow-hidden bg-zinc-950">
             <Dither
               waveColor={ditherColorRgb}
@@ -721,9 +708,7 @@ export default function PublicUserProfilePage() {
             <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] pointer-events-none" />
           </div>
 
-          {/* User Profile Bar (Avatar Overlapping Dither Header) */}
           <div className="px-5 md:px-7 pb-6 pt-14 md:pt-16 flex flex-col md:flex-row md:items-end justify-between gap-5 relative">
-            {/* Avatar floating over dither border */}
             <div className="absolute -top-14 left-5 md:left-7 w-24 h-24 md:w-32 md:h-32 rounded-2xl border-3 border-white bg-zinc-900 shadow-lg overflow-hidden flex items-center justify-center shrink-0 z-20">
               <img
                 src={userData.avatar_url || "/assets/images/avatar/Avatar.jpg"}
@@ -735,7 +720,6 @@ export default function PublicUserProfilePage() {
               />
             </div>
 
-            {/* Core Candidate Title & Meta */}
             <div className="flex-1 md:pl-36 text-left space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900">
@@ -765,7 +749,6 @@ export default function PublicUserProfilePage() {
               )}
             </div>
 
-            {/* Recruiter Action Buttons */}
             <div className="flex items-center gap-2 flex-wrap w-full md:w-auto shrink-0">
               <button
                 onClick={() => setShowHireModal(true)}
@@ -823,7 +806,6 @@ export default function PublicUserProfilePage() {
             </div>
           </div>
 
-          {/* Executive Bio & Verified Social Links */}
           <div className="px-5 md:px-7 py-4 border-t-2 border-dotted border-zinc-200 bg-zinc-50/50 grid grid-cols-1 lg:grid-cols-3 gap-5">
             <div className="lg:col-span-2 space-y-1">
               <h3 className="text-zinc-900 text-[12px] font-semibold tracking-wide">
@@ -881,9 +863,6 @@ export default function PublicUserProfilePage() {
           </div>
         </section>
 
-        {/* ========================================================================= */}
-        {/* RECRUITER HIGHLIGHTS & DEVELOPER SCORECARD */}
-        {/* ========================================================================= */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
           <div className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-0.5">
             <div className="flex items-center justify-between text-zinc-500 mb-0.5">
@@ -949,9 +928,6 @@ export default function PublicUserProfilePage() {
           </div>
         </section>
 
-        {/* ========================================================================= */}
-        {/* AI DEVELOPER INTELLIGENCE ASSESSMENT & CAPABILITY RATINGS */}
-        {/* ========================================================================= */}
         <section className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2 border-b-2 border-dotted border-zinc-200 pb-3">
             <div>
@@ -966,7 +942,6 @@ export default function PublicUserProfilePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Left: Natural Language AI Executive Evaluation */}
             <div className="p-4 rounded-xl bg-zinc-50/80 border-2 border-dotted border-zinc-200 space-y-3">
               <div>
                 <h3 className="text-zinc-900 text-[12px] font-semibold">
@@ -997,7 +972,6 @@ export default function PublicUserProfilePage() {
                 )}
             </div>
 
-            {/* Right: AI Capability Progress Bars */}
             <div className="space-y-3">
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] font-medium">
@@ -1076,9 +1050,6 @@ export default function PublicUserProfilePage() {
           </div>
         </section>
 
-        {/* ========================================================================= */}
-        {/* GRAPHS SECTION */}
-        {/* ========================================================================= */}
         <section className="space-y-5">
           <div className="flex items-center justify-between border-b-2 border-dotted border-zinc-200 pb-2.5">
             <div>
@@ -1092,7 +1063,6 @@ export default function PublicUserProfilePage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Graph 1: Weekly Activity Bar Chart */}
             <div className="lg:col-span-2 p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -1134,20 +1104,32 @@ export default function PublicUserProfilePage() {
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#09090b",
-                        borderColor: "#27272a",
+                        backgroundColor: "#ffffff",
+                        borderColor: "#e4e4e7",
                         borderRadius: "12px",
-                        color: "#fff",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                        borderStyle: "dashed",
+                        borderWidth: "2px",
+                        color: "#09090b",
                         fontSize: "11px",
+                        fontWeight: "500",
+                      }}
+                      itemStyle={{ color: "#09090b", fontWeight: "600" }}
+                      labelStyle={{
+                        color: "#09090b",
+                        fontWeight: "600",
+                        marginBottom: "4px",
                       }}
                     />
                     <Bar
                       dataKey="commits"
+                      name="Commits"
                       fill="#015451"
                       radius={[4, 4, 0, 0]}
                     />
                     <Bar
                       dataKey="problems"
+                      name="Problems"
                       fill="#27272a"
                       radius={[4, 4, 0, 0]}
                     />
@@ -1156,7 +1138,6 @@ export default function PublicUserProfilePage() {
               </div>
             </div>
 
-            {/* Graph 2: Language Distribution Donut Chart */}
             <div className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-3 flex flex-col justify-between">
               <div>
                 <h3 className="text-zinc-900 text-[12px] font-semibold tracking-wide">
@@ -1185,17 +1166,22 @@ export default function PublicUserProfilePage() {
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#ffffff",
+                            borderColor: "#e4e4e7",
+                            borderRadius: "12px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                            borderStyle: "dashed",
+                            borderWidth: "2px",
+                            color: "#09090b",
+                            fontSize: "11px",
+                            fontWeight: "500",
+                          }}
+                          itemStyle={{ color: "#09090b", fontWeight: "600" }}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-[10px] text-zinc-500 font-medium">
-                        Stack
-                      </span>
-                      <span className="text-[12px] font-semibold text-zinc-900">
-                        Verified
-                      </span>
-                    </div>
                   </div>
 
                   <div className="space-y-1.5 pt-2 border-t-2 border-dotted border-zinc-200">
@@ -1226,7 +1212,6 @@ export default function PublicUserProfilePage() {
             </div>
           </div>
 
-          {/* Graph 3: COMPETITIVE PROBLEM SOLVING & RATINGS WITH PLATFORM LOGOS */}
           <div className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2 border-b-2 border-dotted border-zinc-200 pb-3">
               <div>
@@ -1256,9 +1241,7 @@ export default function PublicUserProfilePage() {
               </div>
             </div>
 
-            {/* Platform Ratings Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* LeetCode Profile Card */}
               {leetCodeData ? (
                 <div className="p-4 rounded-xl bg-zinc-50/80 border-2 border-dotted border-zinc-200 space-y-3">
                   <div className="flex items-center justify-between">
@@ -1331,7 +1314,6 @@ export default function PublicUserProfilePage() {
                 </div>
               )}
 
-              {/* Codeforces Profile Card */}
               {codeforcesData ? (
                 <div className="p-4 rounded-xl bg-zinc-50/80 border-2 border-dotted border-zinc-200 space-y-3 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
@@ -1391,7 +1373,6 @@ export default function PublicUserProfilePage() {
             </div>
           </div>
 
-          {/* Graph 4: GitHub Activity Heatmap */}
           <div className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <div>
@@ -1408,44 +1389,60 @@ export default function PublicUserProfilePage() {
               </span>
             </div>
 
-            {/* Heatmap Grid */}
-            <div className="pt-1">
-              <div className="grid grid-rows-7 grid-flow-col gap-1 overflow-x-auto pb-1">
-                {contributionGrid.map((count, idx) => {
-                  let bg = "bg-zinc-100";
-                  if (count > 0 && count <= 3) bg = "bg-[#015451]/30";
-                  else if (count > 3 && count <= 7) bg = "bg-[#015451]/60";
-                  else if (count > 7 && count <= 12) bg = "bg-[#015451]/85";
-                  else if (count > 12) bg = "bg-[#015451]";
+            <div className="pt-2 space-y-3">
+              <div className="w-full overflow-x-auto pb-2 min-h-[105px]">
+                <div className="grid grid-rows-7 grid-flow-col gap-1 w-max">
+                  {contributionGrid.map((count, idx) => {
+                    let bg = "bg-zinc-100";
+                    if (count > 0 && count <= 3) bg = "bg-[#015451]/30";
+                    else if (count > 3 && count <= 7) bg = "bg-[#015451]/60";
+                    else if (count > 7 && count <= 12) bg = "bg-[#015451]/85";
+                    else if (count > 12) bg = "bg-[#015451]";
 
-                  return (
-                    <div
-                      key={idx}
-                      className={`w-3 h-3 rounded-xs ${bg} transition-all hover:scale-125 cursor-pointer`}
-                      title={`Activity level: ${count} commits`}
-                    />
-                  );
-                })}
+                    return (
+                      <div
+                        key={idx}
+                        className={`w-3 h-3 rounded-xs ${bg} transition-all hover:scale-125 cursor-pointer`}
+                        title={`Activity level: ${count} commits`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1.5 font-normal">
-                <span>Less</span>
-                <div className="flex items-center gap-1">
-                  <div className="w-2.5 h-2.5 rounded-xs bg-zinc-100" />
-                  <div className="w-2.5 h-2.5 rounded-xs bg-[#015451]/30" />
-                  <div className="w-2.5 h-2.5 rounded-xs bg-[#015451]/60" />
-                  <div className="w-2.5 h-2.5 rounded-xs bg-[#015451]/85" />
-                  <div className="w-2.5 h-2.5 rounded-xs bg-[#015451]" />
+              <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-3 border-t-2 border-dotted border-zinc-200">
+                <span className="font-medium text-zinc-500">Less</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-zinc-400 font-normal mr-1">
+                    Activity Level:
+                  </span>
+                  <div
+                    className="w-2.5 h-2.5 rounded-xs bg-zinc-100 border border-zinc-200"
+                    title="0 commits"
+                  />
+                  <div
+                    className="w-2.5 h-2.5 rounded-xs bg-[#015451]/30"
+                    title="1-3 commits"
+                  />
+                  <div
+                    className="w-2.5 h-2.5 rounded-xs bg-[#015451]/60"
+                    title="4-7 commits"
+                  />
+                  <div
+                    className="w-2.5 h-2.5 rounded-xs bg-[#015451]/85"
+                    title="8-12 commits"
+                  />
+                  <div
+                    className="w-2.5 h-2.5 rounded-xs bg-[#015451]"
+                    title="12+ commits"
+                  />
                 </div>
-                <span>More</span>
+                <span className="font-medium text-zinc-500">More</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ========================================================================= */}
-        {/* FEATURED PROJECTS SHOWCASE */}
-        {/* ========================================================================= */}
         <section className="space-y-5">
           <div className="border-b-2 border-dotted border-zinc-200 pb-2.5">
             <h2 className="text-zinc-900 font-semibold text-base tracking-wide">
@@ -1542,9 +1539,6 @@ export default function PublicUserProfilePage() {
           </div>
         </section>
 
-        {/* ========================================================================= */}
-        {/* SKILLS INVENTORY MATRIX */}
-        {/* ========================================================================= */}
         <section className="space-y-4">
           <div className="border-b-2 border-dotted border-zinc-200 pb-2.5">
             <h2 className="text-zinc-900 font-semibold text-base tracking-wide">
@@ -1571,11 +1565,7 @@ export default function PublicUserProfilePage() {
           </div>
         </section>
 
-        {/* ========================================================================= */}
-        {/* CAREER EXPERIENCE & EDUCATION TIMELINE */}
-        {/* ========================================================================= */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Experience */}
           <div className="space-y-4">
             <div className="border-b-2 border-dotted border-zinc-200 pb-2.5">
               <h2 className="text-zinc-900 font-semibold text-base tracking-wide">
@@ -1615,7 +1605,6 @@ export default function PublicUserProfilePage() {
             </div>
           </div>
 
-          {/* Education */}
           <div className="space-y-4">
             <div className="border-b-2 border-dotted border-zinc-200 pb-2.5">
               <h2 className="text-zinc-900 font-semibold text-base tracking-wide">
@@ -1657,13 +1646,9 @@ export default function PublicUserProfilePage() {
           </div>
         </section>
 
-        {/* Bottom padding spacing helper */}
         <div className="h-12 w-full" />
       </div>
 
-      {/* ========================================================================= */}
-      {/* RECRUITER CONTACT MODAL */}
-      {/* ========================================================================= */}
       <AnimatePresence>
         {showHireModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/75 backdrop-blur-sm">
