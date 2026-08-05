@@ -387,27 +387,31 @@ export default function MainLayout({
       <header
         className={`fixed top-0 left-0 right-0 z-50 w-full flex flex-col transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           scrolled
-            ? "bg-white/96 backdrop-blur-2xl backdrop-saturate-180 border-b border-zinc-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.08)] py-3"
-            : "bg-white/90 backdrop-blur-md border-b border-zinc-200/50 py-4 shadow-2xs"
+            ? "bg-white/70 backdrop-blur-2xl backdrop-saturate-200 border-b border-white/80 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)] py-3"
+            : "bg-white/50 backdrop-blur-xl backdrop-saturate-180 border-b border-white/60 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.04),inset_0_1px_1px_rgba(255,255,255,0.8)] py-4"
         }`}
       >
         <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between px-6">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
+          <Link href="/dashboard" className="flex items-center gap-2.5 group">
             <span className="text-black font-extrabold text-[14px] tracking-tight">
               dradix
             </span>
           </Link>
 
           <div className="relative" onMouseLeave={handleMouseLeave}>
-            <nav className="flex bg-[#f4f4f5] rounded-xl p-1 gap-1 relative">
+            <nav className="flex items-center bg-zinc-200/50 backdrop-blur-2xl backdrop-saturate-200 border border-white/80 shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),inset_0_-1px_2px_rgba(0,0,0,0.05),0_8px_32px_-4px_rgba(0,0,0,0.06)] rounded-2xl p-1.5 gap-1.5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-linear-to-br from-white/40 via-white/10 to-transparent pointer-events-none rounded-2xl" />
+
               <div
-                className="absolute top-1 bottom-1 bg-black rounded-lg transition-all duration-300 ease-[cubic-bezier(0.2,1,0.3,1)] pointer-events-none"
+                className="absolute top-1.5 bottom-1.5 rounded-xl transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] pointer-events-none bg-linear-to-br from-zinc-900/95 via-zinc-950/95 to-black/95 backdrop-blur-md border border-white/30 shadow-[0_6px_20px_rgba(0,0,0,0.35),inset_0_1.5px_1.5px_rgba(255,255,255,0.45),inset_0_-1.5px_1.5px_rgba(0,0,0,0.5),0_0_12px_rgba(255,255,255,0.1)] overflow-hidden"
                 style={{
                   left: `${pillStyle.left}px`,
                   width: `${pillStyle.width}px`,
                   opacity: pillStyle.opacity,
                 }}
-              />
+              >
+                <div className="absolute inset-0 bg-linear-to-br from-white/35 via-transparent to-white/5 pointer-events-none rounded-xl" />
+              </div>
 
               {navigationConfig.map((cat, index) => {
                 const isHighlighted = highlightedIndex === index;
@@ -424,10 +428,10 @@ export default function MainLayout({
                     <Link
                       href={cat.href}
                       onClick={(e) => handleHashLinkClick(e, cat.href)}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-colors duration-200 ${
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-bold transition-all duration-200 ${
                         isHighlighted
-                          ? "text-white"
-                          : "text-zinc-500 hover:text-zinc-900"
+                          ? "text-white drop-shadow-xs"
+                          : "text-zinc-600 hover:text-zinc-900"
                       }`}
                     >
                       <cat.icon className="w-4 h-4" />
@@ -444,7 +448,7 @@ export default function MainLayout({
             </nav>
 
             <div
-              className={`absolute top-full pt-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top z-50 ${
+              className={`absolute top-full pt-3 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top z-50 ${
                 activeHover
                   ? "opacity-100 scale-100 pointer-events-auto"
                   : "opacity-0 scale-95 pointer-events-none"
@@ -455,13 +459,15 @@ export default function MainLayout({
               }}
             >
               <div
-                className="w-70 bg-white rounded-2xl shadow-xl border border-zinc-100 p-0 py-4 overflow-hidden transition-[height] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                className="w-70 bg-white/92 backdrop-blur-3xl backdrop-saturate-200 border border-white/90 shadow-[inset_0_1.5px_2px_rgba(255,255,255,1),inset_0_-1px_2px_rgba(0,0,0,0.04),0_20px_50px_-10px_rgba(0,0,0,0.12)] rounded-2xl p-0 py-4 overflow-hidden transition-[height] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] relative"
                 style={{
                   height: dropdownHeight ? `${dropdownHeight}px` : "auto",
                 }}
               >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/5 to-transparent pointer-events-none rounded-2xl z-10" />
+
                 <div
-                  className="flex items-start transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  className="flex items-start transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] relative z-20"
                   style={{
                     width: `${navigationConfig.length * 280}px`,
                     transform: `translateX(-${(hoveredIndex ?? 0) * 280}px)`,
@@ -487,12 +493,12 @@ export default function MainLayout({
                               handleMouseLeave();
                               handleHashLinkClick(e, sub.href);
                             }}
-                            className="flex flex-col p-2.5 rounded-xl hover:bg-zinc-50/80 transition-all duration-200 hover:translate-x-0.5 text-left"
+                            className="flex flex-col p-2.5 rounded-xl bg-transparent hover:bg-white hover:shadow-[0_4px_16px_-2px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.05)] hover:border-zinc-200/80 transition-all duration-200 hover:translate-x-0.5 text-left border border-transparent group/item"
                           >
-                            <span className="text-[13px] font-bold text-zinc-900">
+                            <span className="text-[13px] font-bold text-zinc-900 group-hover/item:text-black transition-colors">
                               {sub.label}
                             </span>
-                            <span className="text-[11px] text-zinc-400 mt-0.5 leading-snug">
+                            <span className="text-[11px] text-zinc-500 font-medium mt-0.5 leading-snug group-hover/item:text-zinc-600 transition-colors">
                               {sub.desc}
                             </span>
                           </Link>
@@ -577,16 +583,17 @@ export default function MainLayout({
             </div> */}
 
             <div className="relative group/bell">
-              <button className="relative w-9 h-9 rounded-xl bg-[#f4f4f5] flex items-center justify-center hover:bg-[#eef2f6] transition-colors">
-                <BellIcon className="w-4 h-4 text-zinc-600" />
+              <button className="relative w-9 h-9 rounded-xl bg-white/60 backdrop-blur-xl border border-white/80 shadow-[inset_0_1px_1.5px_rgba(255,255,255,0.9),0_4px_12px_rgba(0,0,0,0.05)] hover:bg-white/85 hover:border-white hover:scale-105 active:scale-95 flex items-center justify-center transition-all cursor-pointer">
+                <BellIcon className="w-4 h-4 text-zinc-700" />
                 {notifications.length > 0 && (
-                  <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#f43f5e] rounded-full" />
+                  <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#f43f5e] rounded-full ring-2 ring-white" />
                 )}
               </button>
 
-              <div className="absolute right-0 top-full pt-2 w-80 transition-all duration-300 ease-out origin-top-right opacity-0 scale-95 pointer-events-none group-hover/bell:opacity-100 group-hover/bell:scale-100 group-hover/bell:pointer-events-auto z-60">
-                <div className="bg-white rounded-2xl shadow-xl border border-zinc-100 p-4 space-y-3">
-                  <div className="flex justify-between items-center pb-2 border-b border-zinc-100">
+              <div className="absolute right-0 top-full pt-3 w-80 transition-all duration-300 ease-out origin-top-right opacity-0 scale-95 pointer-events-none group-hover/bell:opacity-100 group-hover/bell:scale-100 group-hover/bell:pointer-events-auto z-60">
+                <div className="bg-white/55 backdrop-blur-3xl backdrop-saturate-200 border border-white/80 shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.95),inset_0_-1px_2px_rgba(0,0,0,0.06),0_24px_60px_-12px_rgba(0,0,0,0.18)] rounded-2xl p-4 space-y-3 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/10 to-transparent pointer-events-none rounded-2xl z-10" />
+                  <div className="flex justify-between items-center pb-2 border-b border-zinc-200/60 relative z-20">
                     <h4 className="text-[12px] font-bold text-black uppercase tracking-wider">
                       Notifications
                     </h4>
