@@ -1543,6 +1543,7 @@ export default function ProfilePage() {
             dither_color: JSON.stringify(modalDitherColor),
           }),
         });
+        await checkAuth();
       } catch (err) {
         console.warn("Dither color DB sync warning:", err);
       }
