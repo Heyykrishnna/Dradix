@@ -1313,6 +1313,17 @@ export default function DashboardPage() {
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [sharedLink, setSharedLink] = useState<boolean>(false);
 
+  React.useEffect(() => {
+    if (showQrModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showQrModal]);
+
   const publicUsername = user?.username || "yatharth";
   const publicProfileUrl =
     typeof window !== "undefined"
@@ -5193,55 +5204,208 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {showQrModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl text-center relative border border-zinc-200">
-            <button
-              onClick={() => setShowQrModal(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-700 text-sm font-bold w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center cursor-pointer transition-all"
+      <AnimatePresence>
+        {showQrModal && (
+          <motion.div
+            key="qr-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="fixed inset-0 z-100 flex items-center justify-center p-4 overflow-hidden"
+            style={{
+              background: "rgba(8, 8, 10, 0.6)",
+              backdropFilter: "blur(28px) saturate(160%)",
+              WebkitBackdropFilter: "blur(28px) saturate(160%)",
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowQrModal(false);
+            }}
+          >
+            <motion.div
+              key="qr-card"
+              initial={{ opacity: 0, scale: 0.82, y: 28, filter: "blur(8px)" }}
+              animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, scale: 0.86, y: 20, filter: "blur(6px)" }}
+              transition={{
+                type: "spring",
+                stiffness: 340,
+                damping: 26,
+                mass: 0.9,
+                opacity: { duration: 0.18, ease: "easeOut" },
+                filter: { duration: 0.2, ease: "easeOut" },
+              }}
+              className="relative w-full max-w-89 rounded-[28px] overflow-hidden"
+              style={{
+                background: "rgba(14, 14, 18, 0.68)",
+                backdropFilter: "blur(48px) saturate(180%) brightness(1.08)",
+                WebkitBackdropFilter:
+                  "blur(48px) saturate(180%) brightness(1.08)",
+                border: "1px solid rgba(255,255,255,0.09)",
+                boxShadow: [
+                  "0 0 0 1px rgba(255,255,255,0.05) inset",
+                  "inset 0 1px 0 rgba(255,255,255,0.13)",
+                  "0 32px 64px rgba(0,0,0,0.55)",
+                  "0 8px 24px rgba(0,0,0,0.4)",
+                ].join(", "),
+              }}
             >
-              ✕
-            </button>
-
-            <div className="space-y-1 pt-2">
-              <h3 className="text-base font-bold text-zinc-900">
-                Public Profile QR Code
-              </h3>
-              <p className="text-xs text-zinc-500 font-medium">
-                Scan to view @{publicUsername}&apos;s profile on Dradix
-              </p>
-            </div>
-
-            <div className="p-4 bg-zinc-50 rounded-2xl border-2 border-dotted border-zinc-200 flex justify-center items-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(publicProfileUrl)}`}
-                alt={`QR code for ${publicUsername}`}
-                className="w-48 h-48 rounded-lg shadow-2xs"
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: "12%",
+                  right: "12%",
+                  height: 1,
+                  background:
+                    "linear-gradient(90deg, transparent, rgba(255,255,255,0.28) 40%, rgba(255,255,255,0.28) 60%, transparent)",
+                  pointerEvents: "none",
+                }}
               />
-            </div>
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background:
+                    "linear-gradient(160deg, rgba(255,255,255,0.03) 0%, transparent 55%)",
+                  pointerEvents: "none",
+                  borderRadius: "inherit",
+                }}
+              />
 
-            <div className="text-[11px] font-mono text-zinc-600 bg-zinc-100 p-2.5 rounded-xl truncate">
-              {publicProfileUrl}
-            </div>
+              <div className="relative z-10 p-6 flex flex-col items-center gap-5">
+                <div className="w-full flex items-start justify-between">
+                  <div>
+                    <p
+                      className="text-[10px] font-semibold tracking-[0.14em] uppercase mb-0.5"
+                      style={{ color: "rgba(255,255,255,0.38)" }}
+                    >
+                      Your Profile
+                    </p>
+                    <h3 className="text-[17px] font-bold text-white leading-tight">
+                      Scan to Connect
+                    </h3>
+                  </div>
+                  <motion.button
+                    onClick={() => setShowQrModal(false)}
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                    className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
+                    style={{
+                      background: "rgba(255,255,255,0.07)",
+                      border: "1px solid rgba(255,255,255,0.10)",
+                      color: "rgba(255,255,255,0.5)",
+                      fontSize: 13,
+                    }}
+                  >
+                    ✕
+                  </motion.button>
+                </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={handleCopyPublicProfileLink}
-                className="flex-1 py-2.5 rounded-xl bg-[#015451] text-white text-xs font-semibold hover:bg-[#01413e] transition-all cursor-pointer"
-              >
-                {copiedLink ? "Link Copied!" : "Copy Link"}
-              </button>
-              <button
-                onClick={() => setShowQrModal(false)}
-                className="px-4 py-2.5 rounded-xl bg-zinc-100 text-zinc-700 text-xs font-semibold hover:bg-zinc-200 transition-all cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <div
+                  className="relative w-full flex items-center justify-center"
+                  style={{
+                    padding: "16px",
+                    background: "rgba(6, 6, 8, 0.88)",
+                    borderRadius: 20,
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    boxShadow:
+                      "inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 32px rgba(0,0,0,0.55)",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      borderRadius: 20,
+                      background:
+                        "radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.04) 0%, transparent 65%)",
+                      pointerEvents: "none",
+                    }}
+                  />
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=ffffff&bgcolor=060608&qzone=2&format=png&data=${encodeURIComponent(publicProfileUrl)}`}
+                    alt={`QR code for ${publicUsername}`}
+                    className="relative z-10 rounded-xl"
+                    style={{ width: 220, height: 220 }}
+                  />
+                </div>
+
+                <div
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.07)",
+                  }}
+                >
+                  <div
+                    className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-[9px]"
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      color: "rgba(255,255,255,0.45)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    ⊡
+                  </div>
+                  <span
+                    className="flex-1 text-[11px] font-mono truncate"
+                    style={{ color: "rgba(255,255,255,0.42)" }}
+                  >
+                    {displayProfilePath}
+                  </span>
+                </div>
+
+                <div className="w-full grid grid-cols-2 gap-2.5">
+                  <motion.button
+                    onClick={handleCopyPublicProfileLink}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                    className="flex items-center justify-center py-3 rounded-2xl text-[12px] font-semibold cursor-pointer"
+                    style={{
+                      background: copiedLink
+                        ? "rgba(255,255,255,0.12)"
+                        : "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      color: copiedLink
+                        ? "rgba(255,255,255,0.9)"
+                        : "rgba(255,255,255,0.65)",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    {copiedLink ? "✓ Copied" : "Copy Link"}
+                  </motion.button>
+
+                  <motion.button
+                    onClick={() => window.open(publicProfileUrl, "_blank")}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                    className="flex items-center justify-center py-3 rounded-2xl text-[12px] font-semibold cursor-pointer"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      color: "rgba(255,255,255,0.5)",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+                    }}
+                  >
+                    Open ↗
+                  </motion.button>
+                </div>
+
+                <p
+                  className="text-[10px] text-center"
+                  style={{ color: "rgba(255,255,255,0.2)" }}
+                >
+                  @{publicUsername} · dradix.dev
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
