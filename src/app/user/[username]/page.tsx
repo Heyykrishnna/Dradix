@@ -1674,48 +1674,49 @@ export default function PublicUserProfilePage() {
 
       <AnimatePresence>
         {showHireModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/75 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-md">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-white rounded-2xl p-5 sm:p-6 shadow-2xl border-2 border-dotted border-[#015451] relative text-zinc-900 font-sans"
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="w-full max-w-lg bg-white/95 backdrop-blur-2xl rounded-3xl p-7 sm:p-8 shadow-2xl shadow-zinc-950/20 relative text-zinc-900 font-sans space-y-6"
             >
               <button
                 onClick={() => setShowHireModal(false)}
-                className="absolute top-5 right-5 p-1.5 rounded-full text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-all cursor-pointer"
+                className="absolute top-6 right-6 p-2 rounded-full text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
               >
                 <FaXmark className="w-4 h-4" />
               </button>
 
               {hireSubmitted ? (
-                <div className="py-8 text-center space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-[#015451] text-white flex items-center justify-center mx-auto text-xl shadow-xs">
+                <div className="py-10 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-[#015451] text-white flex items-center justify-center mx-auto text-xl shadow-lg shadow-[#015451]/30">
                     <FaCheck className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-semibold text-zinc-900">
+                  <h3 className="text-xl font-semibold text-zinc-900 tracking-tight">
                     Message Dispatched!
                   </h3>
-                  <p className="text-[12px] text-zinc-600 max-w-xs mx-auto font-normal">
+                  <p className="text-xs text-zinc-600 max-w-xs mx-auto font-normal leading-relaxed">
                     Your hiring proposal has been delivered directly to{" "}
                     {displayName}&apos;s verified inbox.
                   </p>
                 </div>
               ) : (
-                <form onSubmit={handleHireSubmit} className="space-y-3.5">
+                <form onSubmit={handleHireSubmit} className="space-y-5">
                   <div>
-                    <h3 className="text-base font-semibold text-zinc-900">
+                    <h3 className="text-lg font-semibold text-[#015451] tracking-tight">
                       Contact {displayName} for Hiring
                     </h3>
-                    <p className="text-[11px] text-zinc-500 mt-0.5 font-normal">
+                    <p className="text-[12px] text-zinc-500 mt-1 pb-4 font-normal">
                       Dispatch a direct job offer, role proposal, or interview
                       invite.
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <div>
-                      <label className="block text-[10px] font-semibold text-zinc-600 uppercase mb-1">
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1.5">
                         Your Name / Recruiter
                       </label>
                       <input
@@ -1729,12 +1730,12 @@ export default function PublicUserProfilePage() {
                             recruiterName: e.target.value,
                           })
                         }
-                        className="w-full px-3 py-2 rounded-lg border-2 border-dotted border-zinc-300 text-[11px] focus:border-[#015451] focus:outline-none bg-zinc-50 font-normal"
+                        className="w-full px-4 py-3 rounded-2xl bg-zinc-50/80 text-zinc-900 text-xs font-normal border border-zinc-200 focus:border-[#015451] focus:ring-2 focus:ring-[#015451]/20 focus:outline-none transition-all placeholder:text-zinc-400"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-semibold text-zinc-600 uppercase mb-1">
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1.5">
                         Work Email
                       </label>
                       <input
@@ -1748,14 +1749,14 @@ export default function PublicUserProfilePage() {
                             recruiterEmail: e.target.value,
                           })
                         }
-                        className="w-full px-3 py-2 rounded-lg border-2 border-dotted border-zinc-300 text-[11px] focus:border-[#015451] focus:outline-none bg-zinc-50 font-normal"
+                        className="w-full px-4 py-3 rounded-2xl bg-zinc-50/80 text-zinc-900 text-xs font-normal border border-zinc-200 focus:border-[#015451] focus:ring-2 focus:ring-[#015451]/20 focus:outline-none transition-all placeholder:text-zinc-400"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <div>
-                      <label className="block text-[10px] font-semibold text-zinc-600 uppercase mb-1">
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1.5">
                         Company Name
                       </label>
                       <input
@@ -1766,12 +1767,12 @@ export default function PublicUserProfilePage() {
                         onChange={(e) =>
                           setHireForm({ ...hireForm, company: e.target.value })
                         }
-                        className="w-full px-3 py-2 rounded-lg border-2 border-dotted border-zinc-300 text-[11px] focus:border-[#015451] focus:outline-none bg-zinc-50 font-normal"
+                        className="w-full px-4 py-3 rounded-2xl bg-zinc-50/80 text-zinc-900 text-xs font-normal border border-zinc-200 focus:border-[#015451] focus:ring-2 focus:ring-[#015451]/20 focus:outline-none transition-all placeholder:text-zinc-400"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-semibold text-zinc-600 uppercase mb-1">
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1.5">
                         Proposed Role Title
                       </label>
                       <input
@@ -1785,13 +1786,13 @@ export default function PublicUserProfilePage() {
                             roleTitle: e.target.value,
                           })
                         }
-                        className="w-full px-3 py-2 rounded-lg border-2 border-dotted border-zinc-300 text-[11px] focus:border-[#015451] focus:outline-none bg-zinc-50 font-normal"
+                        className="w-full px-4 py-3 rounded-2xl bg-zinc-50/80 text-zinc-900 text-xs font-normal border border-zinc-200 focus:border-[#015451] focus:ring-2 focus:ring-[#015451]/20 focus:outline-none transition-all placeholder:text-zinc-400"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-semibold text-zinc-600 uppercase mb-1">
+                    <label className="block text-[11px] font-medium text-zinc-600 mb-1.5">
                       Message / Opportunity Details
                     </label>
                     <textarea
@@ -1802,15 +1803,16 @@ export default function PublicUserProfilePage() {
                       onChange={(e) =>
                         setHireForm({ ...hireForm, message: e.target.value })
                       }
-                      className="w-full px-3 py-2 rounded-lg border-2 border-dotted border-zinc-300 text-[11px] focus:border-[#015451] focus:outline-none resize-none bg-zinc-50 font-normal"
+                      className="w-full px-4 py-3.5 rounded-2xl bg-zinc-50/80 text-zinc-900 text-xs font-normal border border-zinc-200 focus:border-[#015451] focus:ring-2 focus:ring-[#015451]/20 focus:outline-none transition-all placeholder:text-zinc-400 resize-none min-h-27.5"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-xl bg-[#015451] text-white text-[12px] font-semibold uppercase tracking-wider hover:bg-[#01413e] transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-3.5 px-6 rounded-2xl bg-[#015451] hover:bg-[#013e3c] text-white text-xs font-semibold uppercase tracking-wider transition-all shadow-md shadow-[#015451]/25 flex items-center justify-center gap-2 cursor-pointer border-0 active:scale-[0.99]"
                   >
-                    <FaPaperPlane className="w-3 h-3" /> Dispatch Hiring Offer
+                    <FaPaperPlane className="w-3.5 h-3.5" /> Dispatch Hiring
+                    Offer
                   </button>
                 </form>
               )}
