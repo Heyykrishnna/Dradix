@@ -8,6 +8,9 @@ import { useAuth } from "@/context/AuthContext";
 import { apiFetch, API_URL } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import Loader from "@/components/Loader";
+import dynamic from "next/dynamic";
+
+const Dither = dynamic(() => import("@/components/Dither"), { ssr: false });
 
 const ErrorQuestionTooltip = ({ message }: { message: string }) => {
   return (
@@ -55,6 +58,7 @@ import {
   FaRotate,
   FaGear,
   FaRightFromBracket,
+  FaPalette,
 } from "react-icons/fa6";
 import {
   ResponsiveContainer,
@@ -271,6 +275,7 @@ interface ProfileState {
   coverPositionX: number;
   coverPositionY: number;
   coverZoom: number;
+  ditherColor: [number, number, number];
   github: string;
   linkedin: string;
   portfolio: string;
@@ -293,6 +298,62 @@ interface ProfileState {
   bookmarksCount: number;
   rewardPoints: number;
 }
+
+export const DITHER_COLOR_PRESETS: {
+  name: string;
+  rgb: [number, number, number];
+  hex: string;
+}[] = [
+  { name: "Brand Emerald", rgb: [0.004, 0.33, 0.32], hex: "#015451" },
+  { name: "Deep Ocean", rgb: [0.0, 0.24, 0.23], hex: "#003c3a" },
+  { name: "Cyber Purple", rgb: [0.32, 0.15, 1.0], hex: "#5226ff" },
+  { name: "Electric Indigo", rgb: [0.2, 0.2, 0.85], hex: "#3333da" },
+  { name: "Sunset Magenta", rgb: [0.85, 0.25, 0.45], hex: "#d94073" },
+  { name: "Midnight Charcoal", rgb: [0.1, 0.1, 0.12], hex: "#1a1a1f" },
+];
+
+export const hexToRgbFloat = (hex: string): [number, number, number] => {
+  let cleanHex = hex.replace("#", "");
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex
+      .split("")
+      .map((c) => c + c)
+      .join("");
+  }
+  if (cleanHex.length !== 6) return [0.004, 0.33, 0.32];
+  const num = parseInt(cleanHex, 16);
+  const r = parseFloat((((num >> 16) & 255) / 255).toFixed(3));
+  const g = parseFloat((((num >> 8) & 255) / 255).toFixed(3));
+  const b = parseFloat(((num & 255) / 255).toFixed(3));
+  return [r, g, b];
+};
+
+export const rgbFloatToHex = (rgb: [number, number, number]): string => {
+  if (!Array.isArray(rgb) || rgb.length < 3) return "#015451";
+  const r = Math.round(Math.min(1, Math.max(0, rgb[0])) * 255);
+  const g = Math.round(Math.min(1, Math.max(0, rgb[1])) * 255);
+  const b = Math.round(Math.min(1, Math.max(0, rgb[2])) * 255);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+};
+
+export const parseDitherColor = (val: unknown): [number, number, number] => {
+  if (Array.isArray(val) && val.length >= 3) {
+    return [Number(val[0]), Number(val[1]), Number(val[2])];
+  }
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed) && parsed.length >= 3) {
+        return [Number(parsed[0]), Number(parsed[1]), Number(parsed[2])];
+      }
+    } catch {
+      if (val.startsWith("#")) {
+        return hexToRgbFloat(val);
+      }
+    }
+  }
+  return [0.004, 0.33, 0.32];
+};
 
 const getSocialLogoUrl = (name: string, url: string) => {
   const lowerName = name.toLowerCase().trim();
@@ -349,13 +410,6 @@ const getSocialLogoUrl = (name: string, url: string) => {
   }
 };
 
-const COVER_PRESETS = [
-  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=1200&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop",
-];
-
 const AVATAR_PRESETS = [
   "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=256&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=256&auto=format&fit=crop",
@@ -396,6 +450,7 @@ const initialProfile: Omit<ProfileState, "skills"> = {
   coverPositionX: 50,
   coverPositionY: 50,
   coverZoom: 100,
+  ditherColor: [0.004, 0.33, 0.32],
   github: "https://github.com/yatharthk",
   linkedin: "https://linkedin.com/in/yatharthk",
   portfolio: "https://yatharthk.dev",
@@ -865,6 +920,7 @@ export default function ProfilePage() {
     if (typeof window !== "undefined") {
       const savedAvatar = localStorage.getItem("dradix_profile_avatar");
       const savedCover = localStorage.getItem("dradix_profile_banner");
+      const savedDitherRaw = localStorage.getItem("dradix_dither_color");
       const savedContactRaw = localStorage.getItem("dradix_contact_info");
       let savedContact: Partial<ProfileState> = {};
       if (savedContactRaw) {
@@ -879,6 +935,9 @@ export default function ProfilePage() {
         ...savedContact,
         avatarUrl: savedAvatar || initialProfile.avatarUrl,
         coverUrl: savedCover || initialProfile.coverUrl,
+        ditherColor: savedDitherRaw
+          ? parseDitherColor(savedDitherRaw)
+          : initialProfile.ditherColor,
       };
     }
     return initialProfile;
@@ -896,6 +955,10 @@ export default function ProfilePage() {
       const savedCover =
         typeof window !== "undefined"
           ? localStorage.getItem("dradix_profile_banner")
+          : null;
+      const savedDitherRaw =
+        typeof window !== "undefined"
+          ? localStorage.getItem("dradix_dither_color")
           : null;
       const savedResume =
         typeof window !== "undefined"
@@ -917,6 +980,11 @@ export default function ProfilePage() {
       const u = user as unknown as Record<string, unknown>;
       const avatar = user.avatar_url || savedAvatar || initialProfile.avatarUrl;
       const cover = user.cover_url || savedCover || initialProfile.coverUrl;
+      const ditherColor = u.dither_color
+        ? parseDitherColor(u.dither_color)
+        : savedDitherRaw
+          ? parseDitherColor(savedDitherRaw)
+          : initialProfile.ditherColor;
       const resumeName =
         (user as { resume_name?: string }).resume_name ||
         savedResume ||
@@ -959,6 +1027,9 @@ export default function ProfilePage() {
           prev.email === email &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
+          prev.ditherColor[0] === ditherColor[0] &&
+          prev.ditherColor[1] === ditherColor[1] &&
+          prev.ditherColor[2] === ditherColor[2] &&
           prev.bio === newBio &&
           prev.resumeName === resumeName &&
           prev.phone === phone &&
@@ -977,6 +1048,7 @@ export default function ProfilePage() {
           email,
           avatarUrl: avatar,
           coverUrl: cover,
+          ditherColor,
           bio: newBio,
           resumeName,
           phone,
@@ -995,6 +1067,9 @@ export default function ProfilePage() {
           prev.email === email &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
+          prev.ditherColor[0] === ditherColor[0] &&
+          prev.ditherColor[1] === ditherColor[1] &&
+          prev.ditherColor[2] === ditherColor[2] &&
           prev.bio === newBio &&
           prev.resumeName === resumeName &&
           prev.phone === phone &&
@@ -1013,6 +1088,7 @@ export default function ProfilePage() {
           email,
           avatarUrl: avatar,
           coverUrl: cover,
+          ditherColor,
           bio: newBio,
           resumeName,
           phone,
@@ -1162,21 +1238,28 @@ export default function ProfilePage() {
             res.data.coding_profiles &&
             Array.isArray(res.data.coding_profiles)
           ) {
-            res.data.coding_profiles.forEach((cp) => {
-              const platformKey = cp.platform.toLowerCase();
-              setPlatformHandles((prev) => ({
-                ...prev,
-                [platformKey]: cp.username,
-              }));
-              setPlatformStats((prev) => ({
-                ...prev,
-                [platformKey]: {
-                  connected: true,
-                  rating: cp.rating || 0,
-                  solved: cp.problems_solved || 0,
-                },
-              }));
-            });
+            res.data.coding_profiles.forEach(
+              (cp: {
+                platform: string;
+                username?: string;
+                rating?: number;
+                problems_solved?: number;
+              }) => {
+                const platformKey = cp.platform.toLowerCase();
+                setPlatformHandles((prev) => ({
+                  ...prev,
+                  [platformKey]: cp.username || "",
+                }));
+                setPlatformStats((prev) => ({
+                  ...prev,
+                  [platformKey]: {
+                    connected: true,
+                    rating: cp.rating || 0,
+                    solved: cp.problems_solved || 0,
+                  },
+                }));
+              },
+            );
           }
         }
       } catch (err) {
@@ -1234,7 +1317,11 @@ export default function ProfilePage() {
           }));
         } else if (res.data.coding_profiles) {
           const updated = res.data.coding_profiles.find(
-            (cp) => cp.platform.toLowerCase() === platformId,
+            (cp: {
+              platform: string;
+              rating?: number;
+              problems_solved?: number;
+            }) => cp.platform.toLowerCase() === platformId,
           );
           if (updated) {
             setPlatformStats((prev) => ({
@@ -1302,17 +1389,23 @@ export default function ProfilePage() {
           }));
         }
         if (res.data.coding_profiles) {
-          res.data.coding_profiles.forEach((cp) => {
-            const key = cp.platform.toLowerCase();
-            setPlatformStats((prev) => ({
-              ...prev,
-              [key]: {
-                connected: true,
-                rating: cp.rating || 0,
-                solved: cp.problems_solved || 0,
-              },
-            }));
-          });
+          res.data.coding_profiles.forEach(
+            (cp: {
+              platform: string;
+              rating?: number;
+              problems_solved?: number;
+            }) => {
+              const key = cp.platform.toLowerCase();
+              setPlatformStats((prev) => ({
+                ...prev,
+                [key]: {
+                  connected: true,
+                  rating: cp.rating || 0,
+                  solved: cp.problems_solved || 0,
+                },
+              }));
+            },
+          );
         }
       }
     } catch (err) {
@@ -1336,104 +1429,11 @@ export default function ProfilePage() {
   const [modalActiveTab, setModalActiveTab] = useState<
     "upload" | "url" | "presets"
   >("upload");
-
-  const [modalZoom, setModalZoom] = useState(100);
-  const [modalPositionX, setModalPositionX] = useState(50);
-  const [modalPositionY, setModalPositionY] = useState(50);
+  const [modalDitherColor, setModalDitherColor] = useState<
+    [number, number, number]
+  >([0.004, 0.33, 0.32]);
 
   const modalFileInputRef = useRef<HTMLInputElement>(null);
-
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0, posX: 50, posY: 50 });
-  const previewContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (imageModalType !== "cover") return;
-    e.preventDefault();
-    setIsDragging(true);
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      posX: modalPositionX,
-      posY: modalPositionY,
-    };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || imageModalType !== "cover") return;
-    const container = previewContainerRef.current;
-    if (!container) return;
-
-    const dx = e.clientX - dragStartRef.current.x;
-    const dy = e.clientY - dragStartRef.current.y;
-
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-
-    const zoomFactor = 100 / modalZoom;
-    const nextX =
-      dragStartRef.current.posX - (dx / containerWidth) * 100 * zoomFactor;
-    const nextY =
-      dragStartRef.current.posY - (dy / containerHeight) * 100 * zoomFactor;
-
-    setModalPositionX(Math.max(0, Math.min(100, nextX)));
-    setModalPositionY(Math.max(0, Math.min(100, nextY)));
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (imageModalType !== "cover") return;
-    e.preventDefault();
-    const zoomStep = 8;
-    const nextZoom = e.deltaY < 0 ? modalZoom + zoomStep : modalZoom - zoomStep;
-    setModalZoom(Math.max(100, Math.min(300, nextZoom)));
-  };
-
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (imageModalType !== "cover" || e.touches.length !== 1) return;
-    setIsDragging(true);
-    const touch = e.touches[0];
-    dragStartRef.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-      posX: modalPositionX,
-      posY: modalPositionY,
-    };
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!isDragging || imageModalType !== "cover" || e.touches.length !== 1)
-      return;
-    const container = previewContainerRef.current;
-    if (!container) return;
-
-    const touch = e.touches[0];
-    const dx = touch.clientX - dragStartRef.current.x;
-    const dy = touch.clientY - dragStartRef.current.y;
-
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-
-    const zoomFactor = 100 / modalZoom;
-    const nextX =
-      dragStartRef.current.posX - (dx / containerWidth) * 100 * zoomFactor;
-    const nextY =
-      dragStartRef.current.posY - (dy / containerHeight) * 100 * zoomFactor;
-
-    setModalPositionX(Math.max(0, Math.min(100, nextX)));
-    setModalPositionY(Math.max(0, Math.min(100, nextY)));
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
 
   useEffect(() => {
     if (imageModalType !== null || activeModal !== null) {
@@ -1455,6 +1455,11 @@ export default function ProfilePage() {
         localStorage.setItem("dradix_profile_avatar", formState.avatarUrl);
       if (formState.coverUrl)
         localStorage.setItem("dradix_profile_banner", formState.coverUrl);
+      if (formState.ditherColor)
+        localStorage.setItem(
+          "dradix_dither_color",
+          JSON.stringify(formState.ditherColor),
+        );
       localStorage.setItem(
         "dradix_contact_info",
         JSON.stringify({
@@ -1481,6 +1486,7 @@ export default function ProfilePage() {
           last_name: lastName,
           avatar_url: formState.avatarUrl,
           cover_url: formState.coverUrl,
+          dither_color: JSON.stringify(formState.ditherColor),
           bio: formState.bio,
           phone: formState.phone,
           location: formState.location,
@@ -1509,40 +1515,45 @@ export default function ProfilePage() {
     setModalPreview(currentUrl);
     setModalActiveTab(currentUrl.startsWith("data:") ? "upload" : "url");
     if (type === "cover") {
-      setModalZoom(formState.coverZoom || 100);
-      setModalPositionX(formState.coverPositionX || 50);
-      setModalPositionY(formState.coverPositionY || 50);
+      setModalDitherColor(formState.ditherColor);
     }
   };
 
   const handleImageModalSave = async () => {
-    if (!modalPreview) return;
-    const newAvatarUrl =
-      imageModalType === "avatar" ? modalPreview : formState.avatarUrl;
-    const newCoverUrl =
-      imageModalType === "cover" ? modalPreview : formState.coverUrl;
-
     if (imageModalType === "cover") {
       setFormState((prev) => ({
         ...prev,
-        coverUrl: modalPreview,
-        coverZoom: modalZoom,
-        coverPositionX: modalPositionX,
-        coverPositionY: modalPositionY,
+        ditherColor: modalDitherColor,
       }));
       setProfile((prev) => ({
         ...prev,
-        coverUrl: modalPreview,
+        ditherColor: modalDitherColor,
       }));
       if (typeof window !== "undefined") {
-        localStorage.setItem("dradix_profile_banner", modalPreview);
+        localStorage.setItem(
+          "dradix_dither_color",
+          JSON.stringify(modalDitherColor),
+        );
       }
-    } else {
-      setFormState((prev) => ({ ...prev, avatarUrl: modalPreview }));
-      setProfile((prev) => ({ ...prev, avatarUrl: modalPreview }));
-      if (typeof window !== "undefined") {
-        localStorage.setItem("dradix_profile_avatar", modalPreview);
+      try {
+        await apiFetch("/users/profile", {
+          method: "PATCH",
+          body: JSON.stringify({
+            dither_color: JSON.stringify(modalDitherColor),
+          }),
+        });
+      } catch (err) {
+        console.warn("Dither color DB sync warning:", err);
       }
+      setImageModalType(null);
+      return;
+    }
+
+    if (!modalPreview) return;
+    setFormState((prev) => ({ ...prev, avatarUrl: modalPreview }));
+    setProfile((prev) => ({ ...prev, avatarUrl: modalPreview }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("dradix_profile_avatar", modalPreview);
     }
     setImageModalType(null);
 
@@ -1550,13 +1561,12 @@ export default function ProfilePage() {
       await apiFetch("/users/profile", {
         method: "PATCH",
         body: JSON.stringify({
-          avatar_url: newAvatarUrl,
-          cover_url: newCoverUrl,
+          avatar_url: modalPreview,
         }),
       });
       await checkAuth();
     } catch (err) {
-      console.warn("Backend image sync notice:", err);
+      console.warn("Avatar update warning:", err);
     }
   };
 
@@ -1863,27 +1873,28 @@ export default function ProfilePage() {
   return (
     <div className="relative pb-24 space-y-8 animate-fade-in text-left">
       <div className="relative bg-white rounded-3xl overflow-hidden border border-dashed border-zinc-200 shadow-sm group/banner">
-        <div className="h-48 md:h-100 w-full relative overflow-hidden bg-zinc-200">
-          <img
-            src={isEditing ? formState.coverUrl : profile.coverUrl}
-            alt="Cover Banner"
-            className="w-full h-full object-cover origin-center transition-all duration-150"
-            style={{
-              objectPosition: `${isEditing ? formState.coverPositionX : profile.coverPositionX}% ${isEditing ? formState.coverPositionY : profile.coverPositionY}%`,
-              transform: `scale(${isEditing ? formState.coverZoom / 100 : profile.coverZoom / 100})`,
-            }}
+        <div className="h-64 md:h-100 w-full relative overflow-hidden bg-zinc-950">
+          <Dither
+            waveColor={isEditing ? formState.ditherColor : profile.ditherColor}
+            disableAnimation={false}
+            enableMouseInteraction={false}
+            mouseRadius={1}
+            colorNum={4}
+            pixelSize={2}
+            waveAmplitude={0.3}
+            waveFrequency={3}
+            waveSpeed={0.05}
           />
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+          <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-linear-to-b from-transparent via-white/40 to-white backdrop-blur-[2px] pointer-events-none" />
 
-          <div className="absolute bottom-0 left-0 right-0 h-10 bg-linear-to-b from-transparent via-white/50 to-white backdrop-blur-[2px] pointer-events-none" />
-
-          <div className="absolute inset-0 bg-black/45 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center z-10 duration-200">
+          <div className="absolute top-4 right-4 z-20">
             <button
               onClick={() => openImageModal("cover")}
-              className="flex items-center gap-2 px-3 py-2.5 bg-white text-black hover:bg-zinc-50 rounded-xl text-[10px] font-medium transition-all shadow-lg cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-2 bg-white/80 hover:bg-white text-zinc-900 rounded-xl text-[11px] font-bold transition-all shadow-md backdrop-blur-md cursor-pointer border border-white/90"
             >
-              <FaCamera className="w-3 h-3" />
-              <span>Update Banner Image</span>
+              <FaPalette className="w-3.5 h-3.5 text-[#015451]" />
+              <span>Customize Dither Banner</span>
             </button>
           </div>
         </div>
@@ -3742,12 +3753,12 @@ export default function ProfilePage() {
           <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in text-left">
             <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-zinc-50 border border-dashed border-zinc-200 flex items-center justify-center text-zinc-800">
-                  <FaCamera className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-dashed border-emerald-200 flex items-center justify-center text-[#015451]">
+                  <FaPalette className="w-4 h-4" />
                 </div>
                 <h3 className="text-[16px] font-extrabold text-zinc-900 font-heading">
                   {imageModalType === "cover"
-                    ? "Update Cover Banner"
+                    ? "Customize Dither Banner"
                     : "Update Profile Photo"}
                 </h3>
               </div>
@@ -3759,231 +3770,283 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            <div className="px-6 pt-4">
-              <div className="relative flex bg-zinc-50 border border-dashed border-zinc-200/90 rounded-full p-1.5 items-center select-none">
-                <div
-                  className="absolute top-1.5 bottom-1.5 left-1.5 w-[calc((100%-12px)/3)] bg-black rounded-full shadow-xs transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
-                  style={{
-                    transform: `translateX(${
-                      modalActiveTab === "upload"
-                        ? "0%"
-                        : modalActiveTab === "url"
-                          ? "100%"
-                          : "200%"
-                    })`,
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setModalActiveTab("upload")}
-                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
-                    modalActiveTab === "upload"
-                      ? "text-white"
-                      : "text-zinc-500 hover:text-zinc-800 font-semibold"
-                  }`}
-                >
-                  <FaUpload className="w-3.5 h-3.5" />
-                  <span>Upload File</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModalActiveTab("url")}
-                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
-                    modalActiveTab === "url"
-                      ? "text-white"
-                      : "text-zinc-500 hover:text-zinc-800 font-semibold"
-                  }`}
-                >
-                  <FaLink className="w-3.5 h-3.5" />
-                  <span>Image URL</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModalActiveTab("presets")}
-                  className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
-                    modalActiveTab === "presets"
-                      ? "text-white"
-                      : "text-zinc-500 hover:text-zinc-800 font-semibold"
-                  }`}
-                >
-                  <FaImage className="w-3.5 h-3.5" />
-                  <span>Presets</span>
-                </button>
-              </div>
-            </div>
+            {imageModalType === "cover" ? (
+              <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
+                <div>
+                  <span className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-3">
+                    Theme Color Presets
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {DITHER_COLOR_PRESETS.map((preset) => {
+                      const isSelected =
+                        modalDitherColor[0] === preset.rgb[0] &&
+                        modalDitherColor[1] === preset.rgb[1] &&
+                        modalDitherColor[2] === preset.rgb[2];
+                      return (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => setModalDitherColor(preset.rgb)}
+                          className={`flex items-center gap-2.5 p-2.5 rounded-2xl border transition-all cursor-pointer text-left ${
+                            isSelected
+                              ? "border-[#015451] bg-emerald-50/50 shadow-sm ring-2 ring-[#015451]/20"
+                              : "border-zinc-200 hover:border-zinc-300 bg-white"
+                          }`}
+                        >
+                          <span
+                            className="w-5 h-5 rounded-lg border border-black/10 shadow-xs shrink-0"
+                            style={{ backgroundColor: preset.hex }}
+                          />
+                          <div className="truncate">
+                            <p className="text-[11px] font-bold text-zinc-900 truncate leading-tight">
+                              {preset.name}
+                            </p>
+                            <p className="text-[9px] text-zinc-400 font-mono">
+                              {preset.hex}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-            <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
-              {modalActiveTab === "upload" && (
-                <div className="space-y-4">
-                  <input
-                    type="file"
-                    ref={modalFileInputRef}
-                    onChange={handleModalFileUpload}
-                    className="hidden"
-                    accept="image/*"
-                  />
+                <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
+                  <div>
+                    <span className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
+                      Custom Wave Color
+                    </span>
+                    <p className="text-[11px] text-zinc-500 font-medium mt-0.5">
+                      Pick any custom hex color for your dither banner
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={rgbFloatToHex(modalDitherColor)}
+                      onChange={(e) =>
+                        setModalDitherColor(hexToRgbFloat(e.target.value))
+                      }
+                      className="w-9 h-9 rounded-xl border border-zinc-200 cursor-pointer p-0.5 bg-white shrink-0"
+                    />
+                    <input
+                      type="text"
+                      value={rgbFloatToHex(modalDitherColor)}
+                      onChange={(e) =>
+                        setModalDitherColor(hexToRgbFloat(e.target.value))
+                      }
+                      className="w-20 rounded-xl border border-zinc-200 px-2 py-1.5 text-[11px] font-mono text-zinc-800 uppercase focus:outline-none focus:ring-2 focus:ring-black/10"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-zinc-100 space-y-2">
+                  <div className="w-full h-36 rounded-2xl overflow-hidden bg-zinc-950 relative shadow-inner border border-zinc-200">
+                    <Dither
+                      waveColor={modalDitherColor}
+                      disableAnimation={false}
+                      enableMouseInteraction={false}
+                      mouseRadius={1}
+                      colorNum={4}
+                      pixelSize={2}
+                      waveAmplitude={0.3}
+                      waveFrequency={3}
+                      waveSpeed={0.05}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
                   <button
                     type="button"
-                    onClick={() => modalFileInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-zinc-200 bg-zinc-50 hover:bg-zinc-100/50 hover:border-zinc-300 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-all duration-200"
+                    onClick={() => setImageModalType(null)}
+                    className="px-4 py-2 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
                   >
-                    <div className="w-12 h-12 rounded-full bg-white border border-dashed border-zinc-200 flex items-center justify-center text-zinc-500 shadow-sm">
-                      <FaUpload className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-[13px] font-bold text-zinc-800">
-                        Select Image File
-                      </p>
-                      <p className="text-[10px] text-zinc-400 mt-1">
-                        Supports PNG, JPG, GIF or WEBP up to 5MB
-                      </p>
-                    </div>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleImageModalSave}
+                    className="flex items-center gap-1.5 px-5 py-2 bg-[#015451] hover:bg-[#003c3a] text-white rounded-xl text-[12px] font-bold shadow-md cursor-pointer transition-all"
+                  >
+                    <FaCheck className="w-3.5 h-3.5" />
+                    <span>Apply Dither Banner</span>
                   </button>
                 </div>
-              )}
-
-              {modalActiveTab === "url" && (
-                <div className="space-y-3">
-                  <label className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
-                    Image Destination URL
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="url"
-                      value={modalInputUrl}
-                      onChange={(e) => setModalInputUrl(e.target.value)}
-                      placeholder="https://images.unsplash.com/photo-..."
-                      className="flex-1 rounded-xl border border-dashed border-zinc-200 px-3 py-2 text-[12px] text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-medium"
+              </div>
+            ) : (
+              <>
+                <div className="px-6 pt-4">
+                  <div className="relative flex bg-zinc-50 border border-dashed border-zinc-200/90 rounded-full p-1.5 items-center select-none">
+                    <div
+                      className="absolute top-1.5 bottom-1.5 left-1.5 w-[calc((100%-12px)/3)] bg-black rounded-full shadow-xs transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                      style={{
+                        transform: `translateX(${
+                          modalActiveTab === "upload"
+                            ? "0%"
+                            : modalActiveTab === "url"
+                              ? "100%"
+                              : "200%"
+                        })`,
+                      }}
                     />
                     <button
-                      onClick={handleModalUrlApply}
-                      className="px-4 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[11px] font-bold cursor-pointer transition-colors"
+                      type="button"
+                      onClick={() => setModalActiveTab("upload")}
+                      className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
+                        modalActiveTab === "upload"
+                          ? "text-white"
+                          : "text-zinc-500 hover:text-zinc-800 font-semibold"
+                      }`}
                     >
-                      Apply
+                      <FaUpload className="w-3.5 h-3.5" />
+                      <span>Upload File</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setModalActiveTab("url")}
+                      className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
+                        modalActiveTab === "url"
+                          ? "text-white"
+                          : "text-zinc-500 hover:text-zinc-800 font-semibold"
+                      }`}
+                    >
+                      <FaLink className="w-3.5 h-3.5" />
+                      <span>Image URL</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setModalActiveTab("presets")}
+                      className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
+                        modalActiveTab === "presets"
+                          ? "text-white"
+                          : "text-zinc-500 hover:text-zinc-800 font-semibold"
+                      }`}
+                    >
+                      <FaImage className="w-3.5 h-3.5" />
+                      <span>Presets</span>
                     </button>
                   </div>
                 </div>
-              )}
 
-              {modalActiveTab === "presets" && (
-                <div className="space-y-3">
-                  <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">
-                    Choose Template
-                  </p>
-                  <div className="grid grid-cols-4 gap-3">
-                    {(imageModalType === "cover"
-                      ? COVER_PRESETS
-                      : AVATAR_PRESETS
-                    ).map((presetUrl, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setModalPreview(presetUrl)}
-                        className={`aspect-video md:aspect-square rounded-xl overflow-hidden border-2 transition-all relative cursor-pointer ${
-                          modalPreview === presetUrl
-                            ? "border-black scale-95 shadow-md"
-                            : "border-transparent opacity-80 hover:opacity-100"
-                        }`}
-                      >
-                        <img
-                          src={presetUrl}
-                          alt={`Preset ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        {modalPreview === presetUrl && (
-                          <span className="absolute top-1 right-1 w-4 h-4 bg-black text-white flex items-center justify-center rounded-full text-[9px]">
-                            <FaCheck className="w-2.5 h-2.5" />
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {modalPreview && (
-                <div className="pt-4 border-t border-zinc-100 flex flex-col items-center">
-                  <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-3 self-start">
-                    Live Preview & Reposition
-                  </span>
-
-                  {imageModalType === "cover" ? (
-                    <div
-                      ref={previewContainerRef}
-                      onMouseDown={handleMouseDown}
-                      onMouseMove={handleMouseMove}
-                      onMouseUp={handleMouseUp}
-                      onMouseLeave={handleMouseLeave}
-                      onWheel={handleWheel}
-                      onTouchStart={handleTouchStart}
-                      onTouchMove={handleTouchMove}
-                      onTouchEnd={handleTouchEnd}
-                      className={`w-full h-36 rounded-xl overflow-hidden bg-zinc-100 border border-dashed border-zinc-200 relative group/preview select-none transition-shadow ${
-                        isDragging
-                          ? "cursor-grabbing shadow-inner"
-                          : "cursor-grab"
-                      }`}
-                    >
-                      <img
-                        src={modalPreview}
-                        alt="Cover Preview"
-                        className="w-full h-full object-cover origin-center pointer-events-none select-none"
-                        style={{
-                          objectPosition: `${modalPositionX}% ${modalPositionY}%`,
-                          transform: `scale(${modalZoom / 100})`,
-                        }}
+                <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
+                  {modalActiveTab === "upload" && (
+                    <div className="space-y-4">
+                      <input
+                        type="file"
+                        ref={modalFileInputRef}
+                        onChange={handleModalFileUpload}
+                        className="hidden"
+                        accept="image/*"
                       />
+                      <button
+                        type="button"
+                        onClick={() => modalFileInputRef.current?.click()}
+                        className="w-full border-2 border-dashed border-zinc-200 bg-zinc-50 hover:bg-zinc-100/50 hover:border-zinc-300 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-all duration-200"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-white border border-dashed border-zinc-200 flex items-center justify-center text-zinc-500 shadow-sm">
+                          <FaUpload className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-bold text-zinc-800">
+                            Select Image File
+                          </p>
+                          <p className="text-[10px] text-zinc-400 mt-1">
+                            Supports PNG, JPG, GIF or WEBP up to 5MB
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  )}
 
-                      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-40">
-                        <div className="border-r border-b border-dashed border-white/50" />
-                        <div className="border-r border-b border-dashed border-white/50" />
-                        <div className="border-b border-dashed border-white/50" />
-                        <div className="border-r border-b border-dashed border-white/50" />
-                        <div className="border-r border-b border-dashed border-white/50" />
-                        <div className="border-b border-dashed border-white/50" />
-                        <div className="border-r border-dashed border-white/50" />
-                        <div className="border-r border-dashed border-white/50" />
-                        <div className="border-transparent" />
+                  {modalActiveTab === "url" && (
+                    <div className="space-y-3">
+                      <label className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
+                        Image Destination URL
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          value={modalInputUrl}
+                          onChange={(e) => setModalInputUrl(e.target.value)}
+                          placeholder="https://images.unsplash.com/photo-..."
+                          className="flex-1 rounded-xl border border-dashed border-zinc-200 px-3 py-2 text-[12px] text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-medium"
+                        />
+                        <button
+                          onClick={handleModalUrlApply}
+                          className="px-4 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[11px] font-bold cursor-pointer transition-colors"
+                        >
+                          Apply
+                        </button>
                       </div>
                     </div>
-                  ) : (
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-100 border border-dashed border-zinc-200">
-                      <img
-                        src={modalPreview}
-                        alt="Avatar Preview"
-                        className="w-full h-full object-cover"
-                      />
+                  )}
+
+                  {modalActiveTab === "presets" && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">
+                        Choose Template
+                      </p>
+                      <div className="grid grid-cols-4 gap-3">
+                        {AVATAR_PRESETS.map((presetUrl, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setModalPreview(presetUrl)}
+                            className={`aspect-square rounded-xl overflow-hidden border-2 transition-all relative cursor-pointer ${
+                              modalPreview === presetUrl
+                                ? "border-black scale-95 shadow-md"
+                                : "border-transparent opacity-80 hover:opacity-100"
+                            }`}
+                          >
+                            <img
+                              src={presetUrl}
+                              alt={`Preset ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            {modalPreview === presetUrl && (
+                              <span className="absolute top-1 right-1 w-4 h-4 bg-black text-white flex items-center justify-center rounded-full text-[9px]">
+                                <FaCheck className="w-2.5 h-2.5" />
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {imageModalType === "cover" && (
-                    <div className="mt-3 text-center">
-                      <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
-                        Scroll wheel to zoom • Click & Drag image to position
-                      </p>
+                  {modalPreview && (
+                    <div className="pt-4 border-t border-zinc-100 flex flex-col items-center">
+                      <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-100 border border-dashed border-zinc-200">
+                        <img
+                          src={modalPreview}
+                          alt="Avatar Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => setImageModalType(null)}
-                className="px-4 py-2 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleImageModalSave}
-                disabled={!modalPreview}
-                className="flex items-center gap-1.5 px-5 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[12px] font-bold shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                <FaCheck className="w-3.5 h-3.5" />
-                <span>Apply Image</span>
-              </button>
-            </div>
+                <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setImageModalType(null)}
+                    className="px-4 py-2 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleImageModalSave}
+                    disabled={!modalPreview}
+                    className="flex items-center gap-1.5 px-5 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[12px] font-bold shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    <FaCheck className="w-3.5 h-3.5" />
+                    <span>Apply Photo</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
