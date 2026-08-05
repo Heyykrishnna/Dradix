@@ -464,7 +464,7 @@ export default function MainLayout({
                   height: dropdownHeight ? `${dropdownHeight}px` : "auto",
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/5 to-transparent pointer-events-none rounded-2xl z-10" />
+                <div className="absolute inset-0 bg-linear-to-br from-white/40 via-white/5 to-transparent pointer-events-none rounded-2xl z-10" />
 
                 <div
                   className="flex items-start transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] relative z-20"
@@ -591,8 +591,8 @@ export default function MainLayout({
               </button>
 
               <div className="absolute right-0 top-full pt-3 w-80 transition-all duration-300 ease-out origin-top-right opacity-0 scale-95 pointer-events-none group-hover/bell:opacity-100 group-hover/bell:scale-100 group-hover/bell:pointer-events-auto z-60">
-                <div className="bg-white/55 backdrop-blur-3xl backdrop-saturate-200 border border-white/80 shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.95),inset_0_-1px_2px_rgba(0,0,0,0.06),0_24px_60px_-12px_rgba(0,0,0,0.18)] rounded-2xl p-4 space-y-3 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/10 to-transparent pointer-events-none rounded-2xl z-10" />
+                <div className="bg-white/92 backdrop-blur-3xl backdrop-saturate-200 border border-white/90 shadow-[inset_0_1.5px_2px_rgba(255,255,255,1),inset_0_-1px_2px_rgba(0,0,0,0.04),0_20px_50px_-10px_rgba(0,0,0,0.12)] rounded-2xl p-4 space-y-3 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-linear-to-br from-white/40 via-white/5 to-transparent pointer-events-none rounded-2xl z-10" />
                   <div className="flex justify-between items-center pb-2 border-b border-zinc-200/60 relative z-20">
                     <h4 className="text-[12px] font-bold text-black uppercase tracking-wider">
                       Notifications
