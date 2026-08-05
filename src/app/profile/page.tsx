@@ -1888,7 +1888,7 @@ export default function ProfilePage() {
             waveSpeed={0.05}
           />
           <div className="absolute inset-0 bg-black/15 backdrop-blur-[1px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-linear-to-b from-transparent via-white/40 to-white backdrop-blur-[2px] pointer-events-none" />
+          {/* <div className="absolute bottom-0 left-0 right-0 h-10 bg-linear-to-b from-transparent via-white/40 to-white backdrop-blur-[2px] pointer-events-none" /> */}
 
           <div className="absolute top-4 right-4 z-20">
             <button
