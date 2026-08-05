@@ -699,6 +699,18 @@ export default function PublicUserProfilePage() {
     ? `${userData.first_name} ${userData.last_name || ""}`.trim()
     : userData.username;
 
+  const githubHandle =
+    userData.github?.username ||
+    (userData.socials?.github
+      ? userData.socials.github.replace(/\/$/, "").split("/").pop()
+      : "");
+
+  const githubUrl =
+    userData.socials?.github ||
+    (userData.github?.username
+      ? `https://github.com/${userData.github.username}`
+      : "");
+
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans pb-32 sm:pb-40 selection:bg-[#015451]/20 selection:text-[#015451]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 space-y-6">
@@ -825,9 +837,9 @@ export default function PublicUserProfilePage() {
                 Verified Profiles
               </h3>
               <div className="flex items-center gap-2 flex-wrap pt-0.5">
-                {userData.socials?.github && (
+                {githubUrl && (
                   <a
-                    href={userData.socials.github}
+                    href={githubUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-zinc-100 text-zinc-700 text-[11px] font-medium border-2 border-dotted border-zinc-200 flex items-center gap-1.5 transition-all shadow-xs"
@@ -847,7 +859,7 @@ export default function PublicUserProfilePage() {
                     rel="noreferrer"
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-zinc-100 text-zinc-700 text-[11px] font-medium border-2 border-dotted border-zinc-200 flex items-center gap-1.5 transition-all shadow-xs"
                   >
-                    <FaLinkedin className="w-3.5 h-3.5 text-zinc-800" />{" "}
+                    <FaLinkedin className="w-3.5 h-3.5 text-[#0077b5]" />{" "}
                     LinkedIn
                   </a>
                 )}
@@ -861,6 +873,51 @@ export default function PublicUserProfilePage() {
                     <FaGlobe className="w-3.5 h-3.5 text-[#015451]" /> Portfolio
                   </a>
                 )}
+                {userData.coding_profiles &&
+                  userData.coding_profiles.map((profile) => {
+                    const pName = profile.platform.toLowerCase();
+                    let link = "#";
+                    if (pName.includes("leetcode"))
+                      link = `https://leetcode.com/u/${profile.username}`;
+                    else if (pName.includes("codeforces"))
+                      link = `https://codeforces.com/profile/${profile.username}`;
+                    else if (pName.includes("hackerrank"))
+                      link = `https://hackerrank.com/${profile.username}`;
+                    else if (pName.includes("codechef"))
+                      link = `https://codechef.com/users/${profile.username}`;
+                    else if (pName.includes("geeksforgeeks"))
+                      link = `https://auth.geeksforgeeks.org/user/${profile.username}`;
+
+                    const capitalizedPlatform =
+                      profile.platform.charAt(0).toUpperCase() +
+                      profile.platform.slice(1);
+                    const iconSlug = pName.includes("leetcode")
+                      ? "leetcode"
+                      : pName.includes("codeforces")
+                        ? "codeforces"
+                        : pName.includes("hackerrank")
+                          ? "hackerrank"
+                          : pName.includes("codechef")
+                            ? "codechef"
+                            : "geeksforgeeks";
+
+                    return (
+                      <a
+                        key={profile.platform + profile.username}
+                        href={link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-2.5 py-1 rounded-lg bg-white hover:bg-zinc-100 text-zinc-700 text-[11px] font-medium border-2 border-dotted border-zinc-200 flex items-center gap-1.5 transition-all shadow-xs"
+                      >
+                        <img
+                          src={`https://cdn.simpleicons.org/${iconSlug}`}
+                          alt={capitalizedPlatform}
+                          className="w-3.5 h-3.5"
+                        />
+                        <span>{capitalizedPlatform}</span>
+                      </a>
+                    );
+                  })}
               </div>
             </div>
           </div>
@@ -1422,7 +1479,7 @@ export default function PublicUserProfilePage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-3 border-t-2 border-dotted border-zinc-200">
+              <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-3">
                 <span className="font-medium text-zinc-500">Less</span>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] text-zinc-400 font-normal mr-1">
