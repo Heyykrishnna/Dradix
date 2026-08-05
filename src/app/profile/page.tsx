@@ -9,6 +9,7 @@ import { apiFetch, API_URL } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import Loader from "@/components/Loader";
 import dynamic from "next/dynamic";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Dither = dynamic(() => import("@/components/Dither"), { ssr: false });
 
@@ -1893,7 +1894,6 @@ export default function ProfilePage() {
               onClick={() => openImageModal("cover")}
               className="flex items-center gap-2 px-3.5 py-2 bg-white/80 hover:bg-white text-zinc-900 rounded-xl text-[11px] font-bold transition-all shadow-md backdrop-blur-md cursor-pointer border border-white/90"
             >
-              <FaPalette className="w-3.5 h-3.5 text-[#015451]" />
               <span>Customize Dither Banner</span>
             </button>
           </div>
@@ -3748,308 +3748,330 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {imageModalType !== null && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in text-left">
-            <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-dashed border-emerald-200 flex items-center justify-center text-[#015451]">
-                  <FaPalette className="w-4 h-4" />
-                </div>
-                <h3 className="text-[16px] font-extrabold text-zinc-900 font-heading">
-                  {imageModalType === "cover"
-                    ? "Customize Dither Banner"
-                    : "Update Profile Photo"}
-                </h3>
-              </div>
-              <button
-                onClick={() => setImageModalType(null)}
-                className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 rounded-xl transition-all cursor-pointer"
-              >
-                <FaXmark className="w-5 h-5" />
-              </button>
-            </div>
-
-            {imageModalType === "cover" ? (
-              <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
-                <div>
-                  <span className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-3">
-                    Theme Color Presets
-                  </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                    {DITHER_COLOR_PRESETS.map((preset) => {
-                      const isSelected =
-                        modalDitherColor[0] === preset.rgb[0] &&
-                        modalDitherColor[1] === preset.rgb[1] &&
-                        modalDitherColor[2] === preset.rgb[2];
-                      return (
-                        <button
-                          key={preset.name}
-                          type="button"
-                          onClick={() => setModalDitherColor(preset.rgb)}
-                          className={`flex items-center gap-2.5 p-2.5 rounded-2xl border transition-all cursor-pointer text-left ${
-                            isSelected
-                              ? "border-[#015451] bg-emerald-50/50 shadow-sm ring-2 ring-[#015451]/20"
-                              : "border-zinc-200 hover:border-zinc-300 bg-white"
-                          }`}
-                        >
-                          <span
-                            className="w-5 h-5 rounded-lg border border-black/10 shadow-xs shrink-0"
-                            style={{ backgroundColor: preset.hex }}
-                          />
-                          <div className="truncate">
-                            <p className="text-[11px] font-bold text-zinc-900 truncate leading-tight">
-                              {preset.name}
-                            </p>
-                            <p className="text-[9px] text-zinc-400 font-mono">
-                              {preset.hex}
-                            </p>
-                          </div>
-                        </button>
-                      );
-                    })}
+      <AnimatePresence>
+        {imageModalType !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.93, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.93, y: 16 }}
+              transition={{
+                type: "spring",
+                stiffness: 380,
+                damping: 28,
+                mass: 0.8,
+              }}
+              className="bg-white rounded-3xl border border-dashed border-zinc-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col text-left"
+            >
+              <div className="px-6 py-5 border-b border-zinc-100 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-dashed border-emerald-200 flex items-center justify-center text-[#015451]">
+                    <FaPalette className="w-4 h-4" />
                   </div>
+                  <h3 className="text-[16px] font-extrabold text-zinc-900 font-heading">
+                    {imageModalType === "cover"
+                      ? "Customize Dither Banner"
+                      : "Update Profile Photo"}
+                  </h3>
                 </div>
+                <button
+                  onClick={() => setImageModalType(null)}
+                  className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 rounded-xl transition-all cursor-pointer"
+                >
+                  <FaXmark className="w-5 h-5" />
+                </button>
+              </div>
 
-                <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
+              {imageModalType === "cover" ? (
+                <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
                   <div>
-                    <span className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
-                      Custom Wave Color
+                    <span className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-3">
+                      Theme Color Presets
                     </span>
-                    <p className="text-[11px] text-zinc-500 font-medium mt-0.5">
-                      Pick any custom hex color for your dither banner
-                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                      {DITHER_COLOR_PRESETS.map((preset) => {
+                        const isSelected =
+                          modalDitherColor[0] === preset.rgb[0] &&
+                          modalDitherColor[1] === preset.rgb[1] &&
+                          modalDitherColor[2] === preset.rgb[2];
+                        return (
+                          <button
+                            key={preset.name}
+                            type="button"
+                            onClick={() => setModalDitherColor(preset.rgb)}
+                            className={`flex items-center gap-2.5 p-2.5 rounded-2xl border transition-all cursor-pointer text-left ${
+                              isSelected
+                                ? "border-[#015451] bg-emerald-50/50 shadow-sm ring-2 ring-[#015451]/20"
+                                : "border-zinc-200 hover:border-zinc-300 bg-white"
+                            }`}
+                          >
+                            <span
+                              className="w-5 h-5 rounded-lg border border-black/10 shadow-xs shrink-0"
+                              style={{ backgroundColor: preset.hex }}
+                            />
+                            <div className="truncate">
+                              <p className="text-[11px] font-bold text-zinc-900 truncate leading-tight">
+                                {preset.name}
+                              </p>
+                              <p className="text-[9px] text-zinc-400 font-mono">
+                                {preset.hex}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={rgbFloatToHex(modalDitherColor)}
-                      onChange={(e) =>
-                        setModalDitherColor(hexToRgbFloat(e.target.value))
-                      }
-                      className="w-9 h-9 rounded-xl border border-zinc-200 cursor-pointer p-0.5 bg-white shrink-0"
-                    />
-                    <input
-                      type="text"
-                      value={rgbFloatToHex(modalDitherColor)}
-                      onChange={(e) =>
-                        setModalDitherColor(hexToRgbFloat(e.target.value))
-                      }
-                      className="w-20 rounded-xl border border-zinc-200 px-2 py-1.5 text-[11px] font-mono text-zinc-800 uppercase focus:outline-none focus:ring-2 focus:ring-black/10"
-                    />
-                  </div>
-                </div>
 
-                <div className="pt-4 border-t border-zinc-100 space-y-2">
-                  <div className="w-full h-36 rounded-2xl overflow-hidden bg-zinc-950 relative shadow-inner border border-zinc-200">
-                    <Dither
-                      waveColor={modalDitherColor}
-                      disableAnimation={false}
-                      enableMouseInteraction={false}
-                      mouseRadius={1}
-                      colorNum={4}
-                      pixelSize={2}
-                      waveAmplitude={0.3}
-                      waveFrequency={3}
-                      waveSpeed={0.05}
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setImageModalType(null)}
-                    className="px-4 py-2 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleImageModalSave}
-                    className="flex items-center gap-1.5 px-5 py-2 bg-[#015451] hover:bg-[#003c3a] text-white rounded-xl text-[12px] font-bold shadow-md cursor-pointer transition-all"
-                  >
-                    <FaCheck className="w-3.5 h-3.5" />
-                    <span>Apply Dither Banner</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="px-6 pt-4">
-                  <div className="relative flex bg-zinc-50 border border-dashed border-zinc-200/90 rounded-full p-1.5 items-center select-none">
-                    <div
-                      className="absolute top-1.5 bottom-1.5 left-1.5 w-[calc((100%-12px)/3)] bg-black rounded-full shadow-xs transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
-                      style={{
-                        transform: `translateX(${
-                          modalActiveTab === "upload"
-                            ? "0%"
-                            : modalActiveTab === "url"
-                              ? "100%"
-                              : "200%"
-                        })`,
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setModalActiveTab("upload")}
-                      className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
-                        modalActiveTab === "upload"
-                          ? "text-white"
-                          : "text-zinc-500 hover:text-zinc-800 font-semibold"
-                      }`}
-                    >
-                      <FaUpload className="w-3.5 h-3.5" />
-                      <span>Upload File</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setModalActiveTab("url")}
-                      className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
-                        modalActiveTab === "url"
-                          ? "text-white"
-                          : "text-zinc-500 hover:text-zinc-800 font-semibold"
-                      }`}
-                    >
-                      <FaLink className="w-3.5 h-3.5" />
-                      <span>Image URL</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setModalActiveTab("presets")}
-                      className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
-                        modalActiveTab === "presets"
-                          ? "text-white"
-                          : "text-zinc-500 hover:text-zinc-800 font-semibold"
-                      }`}
-                    >
-                      <FaImage className="w-3.5 h-3.5" />
-                      <span>Presets</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
-                  {modalActiveTab === "upload" && (
-                    <div className="space-y-4">
+                  <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
+                    <div>
+                      <span className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
+                        Custom Wave Color
+                      </span>
+                      <p className="text-[11px] text-zinc-500 font-medium mt-0.5">
+                        Pick any custom hex color for your dither banner
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <input
-                        type="file"
-                        ref={modalFileInputRef}
-                        onChange={handleModalFileUpload}
-                        className="hidden"
-                        accept="image/*"
+                        type="color"
+                        value={rgbFloatToHex(modalDitherColor)}
+                        onChange={(e) =>
+                          setModalDitherColor(hexToRgbFloat(e.target.value))
+                        }
+                        className="w-9 h-9 rounded-xl border border-zinc-200 cursor-pointer p-0.5 bg-white shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={rgbFloatToHex(modalDitherColor)}
+                        onChange={(e) =>
+                          setModalDitherColor(hexToRgbFloat(e.target.value))
+                        }
+                        className="w-20 rounded-xl border border-zinc-200 px-2 py-1.5 text-[11px] font-mono text-zinc-800 uppercase focus:outline-none focus:ring-2 focus:ring-black/10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-zinc-100 space-y-2">
+                    <span className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
+                      Live Dither Banner Preview
+                    </span>
+                    <div className="w-full h-36 rounded-2xl overflow-hidden bg-zinc-950 relative shadow-inner border border-zinc-200">
+                      <Dither
+                        waveColor={modalDitherColor}
+                        disableAnimation={false}
+                        enableMouseInteraction={false}
+                        mouseRadius={1}
+                        colorNum={4}
+                        pixelSize={2}
+                        waveAmplitude={0.3}
+                        waveFrequency={3}
+                        waveSpeed={0.05}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setImageModalType(null)}
+                      className="px-4 py-2 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleImageModalSave}
+                      className="flex items-center gap-1.5 px-5 py-2 bg-[#015451] hover:bg-[#003c3a] text-white rounded-xl text-[12px] font-bold shadow-md cursor-pointer transition-all"
+                    >
+                      <FaCheck className="w-3.5 h-3.5" />
+                      <span>Apply Dither Banner</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="px-6 pt-4">
+                    <div className="relative flex bg-zinc-50 border border-dashed border-zinc-200/90 rounded-full p-1.5 items-center select-none">
+                      <div
+                        className="absolute top-1.5 bottom-1.5 left-1.5 w-[calc((100%-12px)/3)] bg-black rounded-full shadow-xs transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                        style={{
+                          transform: `translateX(${
+                            modalActiveTab === "upload"
+                              ? "0%"
+                              : modalActiveTab === "url"
+                                ? "100%"
+                                : "200%"
+                          })`,
+                        }}
                       />
                       <button
                         type="button"
-                        onClick={() => modalFileInputRef.current?.click()}
-                        className="w-full border-2 border-dashed border-zinc-200 bg-zinc-50 hover:bg-zinc-100/50 hover:border-zinc-300 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-all duration-200"
+                        onClick={() => setModalActiveTab("upload")}
+                        className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
+                          modalActiveTab === "upload"
+                            ? "text-white"
+                            : "text-zinc-500 hover:text-zinc-800 font-semibold"
+                        }`}
                       >
-                        <div className="w-12 h-12 rounded-full bg-white border border-dashed border-zinc-200 flex items-center justify-center text-zinc-500 shadow-sm">
-                          <FaUpload className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-[13px] font-bold text-zinc-800">
-                            Select Image File
-                          </p>
-                          <p className="text-[10px] text-zinc-400 mt-1">
-                            Supports PNG, JPG, GIF or WEBP up to 5MB
-                          </p>
-                        </div>
+                        <FaUpload className="w-3.5 h-3.5" />
+                        <span>Upload File</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setModalActiveTab("url")}
+                        className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
+                          modalActiveTab === "url"
+                            ? "text-white"
+                            : "text-zinc-500 hover:text-zinc-800 font-semibold"
+                        }`}
+                      >
+                        <FaLink className="w-3.5 h-3.5" />
+                        <span>Image URL</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setModalActiveTab("presets")}
+                        className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-full text-[13px] font-bold transition-colors duration-200 cursor-pointer ${
+                          modalActiveTab === "presets"
+                            ? "text-white"
+                            : "text-zinc-500 hover:text-zinc-800 font-semibold"
+                        }`}
+                      >
+                        <FaImage className="w-3.5 h-3.5" />
+                        <span>Presets</span>
                       </button>
                     </div>
-                  )}
+                  </div>
 
-                  {modalActiveTab === "url" && (
-                    <div className="space-y-3">
-                      <label className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
-                        Image Destination URL
-                      </label>
-                      <div className="flex gap-2">
+                  <div className="p-6 space-y-5 overflow-y-auto max-h-[65vh]">
+                    {modalActiveTab === "upload" && (
+                      <div className="space-y-4">
                         <input
-                          type="url"
-                          value={modalInputUrl}
-                          onChange={(e) => setModalInputUrl(e.target.value)}
-                          placeholder="https://images.unsplash.com/photo-..."
-                          className="flex-1 rounded-xl border border-dashed border-zinc-200 px-3 py-2 text-[12px] text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-medium"
+                          type="file"
+                          ref={modalFileInputRef}
+                          onChange={handleModalFileUpload}
+                          className="hidden"
+                          accept="image/*"
                         />
                         <button
-                          onClick={handleModalUrlApply}
-                          className="px-4 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[11px] font-bold cursor-pointer transition-colors"
+                          type="button"
+                          onClick={() => modalFileInputRef.current?.click()}
+                          className="w-full border-2 border-dashed border-zinc-200 bg-zinc-50 hover:bg-zinc-100/50 hover:border-zinc-300 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-all duration-200"
                         >
-                          Apply
+                          <div className="w-12 h-12 rounded-full bg-white border border-dashed border-zinc-200 flex items-center justify-center text-zinc-500 shadow-sm">
+                            <FaUpload className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-[13px] font-bold text-zinc-800">
+                              Select Image File
+                            </p>
+                            <p className="text-[10px] text-zinc-400 mt-1">
+                              Supports PNG, JPG, GIF or WEBP up to 5MB
+                            </p>
+                          </div>
                         </button>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {modalActiveTab === "presets" && (
-                    <div className="space-y-3">
-                      <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">
-                        Choose Template
-                      </p>
-                      <div className="grid grid-cols-4 gap-3">
-                        {AVATAR_PRESETS.map((presetUrl, idx) => (
+                    {modalActiveTab === "url" && (
+                      <div className="space-y-3">
+                        <label className="block text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
+                          Image Destination URL
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={modalInputUrl}
+                            onChange={(e) => setModalInputUrl(e.target.value)}
+                            placeholder="https://images.unsplash.com/photo-..."
+                            className="flex-1 rounded-xl border border-dashed border-zinc-200 px-3 py-2 text-[12px] text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-medium"
+                          />
                           <button
-                            key={idx}
-                            onClick={() => setModalPreview(presetUrl)}
-                            className={`aspect-square rounded-xl overflow-hidden border-2 transition-all relative cursor-pointer ${
-                              modalPreview === presetUrl
-                                ? "border-black scale-95 shadow-md"
-                                : "border-transparent opacity-80 hover:opacity-100"
-                            }`}
+                            onClick={handleModalUrlApply}
+                            className="px-4 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[11px] font-bold cursor-pointer transition-colors"
                           >
-                            <img
-                              src={presetUrl}
-                              alt={`Preset ${idx + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                            {modalPreview === presetUrl && (
-                              <span className="absolute top-1 right-1 w-4 h-4 bg-black text-white flex items-center justify-center rounded-full text-[9px]">
-                                <FaCheck className="w-2.5 h-2.5" />
-                              </span>
-                            )}
+                            Apply
                           </button>
-                        ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {modalPreview && (
-                    <div className="pt-4 border-t border-zinc-100 flex flex-col items-center">
-                      <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-100 border border-dashed border-zinc-200">
-                        <img
-                          src={modalPreview}
-                          alt="Avatar Preview"
-                          className="w-full h-full object-cover"
-                        />
+                    {modalActiveTab === "presets" && (
+                      <div className="space-y-3">
+                        <p className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest mb-1">
+                          Choose Template
+                        </p>
+                        <div className="grid grid-cols-4 gap-3">
+                          {AVATAR_PRESETS.map((presetUrl, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setModalPreview(presetUrl)}
+                              className={`aspect-square rounded-xl overflow-hidden border-2 transition-all relative cursor-pointer ${
+                                modalPreview === presetUrl
+                                  ? "border-black scale-95 shadow-md"
+                                  : "border-transparent opacity-80 hover:opacity-100"
+                              }`}
+                            >
+                              <img
+                                src={presetUrl}
+                                alt={`Preset ${idx + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              {modalPreview === presetUrl && (
+                                <span className="absolute top-1 right-1 w-4 h-4 bg-black text-[#015451] flex items-center justify-center rounded-full text-[9px]">
+                                  <FaCheck className="w-2.5 h-2.5 text-white" />
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
 
-                <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setImageModalType(null)}
-                    className="px-4 py-2 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleImageModalSave}
-                    disabled={!modalPreview}
-                    className="flex items-center gap-1.5 px-5 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[12px] font-bold shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    <FaCheck className="w-3.5 h-3.5" />
-                    <span>Apply Photo</span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+                    {modalPreview && (
+                      <div className="pt-4 border-t border-zinc-100 flex flex-col items-center">
+                        <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-100 border border-dashed border-zinc-200">
+                          <img
+                            src={modalPreview}
+                            alt="Avatar Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setImageModalType(null)}
+                      className="px-4 py-2 rounded-xl text-[12px] font-bold text-zinc-500 hover:text-zinc-800 transition-colors bg-transparent border border-zinc-200 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleImageModalSave}
+                      disabled={!modalPreview}
+                      className="flex items-center gap-1.5 px-5 py-2 bg-black text-white hover:bg-zinc-800 rounded-xl text-[12px] font-bold shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <FaCheck className="w-3.5 h-3.5" />
+                      <span>Apply Photo</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {activeModal === "network" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out text-left">
