@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { SafeUser, ApiResponse } from "../types/auth";
 import { apiFetch, setAccessToken, setRefreshToken } from "../lib/api";
@@ -40,6 +47,7 @@ const PUBLIC_ROUTES = [
   "/auth/verify",
   "/terms",
   "/privacy",
+  "/user",
 ];
 
 const RE_VALIDATE_INTERVAL_MS = 5 * 60 * 1000;
@@ -49,7 +57,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       const cached = localStorage.getItem("dradix_auth_user");
       if (cached) {
-        try { return JSON.parse(cached); } catch {}
+        try {
+          return JSON.parse(cached);
+        } catch {}
       }
     }
     return null;
@@ -133,7 +143,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
     initAuth();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [clearAuthState, updateCachedUser]);
 
   useEffect(() => {
@@ -156,7 +168,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", onVisibilityChange);
   }, [user, validateWithServer]);
 
   useEffect(() => {

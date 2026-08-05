@@ -14,7 +14,8 @@ export default function LockGuard({ children }: { children: React.ReactNode }) {
     const isPublicPage =
       pathname === "/coming-soon" ||
       pathname.startsWith("/terms") ||
-      pathname.startsWith("/privacy");
+      pathname.startsWith("/privacy") ||
+      pathname.startsWith("/user");
 
     if (!unlocked && !isPublicPage) {
       if (typeof window !== "undefined") {
@@ -43,7 +44,8 @@ export default function LockGuard({ children }: { children: React.ReactNode }) {
   const isPublicPage =
     pathname === "/coming-soon" ||
     pathname.startsWith("/terms") ||
-    pathname.startsWith("/privacy");
+    pathname.startsWith("/privacy") ||
+    pathname.startsWith("/user");
 
   if (!isUnlocked && !isPublicPage) {
     return (

@@ -699,12 +699,6 @@ export default function PublicUserProfilePage() {
     ? `${userData.first_name} ${userData.last_name || ""}`.trim()
     : userData.username;
 
-  const githubHandle =
-    userData.github?.username ||
-    (userData.socials?.github
-      ? userData.socials.github.replace(/\/$/, "").split("/").pop()
-      : "");
-
   const githubUrl =
     userData.socials?.github ||
     (userData.github?.username
