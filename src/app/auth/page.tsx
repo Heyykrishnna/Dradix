@@ -221,12 +221,19 @@ function AuthFormContent() {
           setShow2FA(true);
         }
       } else {
-        const nameSource = `${firstName}${lastName}`.trim() || firstName.trim() || email.split("@")[0];
-        const baseUsername = nameSource.toLowerCase().replace(/[^a-zA-Z0-9]/g, "");
+        const nameSource =
+          `${firstName}${lastName}`.trim() ||
+          firstName.trim() ||
+          email.split("@")[0];
+        const baseUsername = nameSource
+          .toLowerCase()
+          .replace(/[^a-zA-Z0-9]/g, "");
         const array = new Uint32Array(1);
         window.crypto.getRandomValues(array);
         const randomNum = 100 + (array[0] % 900);
-        const username = baseUsername ? `${baseUsername}${randomNum}` : `user${randomNum}`;
+        const username = baseUsername
+          ? `${baseUsername}${randomNum}`
+          : `user${randomNum}`;
 
         await register({
           email,
@@ -283,17 +290,21 @@ function AuthFormContent() {
   const handleGoogleAuth = () => {
     const rawApiUrl =
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1";
-    const cleanedApiUrl = cleanUrl(rawApiUrl);
-    const backendUrl = cleanedApiUrl.replace(/\/api\/v1\/?$/, "");
-    window.location.href = `${backendUrl}/api/v1/auth/google`;
+    const cleanedApiUrl = cleanUrl(rawApiUrl).replace(/\/$/, "");
+    const googleAuthUrl = cleanedApiUrl.endsWith("/auth")
+      ? `${cleanedApiUrl}/google`
+      : `${cleanedApiUrl}/auth/google`;
+    window.location.href = googleAuthUrl;
   };
 
   const handleGitHubAuth = () => {
     const rawApiUrl =
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1";
-    const cleanedApiUrl = cleanUrl(rawApiUrl);
-    const backendUrl = cleanedApiUrl.replace(/\/api\/v1\/?$/, "");
-    window.location.href = `${backendUrl}/api/v1/auth/github/auth`;
+    const cleanedApiUrl = cleanUrl(rawApiUrl).replace(/\/$/, "");
+    const githubAuthUrl = cleanedApiUrl.endsWith("/auth")
+      ? `${cleanedApiUrl}/github/auth`
+      : `${cleanedApiUrl}/auth/github/auth`;
+    window.location.href = githubAuthUrl;
   };
 
   return (
