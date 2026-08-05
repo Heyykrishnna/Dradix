@@ -23,7 +23,7 @@ export default function Home() {
 
       <header className="sticky top-4 w-full max-w-7xl mx-auto px-4 z-20">
         <div className="bg-white/60 backdrop-blur-2xl backdrop-saturate-200 rounded-2xl px-6 h-16 flex items-center justify-between border border-white/80 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.08),inset_0_1.5px_1.5px_rgba(255,255,255,0.95)] relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent pointer-events-none rounded-2xl" />
+          <div className="absolute inset-0 bg-linear-to-br from-white/40 via-transparent to-transparent pointer-events-none rounded-2xl" />
           <Link href="/" className="flex items-center gap-2 group z-10">
             <span className="font-heading font-extrabold text-xl text-[#015451] tracking-tight group-hover:scale-105 transition-transform">
               Dradix

@@ -236,7 +236,6 @@ import {
   MessageAvatar,
   MessageContent,
   MessageHeader,
-  MessageFooter,
 } from "@/components/ui/message";
 
 interface GitHubRepoItem {

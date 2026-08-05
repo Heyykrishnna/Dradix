@@ -847,8 +847,18 @@ export default function ProfilePage() {
     if (typeof window !== "undefined") {
       const savedAvatar = localStorage.getItem("dradix_profile_avatar");
       const savedCover = localStorage.getItem("dradix_profile_banner");
+      const savedContactRaw = localStorage.getItem("dradix_contact_info");
+      let savedContact: Partial<ProfileState> = {};
+      if (savedContactRaw) {
+        try {
+          savedContact = JSON.parse(savedContactRaw) as Partial<ProfileState>;
+        } catch {
+          // ignore error
+        }
+      }
       return {
         ...initialProfile,
+        ...savedContact,
         avatarUrl: savedAvatar || initialProfile.avatarUrl,
         coverUrl: savedCover || initialProfile.coverUrl,
       };
@@ -873,6 +883,20 @@ export default function ProfilePage() {
         typeof window !== "undefined"
           ? localStorage.getItem("dradix_profile_resume")
           : null;
+      const savedContactRaw =
+        typeof window !== "undefined"
+          ? localStorage.getItem("dradix_contact_info")
+          : null;
+      let savedContact: Partial<ProfileState> = {};
+      if (savedContactRaw) {
+        try {
+          savedContact = JSON.parse(savedContactRaw) as Partial<ProfileState>;
+        } catch {
+          // ignore error
+        }
+      }
+
+      const u = user as unknown as Record<string, unknown>;
       const avatar = user.avatar_url || savedAvatar || initialProfile.avatarUrl;
       const cover = user.cover_url || savedCover || initialProfile.coverUrl;
       const resumeName =
@@ -884,6 +908,30 @@ export default function ProfilePage() {
         ? `${user.first_name} ${user.last_name || ""}`.trim()
         : user.username || initialProfile.name;
       const newBio = user.bio || initialProfile.bio;
+      const phone =
+        typeof u.phone === "string"
+          ? u.phone
+          : savedContact.phone || initialProfile.phone;
+      const location =
+        typeof u.location === "string"
+          ? u.location
+          : savedContact.location || initialProfile.location;
+      const responseTime =
+        typeof u.response_time === "string"
+          ? u.response_time
+          : savedContact.responseTime || initialProfile.responseTime;
+      const activityRate =
+        typeof u.activity_rate === "number"
+          ? u.activity_rate
+          : (savedContact.activityRate ?? initialProfile.activityRate);
+      const views =
+        typeof u.profile_views === "number"
+          ? u.profile_views
+          : (savedContact.views ?? initialProfile.views);
+      const messages =
+        typeof u.messages_count === "number"
+          ? u.messages_count
+          : (savedContact.messages ?? initialProfile.messages);
 
       setProfile((prev) => {
         if (
@@ -892,7 +940,13 @@ export default function ProfilePage() {
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
           prev.bio === newBio &&
-          prev.resumeName === resumeName
+          prev.resumeName === resumeName &&
+          prev.phone === phone &&
+          prev.location === location &&
+          prev.responseTime === responseTime &&
+          prev.activityRate === activityRate &&
+          prev.views === views &&
+          prev.messages === messages
         ) {
           return prev;
         }
@@ -904,6 +958,12 @@ export default function ProfilePage() {
           coverUrl: cover,
           bio: newBio,
           resumeName,
+          phone,
+          location,
+          responseTime,
+          activityRate,
+          views,
+          messages,
         };
       });
 
@@ -914,7 +974,13 @@ export default function ProfilePage() {
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
           prev.bio === newBio &&
-          prev.resumeName === resumeName
+          prev.resumeName === resumeName &&
+          prev.phone === phone &&
+          prev.location === location &&
+          prev.responseTime === responseTime &&
+          prev.activityRate === activityRate &&
+          prev.views === views &&
+          prev.messages === messages
         ) {
           return prev;
         }
@@ -926,6 +992,12 @@ export default function ProfilePage() {
           coverUrl: cover,
           bio: newBio,
           resumeName,
+          phone,
+          location,
+          responseTime,
+          activityRate,
+          views,
+          messages,
         };
       });
     }
@@ -1360,6 +1432,17 @@ export default function ProfilePage() {
         localStorage.setItem("dradix_profile_avatar", formState.avatarUrl);
       if (formState.coverUrl)
         localStorage.setItem("dradix_profile_banner", formState.coverUrl);
+      localStorage.setItem(
+        "dradix_contact_info",
+        JSON.stringify({
+          phone: formState.phone,
+          location: formState.location,
+          responseTime: formState.responseTime,
+          activityRate: formState.activityRate,
+          views: formState.views,
+          messages: formState.messages,
+        }),
+      );
     }
 
     try {
@@ -1376,6 +1459,12 @@ export default function ProfilePage() {
           avatar_url: formState.avatarUrl,
           cover_url: formState.coverUrl,
           bio: formState.bio,
+          phone: formState.phone,
+          location: formState.location,
+          response_time: formState.responseTime,
+          activity_rate: formState.activityRate,
+          profile_views: formState.views,
+          messages_count: formState.messages,
         }),
       });
       await checkAuth();
