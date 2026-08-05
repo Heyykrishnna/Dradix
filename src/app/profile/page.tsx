@@ -363,6 +363,24 @@ const AVATAR_PRESETS = [
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop",
 ];
 
+export const formatPhoneNumber = (val: string): string => {
+  if (!val) return "";
+  let rawDigits = val.replace(/\D/g, "");
+  if (rawDigits.startsWith("91")) {
+    rawDigits = rawDigits.slice(2);
+  }
+  const cleanDigits = rawDigits.slice(0, 10);
+  if (!cleanDigits) return val.startsWith("+") ? "+91 " : "";
+
+  const part1 = cleanDigits.slice(0, 5);
+  const part2 = cleanDigits.slice(5, 10);
+
+  if (part2) {
+    return `+91 ${part1} ${part2}`;
+  }
+  return `+91 ${part1}`;
+};
+
 const initialProfile: Omit<ProfileState, "skills"> = {
   name: "Yatharth K.",
   username: "yatharthk",
@@ -904,6 +922,7 @@ export default function ProfilePage() {
         savedResume ||
         initialProfile.resumeName;
       const username = user.username || initialProfile.username;
+      const email = user.email || initialProfile.email;
       const name = user.first_name
         ? `${user.first_name} ${user.last_name || ""}`.trim()
         : user.username || initialProfile.name;
@@ -937,6 +956,7 @@ export default function ProfilePage() {
         if (
           prev.name === name &&
           prev.username === username &&
+          prev.email === email &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
           prev.bio === newBio &&
@@ -954,6 +974,7 @@ export default function ProfilePage() {
           ...prev,
           name,
           username,
+          email,
           avatarUrl: avatar,
           coverUrl: cover,
           bio: newBio,
@@ -971,6 +992,7 @@ export default function ProfilePage() {
         if (
           prev.name === name &&
           prev.username === username &&
+          prev.email === email &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
           prev.bio === newBio &&
@@ -988,6 +1010,7 @@ export default function ProfilePage() {
           ...prev,
           name,
           username,
+          email,
           avatarUrl: avatar,
           coverUrl: cover,
           bio: newBio,
@@ -2157,20 +2180,9 @@ export default function ProfilePage() {
                 <p className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest">
                   Email
                 </p>
-                {isEditing ? (
-                  <input
-                    type="email"
-                    value={formState.email}
-                    onChange={(e) =>
-                      setFormState({ ...formState, email: e.target.value })
-                    }
-                    className="w-full mt-1 rounded-lg border border-zinc-200 p-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-bold"
-                  />
-                ) : (
-                  <p className="text-[12px] font-bold text-zinc-700 mt-0.5 break-all">
-                    {profile.email}
-                  </p>
-                )}
+                <p className="text-[12px] font-bold text-zinc-700 mt-0.5 break-all">
+                  {user?.email || profile.email}
+                </p>
               </div>
 
               <div>
@@ -2182,13 +2194,17 @@ export default function ProfilePage() {
                     type="text"
                     value={formState.phone}
                     onChange={(e) =>
-                      setFormState({ ...formState, phone: e.target.value })
+                      setFormState({
+                        ...formState,
+                        phone: formatPhoneNumber(e.target.value),
+                      })
                     }
+                    placeholder="+91 98765 43210"
                     className="w-full mt-1 rounded-lg border border-zinc-200 p-2 text-[12px] text-zinc-700 bg-white focus:outline-none focus:ring-2 focus:ring-black/10 font-bold"
                   />
                 ) : (
                   <p className="text-[12px] font-bold text-zinc-700 mt-0.5">
-                    {profile.phone}
+                    {formatPhoneNumber(profile.phone)}
                   </p>
                 )}
               </div>
