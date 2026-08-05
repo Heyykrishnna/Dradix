@@ -996,6 +996,12 @@ export default function ProfilePage() {
         ? `${user.first_name} ${user.last_name || ""}`.trim()
         : user.username || initialProfile.name;
       const newBio = user.bio || initialProfile.bio;
+      const subtitle =
+        typeof u.subtitle === "string" && u.subtitle.trim()
+          ? u.subtitle.trim()
+          : typeof u.role_title === "string" && u.role_title.trim()
+            ? u.role_title.trim()
+            : savedContact.subtitle || initialProfile.subtitle;
       const phone =
         typeof u.phone === "string"
           ? u.phone
@@ -1025,6 +1031,7 @@ export default function ProfilePage() {
         if (
           prev.name === name &&
           prev.username === username &&
+          prev.subtitle === subtitle &&
           prev.email === email &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
@@ -1046,6 +1053,7 @@ export default function ProfilePage() {
           ...prev,
           name,
           username,
+          subtitle,
           email,
           avatarUrl: avatar,
           coverUrl: cover,
@@ -1065,6 +1073,7 @@ export default function ProfilePage() {
         if (
           prev.name === name &&
           prev.username === username &&
+          prev.subtitle === subtitle &&
           prev.email === email &&
           prev.avatarUrl === avatar &&
           prev.coverUrl === cover &&
@@ -1086,6 +1095,7 @@ export default function ProfilePage() {
           ...prev,
           name,
           username,
+          subtitle,
           email,
           avatarUrl: avatar,
           coverUrl: cover,
@@ -1470,6 +1480,8 @@ export default function ProfilePage() {
           activityRate: formState.activityRate,
           views: formState.views,
           messages: formState.messages,
+          subtitle: formState.subtitle,
+          role_title: formState.subtitle,
         }),
       );
     }
@@ -1485,6 +1497,9 @@ export default function ProfilePage() {
           username: formState.username,
           first_name: firstName,
           last_name: lastName,
+          subtitle: formState.subtitle,
+          role_title: formState.subtitle,
+          role: formState.subtitle,
           avatar_url: formState.avatarUrl,
           cover_url: formState.coverUrl,
           dither_color: JSON.stringify(formState.ditherColor),

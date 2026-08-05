@@ -125,6 +125,8 @@ interface PublicUserData {
   first_name?: string;
   last_name?: string;
   avatar_url?: string;
+  subtitle?: string;
+  role_title?: string;
   bio?: string;
   phone?: string;
   location?: string;
@@ -765,8 +767,10 @@ export default function PublicUserProfilePage() {
               </div>
 
               <p className="text-[11px] font-medium text-[#015451] flex items-center gap-1.5">
-                <FaBriefcase className="w-3 h-3" /> Full-Stack &amp; AI Systems
-                Developer
+                <FaBriefcase className="w-3 h-3" />{" "}
+                {userData.subtitle ||
+                  userData.role_title ||
+                  "Full-Stack & AI Systems Developer"}
               </p>
 
               {userData.location && (
@@ -1604,7 +1608,8 @@ export default function PublicUserProfilePage() {
                     No Featured Projects Listed
                   </h4>
                   <p className="text-[11px] text-zinc-500 font-normal">
-                    Showcase applications, repository links, and technical architectures will appear here once configured.
+                    Showcase applications, repository links, and technical
+                    architectures will appear here once configured.
                   </p>
                 </div>
               </div>
@@ -1640,7 +1645,8 @@ export default function PublicUserProfilePage() {
                     No Skills Configured
                   </h4>
                   <p className="text-[11px] text-zinc-500 font-normal">
-                    Technical competencies and primary programming languages will appear here once configured.
+                    Technical competencies and primary programming languages
+                    will appear here once configured.
                   </p>
                 </div>
               </div>
@@ -1690,7 +1696,8 @@ export default function PublicUserProfilePage() {
                       No Work Experience Listed
                     </h4>
                     <p className="text-[11px] text-zinc-500 font-normal">
-                      Career history and engineering roles will be displayed here.
+                      Career history and engineering roles will be displayed
+                      here.
                     </p>
                   </div>
                 </div>

@@ -12,6 +12,8 @@ export interface SafeUser {
   avatar_url: string | null;
   cover_url: string | null;
   bio: string | null;
+  subtitle?: string | null;
+  role_title?: string | null;
   developer_score: number;
   skills: string[];
   socials: Record<string, string>;
