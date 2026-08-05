@@ -21,7 +21,6 @@ import {
   FaArrowUpRightFromSquare,
   FaStar,
   FaEye,
-  FaDownload,
   FaXmark,
   FaGithub,
 } from "react-icons/fa6";
@@ -164,21 +163,6 @@ interface PublicUserData {
   ai_assessment?: AIAssessmentResult;
 }
 
-const MONTH_LABELS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
 export default function PublicUserProfilePage() {
   const params = useParams();
   const rawUsername = params?.username as string;
@@ -205,6 +189,30 @@ export default function PublicUserProfilePage() {
     salaryRange: "$100k - $145k",
     message: "",
   });
+
+  const dynamicMonthLabels = useMemo(() => {
+    const allMonths = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const currentMonthIdx = new Date().getMonth();
+    const result: { key: string; name: string }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const idx = (currentMonthIdx - i + 12) % 12;
+      result.push({ key: `${i}-${allMonths[idx]}`, name: allMonths[idx] });
+    }
+    return result;
+  }, []);
 
   useEffect(() => {
     if (!username) return;
@@ -771,25 +779,6 @@ export default function PublicUserProfilePage() {
                 <FaPaperPlane className="w-2.5 h-2.5" /> Hire / Contact
               </button>
 
-              {userData.resume_url ? (
-                <a
-                  href={userData.resume_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3.5 py-2.5 rounded-xl bg-zinc-900 text-white text-[10px] font-normal hover:bg-zinc-800 transition-all border border-zinc-800 flex items-center gap-1.5 cursor-pointer"
-                >
-                  <FaDownload className="w-2.5 h-2.5 text-zinc-300" /> Resume
-                </a>
-              ) : (
-                <button
-                  onClick={() => setShowHireModal(true)}
-                  className="px-3.5 py-2.5 rounded-xl bg-zinc-900 text-white text-[10px] font-normal hover:bg-zinc-800 transition-all border border-zinc-800 flex items-center gap-1.5 cursor-pointer"
-                >
-                  <FaDownload className="w-2.5 h-2.5 text-zinc-300" /> Request
-                  Resume
-                </button>
-              )}
-
               <button
                 onClick={handleCopyShare}
                 className="p-2.5 rounded-xl bg-white text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition-all border-2 border-dotted border-zinc-300 relative cursor-pointer"
@@ -825,7 +814,7 @@ export default function PublicUserProfilePage() {
               <h3 className="text-zinc-900 text-[12px] font-semibold tracking-wide">
                 Executive Bio
               </h3>
-              <p className="text-[12px] text-zinc-600 leading-relaxed font-normal">
+              <p className="text-[12px] text-zinc-600 max-w-xl leading-relaxed font-normal">
                 {userData.bio ||
                   "Passionate software engineer focused on building robust AI tools, developer platforms, and distributed web applications."}
               </p>
@@ -1394,8 +1383,8 @@ export default function PublicUserProfilePage() {
 
             <div className="pt-2 space-y-2">
               <div className="w-full flex justify-between text-[11px] font-medium text-zinc-500 px-0.5">
-                {MONTH_LABELS.map((month) => (
-                  <span key={month}>{month}</span>
+                {dynamicMonthLabels.map((m) => (
+                  <span key={m.key}>{m.name}</span>
                 ))}
               </div>
 
