@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { useRef, useEffect, forwardRef, useMemo } from "react";
+import React, { useRef, useEffect, forwardRef, useMemo, useState, Component, ReactNode } from "react";
 import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { EffectComposer, wrapEffect } from "@react-three/postprocessing";
 import { Effect } from "postprocessing";
@@ -226,7 +226,8 @@ function DitheredWaves({
   );
 
   useEffect(() => {
-    const dpr = gl.getPixelRatio();
+    if (!gl) return;
+    const dpr = gl.getPixelRatio ? gl.getPixelRatio() : 1;
     const newWidth = Math.floor(size.width * dpr);
     const newHeight = Math.floor(size.height * dpr);
     const currentRes = waveUniforms.resolution.value;
@@ -263,9 +264,9 @@ function DitheredWaves({
   });
 
   const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
-    if (!enableMouseInteraction) return;
+    if (!enableMouseInteraction || !gl?.domElement) return;
     const rect = gl.domElement.getBoundingClientRect();
-    const dpr = gl.getPixelRatio();
+    const dpr = gl.getPixelRatio ? gl.getPixelRatio() : 1;
     mouseRef.current.set(
       (e.clientX - rect.left) * dpr,
       (e.clientY - rect.top) * dpr,
@@ -312,6 +313,49 @@ interface DitherProps {
   mouseRadius?: number;
 }
 
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallbackColor?: [number, number, number];
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class DitherErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    console.warn("Dither WebGL Canvas fallback active:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      const [r, g, b] = this.props.fallbackColor || [0.004, 0.33, 0.32];
+      const rgbStr = `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+      return (
+        <div
+          className="w-full h-full relative bg-zinc-950"
+          style={{
+            backgroundImage: `radial-gradient(circle at 50% 50%, ${rgbStr} 0%, #09090b 100%)`,
+          }}
+        />
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function Dither({
   waveSpeed = 0.05,
   waveFrequency = 3,
@@ -323,24 +367,46 @@ export default function Dither({
   enableMouseInteraction = true,
   mouseRadius = 1,
 }: DitherProps) {
-  return (
-    <Canvas
-      className="w-full h-full relative"
-      camera={{ position: [0, 0, 6] }}
-      dpr={1}
-      gl={{ antialias: true, preserveDrawingBuffer: true }}
-    >
-      <DitheredWaves
-        waveSpeed={waveSpeed}
-        waveFrequency={waveFrequency}
-        waveAmplitude={waveAmplitude}
-        waveColor={waveColor}
-        colorNum={colorNum}
-        pixelSize={pixelSize}
-        disableAnimation={disableAnimation}
-        enableMouseInteraction={enableMouseInteraction}
-        mouseRadius={mouseRadius}
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const [r, g, b] = waveColor;
+  const rgbStr = `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+
+  if (!mounted) {
+    return (
+      <div
+        className="w-full h-full relative bg-zinc-950"
+        style={{
+          backgroundImage: `radial-gradient(circle at 50% 50%, ${rgbStr} 0%, #09090b 100%)`,
+        }}
       />
-    </Canvas>
+    );
+  }
+
+  return (
+    <DitherErrorBoundary fallbackColor={waveColor}>
+      <Canvas
+        className="w-full h-full relative"
+        camera={{ position: [0, 0, 6] }}
+        dpr={1}
+        gl={{ antialias: true, preserveDrawingBuffer: true, alpha: true }}
+      >
+        <DitheredWaves
+          waveSpeed={waveSpeed}
+          waveFrequency={waveFrequency}
+          waveAmplitude={waveAmplitude}
+          waveColor={waveColor}
+          colorNum={colorNum}
+          pixelSize={pixelSize}
+          disableAnimation={disableAnimation}
+          enableMouseInteraction={enableMouseInteraction}
+          mouseRadius={mouseRadius}
+        />
+      </Canvas>
+    </DitherErrorBoundary>
   );
 }

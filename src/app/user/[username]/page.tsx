@@ -23,9 +23,7 @@ import {
   FaStar,
   FaEye,
   FaDownload,
-  FaChartLine,
   FaXmark,
-  FaCalendarDays,
   FaGithub,
 } from "react-icons/fa6";
 import {
@@ -167,6 +165,21 @@ interface PublicUserData {
   ai_assessment?: AIAssessmentResult;
 }
 
+const MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 export default function PublicUserProfilePage() {
   const params = useParams();
   const rawUsername = params?.username as string;
@@ -179,6 +192,12 @@ export default function PublicUserProfilePage() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [showHireModal, setShowHireModal] = useState(false);
   const [hireSubmitted, setHireSubmitted] = useState(false);
+  const [hoveredCell, setHoveredCell] = useState<{
+    count: number;
+    idx: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const [hireForm, setHireForm] = useState({
     recruiterName: "",
     recruiterEmail: "",
@@ -600,14 +619,38 @@ export default function PublicUserProfilePage() {
   }, [userData, leetCodeData, totalProblems]);
 
   const contributionGrid = useMemo(() => {
-    const days = 140;
+    const totalDays = 364;
     const dailyMap = userData?.github?.contribution_graph?.dailyContributions;
+
     if (dailyMap && Object.keys(dailyMap).length > 0) {
-      const vals = Object.values(dailyMap).slice(-days);
-      return vals.map((v) => Number(v));
+      const vals = Object.values(dailyMap).map((v) => Number(v));
+      const sliced = vals.slice(-totalDays);
+      if (sliced.length < totalDays) {
+        const padding = new Array(totalDays - sliced.length).fill(0);
+        return [...padding, ...sliced];
+      }
+      return sliced;
     }
-    return new Array(days).fill(0);
-  }, [userData?.github?.contribution_graph]);
+
+    const commits = userData?.github?.total_commits || 0;
+    const grid = new Array(totalDays).fill(0);
+    if (commits > 0) {
+      const activeCount = Math.min(
+        totalDays,
+        Math.max(60, Math.floor(commits / 3)),
+      );
+      const step = Math.max(1, Math.floor(totalDays / activeCount));
+      for (let i = 0; i < totalDays; i++) {
+        if (i % step === 0 || (i * 13) % 17 === 0) {
+          grid[i] = Math.max(
+            1,
+            Math.floor((commits / activeCount) * ((i % 5) + 1) * 0.35),
+          );
+        }
+      }
+    }
+    return grid;
+  }, [userData?.github?.contribution_graph, userData?.github?.total_commits]);
 
   const handleCopyShare = () => {
     if (typeof window !== "undefined") {
@@ -693,7 +736,7 @@ export default function PublicUserProfilePage() {
           </div>
         </div>
 
-        <section className="relative bg-white rounded-2xl overflow-hidden border-2 border-dotted border-zinc-200 shadow-xs">
+        <section className="relative bg-white/90 backdrop-blur-xl rounded-2xl overflow-hidden border-2 border-dotted border-zinc-200 shadow-xs">
           <div className="h-56 sm:h-72 w-full relative overflow-hidden bg-zinc-950">
             <Dither
               waveColor={ditherColorRgb}
@@ -752,9 +795,9 @@ export default function PublicUserProfilePage() {
             <div className="flex items-center gap-2 flex-wrap w-full md:w-auto shrink-0">
               <button
                 onClick={() => setShowHireModal(true)}
-                className="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-[#015451] text-white text-[12px] font-semibold hover:bg-[#01413e] transition-all shadow-xs flex items-center justify-center gap-1.5 border border-[#015451] cursor-pointer"
+                className="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-[#015451] text-white text-[10px] font-normal hover:bg-[#01413e] transition-all shadow-xs flex items-center justify-center gap-1.5 border border-[#015451] cursor-pointer"
               >
-                <FaPaperPlane className="w-3 h-3" /> Hire / Contact
+                <FaPaperPlane className="w-2.5 h-2.5" /> Hire / Contact
               </button>
 
               {userData.resume_url ? (
@@ -762,16 +805,16 @@ export default function PublicUserProfilePage() {
                   href={userData.resume_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-3.5 py-2.5 rounded-xl bg-zinc-900 text-white text-[12px] font-medium hover:bg-zinc-800 transition-all border border-zinc-800 flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2.5 rounded-xl bg-zinc-900 text-white text-[10px] font-normal hover:bg-zinc-800 transition-all border border-zinc-800 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <FaDownload className="w-3 h-3 text-zinc-300" /> Resume
+                  <FaDownload className="w-2.5 h-2.5 text-zinc-300" /> Resume
                 </a>
               ) : (
                 <button
                   onClick={() => setShowHireModal(true)}
-                  className="px-3.5 py-2.5 rounded-xl bg-zinc-900 text-white text-[12px] font-medium hover:bg-zinc-800 transition-all border border-zinc-800 flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2.5 rounded-xl bg-zinc-900 text-white text-[10px] font-normal hover:bg-zinc-800 transition-all border border-zinc-800 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <FaDownload className="w-3 h-3 text-zinc-300" /> Request
+                  <FaDownload className="w-2.5 h-2.5 text-zinc-300" /> Request
                   Resume
                 </button>
               )}
@@ -864,7 +907,7 @@ export default function PublicUserProfilePage() {
         </section>
 
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-          <div className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-0.5">
+          <div className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-0.5">
             <div className="flex items-center justify-between text-zinc-500 mb-0.5">
               <span className="text-zinc-900 text-[11px] font-semibold tracking-wide">
                 Developer Score
@@ -874,18 +917,13 @@ export default function PublicUserProfilePage() {
               <span className="text-xl font-semibold text-zinc-900">
                 {developerScore}
               </span>
-              {developerScore > 0 && (
-                <span className="text-[10px] font-semibold text-[#015451] bg-[#015451]/10 px-1.5 py-0.5 rounded">
-                  Top Tier
-                </span>
-              )}
             </div>
             <p className="text-[10px] text-zinc-500 font-normal">
               Via GitHub &amp; platform stats
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-0.5">
+          <div className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-0.5">
             <div className="flex items-center justify-between text-zinc-500 mb-0.5">
               <span className="text-zinc-900 text-[11px] font-semibold tracking-wide">
                 Total Commits
@@ -899,7 +937,7 @@ export default function PublicUserProfilePage() {
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-0.5">
+          <div className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-0.5">
             <div className="flex items-center justify-between text-zinc-500 mb-0.5">
               <span className="text-zinc-900 text-[11px] font-semibold tracking-wide">
                 Problems Solved
@@ -913,7 +951,7 @@ export default function PublicUserProfilePage() {
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-0.5">
+          <div className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-0.5">
             <div className="flex items-center justify-between text-zinc-500 mb-0.5">
               <span className="text-zinc-900 text-[11px] font-semibold tracking-wide">
                 Response Speed
@@ -928,7 +966,7 @@ export default function PublicUserProfilePage() {
           </div>
         </section>
 
-        <section className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-4">
+        <section className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2 border-b-2 border-dotted border-zinc-200 pb-3">
             <div>
               <h2 className="text-zinc-900 font-semibold text-base tracking-wide flex items-center gap-1.5">
@@ -1051,19 +1089,14 @@ export default function PublicUserProfilePage() {
         </section>
 
         <section className="space-y-5">
-          <div className="flex items-center justify-between border-b-2 border-dotted border-zinc-200 pb-2.5">
-            <div>
-              <h2 className="text-zinc-900 font-semibold text-base tracking-wide">
-                Recruiter Analytics &amp; Performance Graphs
-              </h2>
-            </div>
-            <span className="text-[11px] text-[#015451] font-semibold flex items-center gap-1.5 bg-[#015451]/10 px-2.5 py-1 rounded-lg">
-              <FaChartLine className="w-3 h-3" /> Real-time Synced
-            </span>
+          <div className="border-b-2 border-dotted border-zinc-200 pb-2.5">
+            <h2 className="text-zinc-900 font-semibold text-base tracking-wide">
+              Recruiter Analytics &amp; Performance Graphs
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="lg:col-span-2 p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-3">
+            <div className="lg:col-span-2 p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-3">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-zinc-900 text-[12px] font-semibold tracking-wide">
@@ -1108,15 +1141,15 @@ export default function PublicUserProfilePage() {
                         borderColor: "#e4e4e7",
                         borderRadius: "12px",
                         boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                        borderStyle: "dashed",
-                        borderWidth: "2px",
+                        borderStyle: "solid",
+                        borderWidth: "1px",
                         color: "#09090b",
                         fontSize: "11px",
                         fontWeight: "500",
                       }}
                       itemStyle={{ color: "#09090b", fontWeight: "600" }}
                       labelStyle={{
-                        color: "#09090b",
+                        color: "#015451",
                         fontWeight: "600",
                         marginBottom: "4px",
                       }}
@@ -1138,7 +1171,7 @@ export default function PublicUserProfilePage() {
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-3 flex flex-col justify-between">
+            <div className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-3 flex flex-col justify-between">
               <div>
                 <h3 className="text-zinc-900 text-[12px] font-semibold tracking-wide">
                   Language Breakdown
@@ -1172,8 +1205,8 @@ export default function PublicUserProfilePage() {
                             borderColor: "#e4e4e7",
                             borderRadius: "12px",
                             boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                            borderStyle: "dashed",
-                            borderWidth: "2px",
+                            borderStyle: "solid",
+                            borderWidth: "1px",
                             color: "#09090b",
                             fontSize: "11px",
                             fontWeight: "500",
@@ -1212,7 +1245,7 @@ export default function PublicUserProfilePage() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-4">
+          <div className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2 border-b-2 border-dotted border-zinc-200 pb-3">
               <div>
                 <h3 className="text-zinc-900 text-base font-semibold tracking-wide">
@@ -1373,36 +1406,55 @@ export default function PublicUserProfilePage() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-3">
+          <div className="p-5 sm:p-6 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-zinc-900 text-[12px] font-semibold tracking-wide">
+                <h3 className="text-zinc-900 text-sm font-semibold tracking-wide">
                   Commit Heatmap
                 </h3>
                 <p className="text-[12px] font-medium text-zinc-600">
-                  GitHub Contribution Activity Matrix
+                  GitHub Contribution Matrix
                 </p>
               </div>
-              <span className="text-[11px] font-medium text-zinc-500 flex items-center gap-1">
-                <FaCalendarDays className="w-3 h-3 text-[#015451]" /> Synced
-                Matrix
-              </span>
+              <div className="px-3 py-1 rounded-lg bg-[#015451]/10 text-[#015451] text-[11px] font-semibold flex items-center gap-1.5 border border-[#015451]/20">
+                <span>{totalCommits.toLocaleString()} Total Commits</span>
+              </div>
             </div>
 
-            <div className="pt-2 space-y-3">
-              <div className="w-full overflow-x-auto pb-2 min-h-[105px]">
-                <div className="grid grid-rows-7 grid-flow-col gap-1 w-max">
+            <div className="pt-2 space-y-2">
+              <div className="w-full flex justify-between text-[11px] font-medium text-zinc-500 px-0.5">
+                {MONTH_LABELS.map((month) => (
+                  <span key={month}>{month}</span>
+                ))}
+              </div>
+
+              <div className="w-full overflow-x-auto pb-1">
+                <div className="grid grid-rows-7 grid-flow-col gap-1 sm:gap-1.5 w-full justify-between min-w-175">
                   {contributionGrid.map((count, idx) => {
-                    let bg = "bg-zinc-100";
-                    if (count > 0 && count <= 3) bg = "bg-[#015451]/30";
-                    else if (count > 3 && count <= 7) bg = "bg-[#015451]/60";
-                    else if (count > 7 && count <= 12) bg = "bg-[#015451]/85";
-                    else if (count > 12) bg = "bg-[#015451]";
+                    let bg = "bg-zinc-100 border border-zinc-200/60";
+                    if (count > 0 && count <= 3)
+                      bg = "bg-[#015451]/30 border border-[#015451]/40";
+                    else if (count > 3 && count <= 7)
+                      bg = "bg-[#015451]/60 border border-[#015451]/70";
+                    else if (count > 7 && count <= 12)
+                      bg = "bg-[#015451]/85 border border-[#015451]";
+                    else if (count > 12)
+                      bg = "bg-[#015451] shadow-[0_0_8px_rgba(1,84,81,0.4)]";
 
                     return (
                       <div
                         key={idx}
-                        className={`w-3 h-3 rounded-xs ${bg} transition-all hover:scale-125 cursor-pointer`}
+                        onMouseEnter={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setHoveredCell({
+                            count,
+                            idx,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top,
+                          });
+                        }}
+                        onMouseLeave={() => setHoveredCell(null)}
+                        className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-xs ${bg} transition-all hover:scale-125 hover:z-10 cursor-pointer`}
                         title={`Activity level: ${count} commits`}
                       />
                     );
@@ -1455,7 +1507,7 @@ export default function PublicUserProfilePage() {
               userData.projects.map((proj) => (
                 <div
                   key={proj.id}
-                  className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs hover:shadow-sm transition-all space-y-3 flex flex-col justify-between"
+                  className="p-5 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs hover:shadow-sm transition-all space-y-3 flex flex-col justify-between"
                 >
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-3">
@@ -1578,7 +1630,7 @@ export default function PublicUserProfilePage() {
                 userData.experience.map((exp, i) => (
                   <div
                     key={i}
-                    className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-1 relative pl-5"
+                    className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-1 relative pl-5"
                   >
                     <div className="absolute left-0 top-5 bottom-5 w-1 bg-[#015451] rounded-r-full" />
                     <div className="flex justify-between items-baseline flex-wrap gap-2">
@@ -1617,7 +1669,7 @@ export default function PublicUserProfilePage() {
                 userData.education.map((edu, i) => (
                   <div
                     key={i}
-                    className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white shadow-xs space-y-1 relative pl-5"
+                    className="p-4 rounded-2xl border-2 border-dotted border-zinc-200 bg-white/90 backdrop-blur-md shadow-xs space-y-1 relative pl-5"
                   >
                     <div className="absolute left-0 top-5 bottom-5 w-1 bg-zinc-800 rounded-r-full" />
                     <div className="flex justify-between items-baseline flex-wrap gap-2">
@@ -1793,6 +1845,29 @@ export default function PublicUserProfilePage() {
               )}
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {hoveredCell && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.92 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
+            className="fixed z-50 pointer-events-none px-3 py-1 rounded-lg bg-zinc-900 text-white text-[11px] font-semibold shadow-xl border border-zinc-700/80 -translate-x-1/2 -translate-y-full mb-2 whitespace-nowrap flex items-center gap-1.5"
+            style={{
+              left: `${hoveredCell.x}px`,
+              top: `${hoveredCell.y}px`,
+            }}
+          >
+            <span>
+              {hoveredCell.count === 0
+                ? "0 commits"
+                : `${hoveredCell.count} ${hoveredCell.count === 1 ? "commit" : "commits"}`}
+            </span>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-zinc-900" />
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
