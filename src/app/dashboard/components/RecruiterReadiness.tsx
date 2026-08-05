@@ -5,6 +5,7 @@ import {
   CrossCircledIcon,
   ArrowRightIcon,
 } from "@radix-ui/react-icons";
+import { useAuth } from "@/context/AuthContext";
 
 const checklist = [
   { label: "Resume Uploaded", done: false },
@@ -20,6 +21,7 @@ const checklist = [
 const missing = ["No Resume", "No Portfolio Banner"];
 
 export default function RecruiterReadiness() {
+  const { user } = useAuth();
   const score = Math.round(
     (checklist.filter((c) => c.done).length / checklist.length) * 100,
   );
@@ -118,20 +120,42 @@ export default function RecruiterReadiness() {
           Public Profile
         </p>
         <div className="flex items-center gap-3 bg-zinc-900/60 border border-zinc-800/60 rounded-xl px-4 py-3 mb-3">
-          <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-[#015451] animate-pulse" />
           <p className="text-[12px] text-zinc-300 font-mono">
-            dradix.dev/yatharth
+            dradix.dev/{user?.username || "yatharth"}
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          {["Open", "Share", "Copy Link", "Download CV"].map((action) => (
-            <button
-              key={action}
-              className="py-2 text-[11px] text-zinc-400 bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 rounded-lg transition-colors"
-            >
-              {action}
-            </button>
-          ))}
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            onClick={() => window.open(`/user/${user?.username || "yatharth"}`, "_blank")}
+            className="py-2 text-[11px] text-zinc-300 bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 rounded-lg transition-colors font-medium cursor-pointer"
+          >
+            Open
+          </button>
+          <button
+            onClick={async () => {
+              const url = `${window.location.origin}/user/${user?.username || "yatharth"}`;
+              if (navigator.share) {
+                try {
+                  await navigator.share({ title: "Dradix Profile", url });
+                  return;
+                } catch {}
+              }
+              await navigator.clipboard.writeText(url);
+            }}
+            className="py-2 text-[11px] text-zinc-300 bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 rounded-lg transition-colors font-medium cursor-pointer"
+          >
+            Share
+          </button>
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/user/${user?.username || "yatharth"}`;
+              navigator.clipboard.writeText(url);
+            }}
+            className="py-2 text-[11px] text-zinc-300 bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 rounded-lg transition-colors font-medium cursor-pointer"
+          >
+            Copy Link
+          </button>
         </div>
       </div>
     </div>

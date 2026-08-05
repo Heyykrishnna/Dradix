@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -1223,6 +1224,7 @@ function RepoVisibilitySlider({
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [projectsList, setProjectsList] = useState<Project[]>(() => {
     if (typeof window !== "undefined") {
       const cached = localStorage.getItem("dradix_dashboard_data");
@@ -1306,6 +1308,51 @@ export default function DashboardPage() {
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
+
+  const [showQrModal, setShowQrModal] = useState<boolean>(false);
+  const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [sharedLink, setSharedLink] = useState<boolean>(false);
+
+  const publicUsername = user?.username || "yatharth";
+  const publicProfileUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/user/${publicUsername}`
+      : `https://dradix.dev/user/${publicUsername}`;
+  const displayProfilePath = `dradix.dev/user/${publicUsername}`;
+
+  const handleOpenPublicProfile = () => {
+    window.open(`/user/${publicUsername}`, "_blank");
+  };
+
+  const handleSharePublicProfile = async () => {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `${user?.first_name || publicUsername}'s Dradix Profile`,
+          text: `Check out ${publicUsername}'s developer profile on Dradix`,
+          url: publicProfileUrl,
+        });
+        setSharedLink(true);
+        setTimeout(() => setSharedLink(false), 2500);
+        return;
+      } catch {
+        // ignore cancellation
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(publicProfileUrl);
+      setSharedLink(true);
+      setTimeout(() => setSharedLink(false), 2500);
+    }
+  };
+
+  const handleCopyPublicProfileLink = async () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(publicProfileUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    }
+  };
 
   const [selectedVelocityMonth, setSelectedVelocityMonth] =
     useState<string>("May");
@@ -2849,24 +2896,33 @@ export default function DashboardPage() {
             <h2 className="text-[16px] font-bold text-black tracking-tight">
               Public Profile
             </h2>
-            <div className="bg-white rounded-xl p-3 font-mono text-[11px] text-zinc-500 truncate">
-              dradix.dev/yatharth
+            <div className="bg-white rounded-xl p-3 font-mono text-[11px] text-zinc-600 truncate border border-zinc-200/60 shadow-2xs">
+              {displayProfilePath}
             </div>
-            <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-bold text-zinc-700">
-              <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
+            <div className="grid grid-cols-3 gap-2 text-center text-[11px] font-bold text-zinc-700">
+              <button
+                onClick={handleOpenPublicProfile}
+                className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs hover:bg-zinc-50 transition-all cursor-pointer"
+              >
                 Open Profile
               </button>
-              <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
-                Share Link
+              <button
+                onClick={handleSharePublicProfile}
+                className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs hover:bg-zinc-50 transition-all cursor-pointer"
+              >
+                {sharedLink ? "Shared!" : "Share Link"}
               </button>
-              <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
-                Copy Link
-              </button>
-              <button className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs cursor-pointer">
-                Download CV
+              <button
+                onClick={handleCopyPublicProfileLink}
+                className="btn-candy bg-white rounded-lg py-2 border border-zinc-200 text-zinc-800 font-bold shadow-2xs hover:bg-zinc-50 transition-all cursor-pointer"
+              >
+                {copiedLink ? "Copied!" : "Copy Link"}
               </button>
             </div>
-            <button className="btn-candy w-full bg-white rounded-lg py-2 border border-zinc-200 text-[11px] font-bold text-zinc-800 shadow-2xs cursor-pointer">
+            <button
+              onClick={() => setShowQrModal(true)}
+              className="btn-candy w-full bg-white rounded-lg py-2 border border-zinc-200 text-[11px] font-bold text-zinc-800 shadow-2xs hover:bg-zinc-50 transition-all cursor-pointer"
+            >
               Generate Profile QR Code
             </button>
           </div>
@@ -5132,6 +5188,56 @@ export default function DashboardPage() {
                   Delete
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl text-center relative border border-zinc-200">
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-700 text-sm font-bold w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center cursor-pointer transition-all"
+            >
+              ✕
+            </button>
+
+            <div className="space-y-1 pt-2">
+              <h3 className="text-base font-bold text-zinc-900">
+                Public Profile QR Code
+              </h3>
+              <p className="text-xs text-zinc-500 font-medium">
+                Scan to view @{publicUsername}&apos;s profile on Dradix
+              </p>
+            </div>
+
+            <div className="p-4 bg-zinc-50 rounded-2xl border-2 border-dotted border-zinc-200 flex justify-center items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(publicProfileUrl)}`}
+                alt={`QR code for ${publicUsername}`}
+                className="w-48 h-48 rounded-lg shadow-2xs"
+              />
+            </div>
+
+            <div className="text-[11px] font-mono text-zinc-600 bg-zinc-100 p-2.5 rounded-xl truncate">
+              {publicProfileUrl}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleCopyPublicProfileLink}
+                className="flex-1 py-2.5 rounded-xl bg-[#015451] text-white text-xs font-semibold hover:bg-[#01413e] transition-all cursor-pointer"
+              >
+                {copiedLink ? "Link Copied!" : "Copy Link"}
+              </button>
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="px-4 py-2.5 rounded-xl bg-zinc-100 text-zinc-700 text-xs font-semibold hover:bg-zinc-200 transition-all cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
