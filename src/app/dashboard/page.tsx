@@ -230,6 +230,14 @@ import {
   MessageScrollerItem,
   MessageScrollerButton,
 } from "@/components/ui/message-scroller";
+import {
+  MessageGroup,
+  Message,
+  MessageAvatar,
+  MessageContent,
+  MessageHeader,
+  MessageFooter,
+} from "@/components/ui/message";
 
 interface GitHubRepoItem {
   id: number;
@@ -2682,48 +2690,74 @@ export default function DashboardPage() {
               autoScroll={true}
               defaultScrollPosition="end"
             >
-              <MessageScroller className="bg-white rounded-2xl p-3.5 h-64 sm:h-72 text-[11px] relative border border-zinc-200/60 shadow-xs">
+              <MessageScroller className="bg-white rounded-2xl p-4 h-72 sm:h-80 text-[12px] relative border border-zinc-200/80 shadow-xs">
                 <MessageScrollerViewport className="scrollbar-thin">
-                  <MessageScrollerContent className="gap-3">
-                    {messages.map((m, idx) => (
-                      <MessageScrollerItem
-                        key={idx}
-                        messageId={`msg-${idx}`}
-                        scrollAnchor={idx === messages.length - 1}
-                        className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
-                      >
-                        <span className="text-[9px] text-zinc-400 font-extrabold mb-0.5 uppercase tracking-wider">
-                          {m.sender === "user" ? "You" : "AI Coach"}
-                        </span>
-                        <div
-                          className={`p-3 rounded-2xl max-w-[90%] leading-relaxed ${
-                            m.sender === "user"
-                              ? "bg-zinc-900 text-white rounded-tr-none shadow-xs"
-                              : "bg-zinc-50 border border-zinc-200/80 text-zinc-800 rounded-tl-none shadow-xs"
-                          }`}
+                  <MessageScrollerContent className="gap-3.5">
+                    <MessageGroup className="gap-3.5 w-full">
+                      {messages.map((m, idx) => (
+                        <MessageScrollerItem
+                          key={idx}
+                          messageId={`msg-${idx}`}
+                          scrollAnchor={idx === messages.length - 1}
                         >
-                          <FormattedCoachMessage
-                            text={m.text}
-                            sender={m.sender}
-                          />
-                        </div>
-                      </MessageScrollerItem>
-                    ))}
-                    {isAskingCoach && (
-                      <MessageScrollerItem
-                        messageId="msg-typing"
-                        scrollAnchor={true}
-                        className="flex flex-col items-start"
-                      >
-                        <span className="text-[9px] text-zinc-400 font-bold mb-0.5">
-                          Coach
-                        </span>
-                        <div className="p-2.5 rounded-xl bg-zinc-100 text-zinc-500 text-[11px] font-medium flex items-center gap-2 rounded-tl-none">
-                          <UpdateIcon className="w-3.5 h-3.5 animate-spin text-zinc-700" />
-                          <span>AI Coach is thinking...</span>
-                        </div>
-                      </MessageScrollerItem>
-                    )}
+                          <Message
+                            align={m.sender === "user" ? "end" : "start"}
+                          >
+                            <MessageAvatar
+                              className={`w-7 h-7 min-w-7 text-[10px] font-bold self-start ${
+                                m.sender === "user"
+                                  ? "bg-zinc-900 text-white border border-zinc-700"
+                                  : "bg-[#015451] text-white shadow-xs"
+                              }`}
+                            >
+                              {m.sender === "user" ? "You" : "AI"}
+                            </MessageAvatar>
+                            <MessageContent>
+                              <MessageHeader className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-1">
+                                {m.sender === "user" ? "You" : "AI Coach"}
+                              </MessageHeader>
+                              <div
+                                data-slot="message-bubble"
+                                className={`p-3 rounded-2xl max-w-[85%] leading-relaxed text-[12px] shadow-xs ${
+                                  m.sender === "user"
+                                    ? "bg-zinc-900 text-white rounded-tr-none"
+                                    : "bg-zinc-50 border border-zinc-200/80 text-zinc-800 rounded-tl-none"
+                                }`}
+                              >
+                                <FormattedCoachMessage
+                                  text={m.text}
+                                  sender={m.sender}
+                                />
+                              </div>
+                            </MessageContent>
+                          </Message>
+                        </MessageScrollerItem>
+                      ))}
+                      {isAskingCoach && (
+                        <MessageScrollerItem
+                          messageId="msg-typing"
+                          scrollAnchor={true}
+                        >
+                          <Message align="start">
+                            <MessageAvatar className="w-7 h-7 min-w-7 text-[10px] font-bold self-start bg-emerald-600 text-white shadow-xs">
+                              AI
+                            </MessageAvatar>
+                            <MessageContent>
+                              <MessageHeader className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-1">
+                                AI Coach
+                              </MessageHeader>
+                              <div
+                                data-slot="message-bubble"
+                                className="p-3 rounded-2xl bg-zinc-100/90 border border-zinc-200/70 text-zinc-600 text-[11px] font-medium flex items-center gap-2 rounded-tl-none max-w-[85%]"
+                              >
+                                <UpdateIcon className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                                <span>AI Coach is thinking...</span>
+                              </div>
+                            </MessageContent>
+                          </Message>
+                        </MessageScrollerItem>
+                      )}
+                    </MessageGroup>
                   </MessageScrollerContent>
                 </MessageScrollerViewport>
                 <MessageScrollerButton />
