@@ -2426,7 +2426,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="p-3.5 bg-red-50/80 border border-red-200/80 rounded-2xl flex items-start gap-2.5 text-xs text-red-900 leading-relaxed font-medium">
-                <ExclamationTriangleIcon className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                {/* <ExclamationTriangleIcon className="w-4 h-4 text-red-600 shrink-0 mt-0.5" /> */}
                 <span>{dangerActionConfigs[activeDangerAction].warning}</span>
               </div>
 
