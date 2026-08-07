@@ -1,10 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/auth";
-import { Cross1Icon, ExitIcon } from "@radix-ui/react-icons";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Cross1Icon,
+  ExitIcon,
+  PersonIcon,
+  BellIcon,
+  LockClosedIcon,
+  DesktopIcon,
+  CardStackIcon,
+  Link2Icon,
+  CheckIcon,
+} from "@radix-ui/react-icons";
+import { Shield } from "lucide-react";
 import CandyButton from "@/components/ui/candy-button";
 
 interface Session {
@@ -40,8 +53,74 @@ const getRelativeTime = (dateStr: string, now: number): string => {
   return `${days} days ago`;
 };
 
+const ToggleSwitch = ({
+  checked,
+  onChange,
+  activeColor = "bg-[#3b82f6]",
+}: {
+  checked: boolean;
+  onChange: (val: boolean) => void;
+  activeColor?: string;
+}) => {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6.5 w-12 shrink-0 cursor-pointer rounded-full p-0.5 border transition-all duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 ${
+        checked
+          ? `${activeColor} border-zinc-800 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25),0_2px_8px_rgba(0,0,0,0.15)]`
+          : "bg-zinc-200/90 border-zinc-300/80 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]"
+      }`}
+    >
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition-transform duration-300 ease-out ${
+          checked ? "translate-x-5.5 bg-linear-to-b from-white to-zinc-100" : "translate-x-0"
+        }`}
+      />
+    </button>
+  );
+};
+
 export default function SettingsPage() {
   const { user, logout, checkAuth } = useAuth();
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "notification" | "security" | "sessions" | "subscription" | "integrations"
+  >("notification");
+
+  const [notificationsState, setNotificationsState] = useState({
+    emailNotifications: true,
+    inAppNotifications: true,
+    pushNotifications: false,
+    taskAssigned: true,
+    taskStatusChanges: true,
+    projectDeadlines: true,
+    newTeamMember: false,
+    mentionsInComments: true,
+    messageNotifications: true,
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem("dradix_settings_notifications");
+    if (saved) {
+      try {
+        setNotificationsState(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse notifications settings", e);
+      }
+    }
+  }, []);
+
+  const updateNotificationSetting = (key: keyof typeof notificationsState, value: boolean) => {
+    setNotificationsState((prev) => {
+      const next = { ...prev, [key]: value };
+      localStorage.setItem("dradix_settings_notifications", JSON.stringify(next));
+      return next;
+    });
+  };
+
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSessionToken, setCurrentSessionToken] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -50,9 +129,7 @@ export default function SettingsPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const [customSessionLimit, setCustomSessionLimit] = useState<number | null>(
-    null,
-  );
+  const [customSessionLimit, setCustomSessionLimit] = useState<number | null>(null);
   const sessionLimit = customSessionLimit ?? (user?.max_sessions || 5);
   const [savingLimit, setSavingLimit] = useState(false);
   const [limitSuccessMsg, setLimitSuccessMsg] = useState("");
@@ -71,7 +148,7 @@ export default function SettingsPage() {
       });
       if (res.success && res.data) {
         setLimitSuccessMsg(
-          `Concurrent session limit set to ${res.data.max_sessions} active sessions.`,
+          `Concurrent session limit set to ${res.data.max_sessions} active sessions.`
         );
         setCustomSessionLimit(res.data.max_sessions);
         if (res.data.activeSessions) {
@@ -86,7 +163,7 @@ export default function SettingsPage() {
       }
     } catch (err) {
       setLimitErrorMsg(
-        err instanceof Error ? err.message : "Failed to update session limit",
+        err instanceof Error ? err.message : "Failed to update session limit"
       );
     } finally {
       setSavingLimit(false);
@@ -177,7 +254,7 @@ export default function SettingsPage() {
             newPassword,
             logoutAllDevices: logoutAll,
           }),
-        },
+        }
       );
 
       setSuccessMsg("Password changed successfully!");
@@ -192,7 +269,7 @@ export default function SettingsPage() {
       }
     } catch (err) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to change password",
+        err instanceof Error ? err.message : "Failed to change password"
       );
     } finally {
       setPwdLoading(false);
@@ -200,7 +277,7 @@ export default function SettingsPage() {
   };
 
   const openReauth = (
-    action: "setup" | "disable" | "view_codes" | "regen_codes",
+    action: "setup" | "disable" | "view_codes" | "regen_codes"
   ) => {
     setReauthAction(action);
     setReauthPassword("");
@@ -237,7 +314,7 @@ export default function SettingsPage() {
         if (res.success) {
           await checkAuth();
           setSuccessMsg(
-            "Two-Factor Authentication (2FA) has been successfully disabled.",
+            "Two-Factor Authentication (2FA) has been successfully disabled."
           );
           setShowReauthModal(false);
           setShowRecoveryCodes(false);
@@ -248,7 +325,7 @@ export default function SettingsPage() {
           {
             method: "POST",
             body: JSON.stringify({ password: reauthPassword }),
-          },
+          }
         );
         if (res.success && res.data) {
           setRecoveryCodes(res.data.recoveryCodes);
@@ -261,7 +338,7 @@ export default function SettingsPage() {
           {
             method: "POST",
             body: JSON.stringify({ password: reauthPassword }),
-          },
+          }
         );
         if (res.success && res.data) {
           setRecoveryCodes(res.data.recoveryCodes);
@@ -272,7 +349,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setReauthError(
-        err instanceof Error ? err.message : "Authentication failed",
+        err instanceof Error ? err.message : "Authentication failed"
       );
     } finally {
       setReauthLoading(false);
@@ -291,7 +368,7 @@ export default function SettingsPage() {
         {
           method: "POST",
           body: JSON.stringify({ otp: confirmOtp }),
-        },
+        }
       );
       if (res.success && res.data) {
         await checkAuth();
@@ -302,7 +379,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to confirm 2FA code",
+        err instanceof Error ? err.message : "Failed to confirm 2FA code"
       );
     } finally {
       setSetupLoading(false);
@@ -326,7 +403,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to load active sessions",
+        err instanceof Error ? err.message : "Failed to load active sessions"
       );
     } finally {
       setLoading(false);
@@ -368,13 +445,13 @@ export default function SettingsPage() {
         setSuccessMsg(
           isCurrentlyTrusted
             ? "Device trust removed."
-            : "Device marked as trusted.",
+            : "Device marked as trusted."
         );
         fetchSessions();
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to update trust settings",
+        err instanceof Error ? err.message : "Failed to update trust settings"
       );
     } finally {
       setActionLoading(null);
@@ -391,7 +468,7 @@ export default function SettingsPage() {
 
     if (
       !confirm(
-        "Are you sure you want to terminate this session? The device will be logged out immediately.",
+        "Are you sure you want to terminate this session? The device will be logged out immediately."
       )
     ) {
       return;
@@ -410,7 +487,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to terminate session",
+        err instanceof Error ? err.message : "Failed to terminate session"
       );
     } finally {
       setActionLoading(null);
@@ -420,7 +497,7 @@ export default function SettingsPage() {
   const handleRevokeOther = async () => {
     if (
       !confirm(
-        "Are you sure you want to log out of all other devices? This action cannot be undone.",
+        "Are you sure you want to log out of all other devices? This action cannot be undone."
       )
     ) {
       return;
@@ -434,19 +511,19 @@ export default function SettingsPage() {
         "/auth/sessions/logout-other",
         {
           method: "POST",
-        },
+        }
       );
       if (res.success) {
         setSuccessMsg("Logged out of all other devices successfully.");
         setSessions(
-          sessions.filter((s) => s.session_token === currentSessionToken),
+          sessions.filter((s) => s.session_token === currentSessionToken)
         );
       }
     } catch (err: unknown) {
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : "Failed to terminate other sessions",
+          : "Failed to terminate other sessions"
       );
     } finally {
       setBulkLoading(false);
@@ -456,7 +533,7 @@ export default function SettingsPage() {
   const handleRevokeAll = async () => {
     if (
       !confirm(
-        "Are you sure you want to log out of all devices? You will be logged out of this session immediately.",
+        "Are you sure you want to log out of all devices? You will be logged out of this session immediately."
       )
     ) {
       return;
@@ -470,7 +547,7 @@ export default function SettingsPage() {
         "/auth/sessions/logout-all",
         {
           method: "POST",
-        },
+        }
       );
       if (res.success) {
         setSuccessMsg("Successfully logged out of all devices.");
@@ -478,7 +555,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to log out of all devices",
+        err instanceof Error ? err.message : "Failed to log out of all devices"
       );
     } finally {
       setBulkLoading(false);
@@ -496,16 +573,59 @@ export default function SettingsPage() {
     });
   };
 
+  const navTabs = [
+    { id: "profile", label: "Profile", icon: PersonIcon },
+    { id: "notification", label: "Notification", icon: BellIcon },
+    { id: "security", label: "Security", icon: LockClosedIcon },
+    { id: "sessions", label: "Sessions & Devices", icon: DesktopIcon },
+    { id: "subscription", label: "Subscription", icon: CardStackIcon },
+    { id: "integrations", label: "Integrations", icon: Link2Icon },
+  ] as const;
+
+  const integrationsList = [
+    {
+      id: "github",
+      name: "GitHub",
+      desc: "Sync commit history, activity calendar, PRs, and repositories.",
+      logo: "https://cdn.simpleicons.org/github",
+      username: user?.username || "yatharthk",
+      connected: true,
+    },
+    {
+      id: "leetcode",
+      name: "LeetCode",
+      desc: "Sync contest rating, solved problems, and submission badges.",
+      logo: "https://cdn.simpleicons.org/leetcode/FFA116",
+      username: "yatharth_lc",
+      connected: true,
+    },
+    {
+      id: "codeforces",
+      name: "Codeforces",
+      desc: "Sync rank rating, solved problem sets, and competitive history.",
+      logo: "https://cdn.simpleicons.org/codeforces/1F8ACB",
+      username: "yatharth_cf",
+      connected: true,
+    },
+    {
+      id: "codechef",
+      name: "CodeChef",
+      desc: "Sync star ratings, division rank, and problem solving stats.",
+      logo: "https://cdn.simpleicons.org/codechef/5B4638",
+      username: "yatharth_cc",
+      connected: false,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-white text-zinc-950 p-6 sm:p-10 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#fafafa] text-zinc-950 p-4 sm:p-8 lg:p-12 font-sans">
+      <div className="max-w-6xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-serif font-bold tracking-tight mb-2 text-zinc-900">
-            Account Settings
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold tracking-tight mb-1.5 text-zinc-900">
+            Settings
           </h1>
-          <p className="text-zinc-500 text-sm">
-            Manage your account security, active login sessions, and connected
-            devices.
+          <p className="text-zinc-500 text-sm font-sans">
+            Manage your account preferences, security, and integrations.
           </p>
         </div>
 
@@ -514,7 +634,7 @@ export default function SettingsPage() {
             <span>{errorMsg}</span>
             <button
               onClick={() => setErrorMsg("")}
-              className="text-red-500 hover:text-red-700 transition-colors"
+              className="text-red-500 hover:text-red-700 transition-colors p-1"
             >
               <Cross1Icon className="w-3.5 h-3.5" />
             </button>
@@ -526,841 +646,1104 @@ export default function SettingsPage() {
             <span>{successMsg}</span>
             <button
               onClick={() => setSuccessMsg("")}
-              className="text-emerald-500 hover:text-emerald-700 transition-colors"
+              className="text-emerald-500 hover:text-emerald-700 transition-colors p-1"
             >
               <Cross1Icon className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        <div className="bg-white border border-zinc-200/80 shadow-xs rounded-2xl p-6 sm:p-8 space-y-6">
-          <div className="border-b border-zinc-200 pb-6">
-            <h2 className="text-lg font-semibold tracking-tight text-zinc-900">
-              Update Password
-            </h2>
-            <p className="text-zinc-500 text-xs mt-1">
-              Ensure your account is using a strong, unique password to stay
-              protected.
-            </p>
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (isPasswordValid) {
-                setShowForceLogoutModal(true);
-              }
-            }}
-            className="space-y-5"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-sm"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-sm"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={confirmNewPassword}
-                  onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-sm"
-                />
-              </div>
-            </div>
-
-            {newPassword && (
-              <div className="p-4 border border-zinc-200 rounded-xl bg-zinc-50/50 space-y-3.5 animate-fadeIn">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-zinc-600">
-                    Password Strength:
-                  </span>
-                  <span className="font-bold text-zinc-900">
-                    {strength.text}
-                  </span>
-                </div>
-
-                <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden flex gap-1">
-                  {[1, 2, 3, 4, 5].map((level) => (
-                    <div
-                      key={level}
-                      className={`h-full flex-1 transition-all duration-300 ${
-                        strength.score >= level ? strength.color : "bg-zinc-200"
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        strength.req?.length ? "bg-emerald-500" : "bg-zinc-300"
-                      }`}
-                    />
-                    <span
-                      className={
-                        strength.req?.length
-                          ? "text-emerald-700 font-medium"
-                          : "text-zinc-500"
-                      }
-                    >
-                      At least 8 characters
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        strength.req?.uppercase
-                          ? "bg-emerald-500"
-                          : "bg-zinc-300"
-                      }`}
-                    />
-                    <span
-                      className={
-                        strength.req?.uppercase
-                          ? "text-emerald-700 font-medium"
-                          : "text-zinc-500"
-                      }
-                    >
-                      At least one uppercase (A-Z)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        strength.req?.lowercase
-                          ? "bg-emerald-500"
-                          : "bg-zinc-300"
-                      }`}
-                    />
-                    <span
-                      className={
-                        strength.req?.lowercase
-                          ? "text-emerald-700 font-medium"
-                          : "text-zinc-500"
-                      }
-                    >
-                      At least one lowercase (a-z)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        strength.req?.number ? "bg-emerald-500" : "bg-zinc-300"
-                      }`}
-                    />
-                    <span
-                      className={
-                        strength.req?.number
-                          ? "text-emerald-700 font-medium"
-                          : "text-zinc-500"
-                      }
-                    >
-                      At least one number (0-9)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        strength.req?.special ? "bg-emerald-500" : "bg-zinc-300"
-                      }`}
-                    />
-                    <span
-                      className={
-                        strength.req?.special
-                          ? "text-emerald-700 font-medium"
-                          : "text-zinc-500"
-                      }
-                    >
-                      At least one special character
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        newPassword === confirmNewPassword && confirmNewPassword
-                          ? "bg-emerald-500"
-                          : "bg-zinc-300"
-                      }`}
-                    />
-                    <span
-                      className={
-                        newPassword === confirmNewPassword && confirmNewPassword
-                          ? "text-emerald-700 font-medium"
-                          : "text-zinc-500"
-                      }
-                    >
-                      Passwords match
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={pwdLoading || !isPasswordValid}
-              className="btn-candy px-4 py-2.5 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold shadow-[0px_4px_20px_-6px_rgba(0,60,58,0.6),inset_0px_1px_3px_0px_rgba(255,255,255,0.4)] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            >
-              {pwdLoading ? "Updating..." : "Update Password"}
-            </button>
-          </form>
-        </div>
-
-        <div className="bg-white border border-zinc-200/80 shadow-xs rounded-2xl p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-6">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900">
-                Two-Factor Authentication (2FA)
-              </h2>
-              <p className="text-zinc-500 text-xs mt-1">
-                Add an extra layer of security to your account by requiring a
-                verification code when signing in.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {user?.two_factor_enabled ? (
-                <span className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">
-                  Enabled
-                </span>
-              ) : (
-                <span className="px-2.5 py-1 text-xs font-semibold bg-zinc-50 text-zinc-600 border border-zinc-200 rounded-lg">
-                  Disabled
-                </span>
-              )}
-            </div>
-          </div>
-
-          {!user?.two_factor_enabled ? (
-            <div className="space-y-4">
-              <p className="text-zinc-600 text-sm leading-relaxed">
-                Protect your account with Time-based One-Time Passwords (TOTP).
-                You can use any standard authenticator app like Google
-                Authenticator, Microsoft Authenticator, or Authy to scan the QR
-                code and receive verification codes.
-              </p>
-              {!showSetup2FA ? (
-                <button
-                  onClick={() => openReauth("setup")}
-                  className="btn-candy px-4 py-2.5 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold cursor-pointer"
-                >
-                  Enable 2FA
-                </button>
-              ) : (
-                <div className="p-5 border border-zinc-200 rounded-xl bg-zinc-50/50 space-y-5 animate-fadeIn">
-                  <h3 className="text-sm font-bold text-zinc-800">
-                    Set up Authenticator App
-                  </h3>
-                  <div className="flex flex-col md:flex-row items-center gap-6">
-                    {qrCodeData && (
-                      <div className="bg-white p-3 border border-zinc-200 rounded-xl shadow-xs shrink-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={qrCodeData}
-                          alt="Scan QR Code"
-                          className="w-40 h-40"
-                        />
-                      </div>
-                    )}
-                    <div className="space-y-3 flex-1">
-                      <p className="text-xs text-zinc-600 leading-relaxed">
-                        1. Scan the QR code with your authenticator app.
-                      </p>
-                      <p className="text-xs text-zinc-600 leading-relaxed">
-                        2. If you cannot scan the QR code, manually enter this
-                        text secret into your app:
-                      </p>
-                      <code className="block p-2.5 bg-white border border-zinc-200 rounded-lg font-mono text-xs text-zinc-800 break-all select-all">
-                        {secretData}
-                      </code>
-                    </div>
-                  </div>
-
-                  <form
-                    onSubmit={handleSetupConfirm}
-                    className="space-y-3 pt-3 border-t border-zinc-200"
-                  >
-                    <label className="block text-xs font-semibold text-zinc-700">
-                      Confirm setup by entering the 6-digit code generated by
-                      your app:
-                    </label>
-                    <div className="flex gap-3">
-                      <input
-                        type="text"
-                        maxLength={6}
-                        placeholder="000000"
-                        required
-                        value={confirmOtp}
-                        onChange={(e) =>
-                          setConfirmOtp(e.target.value.replace(/\D/g, ""))
-                        }
-                        className="max-w-37.5 px-3.5 py-2 bg-white border border-zinc-300 rounded-xl text-sm text-center font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600"
-                      />
-                      <button
-                        type="submit"
-                        disabled={setupLoading}
-                        className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer"
-                      >
-                        {setupLoading ? "Verifying..." : "Verify & Enable"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowSetup2FA(false)}
-                        className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-zinc-600 text-sm leading-relaxed">
-                Two-Factor Authentication is currently protecting your account.
-                You can view or regenerate backup recovery codes, or disable 2FA
-                if you choose.
-              </p>
-
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => openReauth("view_codes")}
-                  className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
-                >
-                  View Recovery Codes
-                </button>
-                <button
-                  onClick={() => openReauth("regen_codes")}
-                  className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
-                >
-                  Regenerate Recovery Codes
-                </button>
-                <button
-                  onClick={() => openReauth("disable")}
-                  className="btn-candy px-4 py-2 bg-linear-to-b from-red-600 via-red-700 to-red-800 border border-red-500/50 text-white rounded-xl text-xs font-bold cursor-pointer"
-                >
-                  Disable 2FA
-                </button>
-              </div>
-
-              {showRecoveryCodes && recoveryCodes.length > 0 && (
-                <div className="p-5 border border-zinc-200 rounded-xl bg-zinc-50/50 space-y-4 animate-fadeIn">
-                  <div className="flex justify-between items-center pb-2 border-b border-zinc-200">
-                    <div>
-                      <h3 className="text-sm font-bold text-zinc-800">
-                        Backup Recovery Codes
-                      </h3>
-                      <p className="text-[10px] text-zinc-500 mt-0.5">
-                        Keep these codes in a safe place. Each code can only be
-                        used once.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowRecoveryCodes(false)}
-                      className="text-zinc-400 hover:text-zinc-600 transition-colors p-1"
-                    >
-                      <Cross1Icon className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
-                    {recoveryCodes.map((code, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-white border border-zinc-200 rounded-lg p-2.5 text-center font-mono text-xs font-bold text-zinc-800 break-all shadow-2xs select-all"
-                      >
-                        {code}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(recoveryCodes.join("\n"));
-                        alert("Recovery codes copied to clipboard!");
-                      }}
-                      className="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg text-[11px] font-bold transition-all"
-                    >
-                      Copy All Codes
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="bg-white border border-zinc-200/80 shadow-xs rounded-2xl p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-6">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight text-zinc-900">
-                Active Device Sessions
-              </h2>
-              <p className="text-zinc-500 text-xs mt-1">
-                You are currently signed in to these devices. Terminate any
-                sessions you don&apos;t recognize.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                onClick={handleRevokeAll}
-                disabled={bulkLoading}
-                className="btn-candy px-4 py-2 bg-linear-to-b from-red-600 via-red-700 to-red-800 border border-red-500/50 text-white disabled:opacity-50 rounded-xl text-xs font-bold shadow-sm cursor-pointer whitespace-nowrap"
-              >
-                {bulkLoading ? "Logging out all..." : "Logout All Devices"}
-              </button>
-              {sessions.length > 1 && (
-                <button
-                  onClick={handleRevokeOther}
-                  disabled={bulkLoading}
-                  className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] border border-[#003c3a]/50 text-white disabled:opacity-50 rounded-xl text-xs font-bold shadow-sm cursor-pointer whitespace-nowrap"
-                >
-                  {bulkLoading
-                    ? "Logging out others..."
-                    : "Logout Other Devices"}
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="p-4 bg-zinc-50/90 border border-zinc-200/90 rounded-2xl space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
-                    Concurrent Session Limit
-                  </h3>
-                  <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
-                    {sessions.length} /{" "}
-                    {user?.max_sessions || sessionLimit || 5} active
-                  </span>
-                </div>
-                <p className="text-[11px] text-zinc-500 font-medium mt-1">
-                  Set the maximum number of concurrent active sessions allowed
-                  for your account. Older sessions will be automatically logged
-                  out.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2.5 shrink-0">
-                <select
-                  value={sessionLimit}
-                  onChange={(e) =>
-                    setCustomSessionLimit(Number(e.target.value))
-                  }
-                  className="px-3.5 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#003c3a]/20 cursor-pointer shadow-2xs"
-                >
-                  {[1, 2, 3, 5, 10, 15, 20].map((num) => (
-                    <option key={num} value={num}>
-                      {num} {num === 1 ? "Session" : "Sessions"}
-                    </option>
-                  ))}
-                </select>
-
-                <CandyButton
-                  onClick={handleSaveSessionLimit}
-                  disabled={savingLimit}
-                  className="text-xs px-4 py-2 font-bold whitespace-nowrap"
-                >
-                  {savingLimit ? "Saving..." : "Save Limit"}
-                </CandyButton>
-              </div>
-            </div>
-
-            {limitSuccessMsg && (
-              <p className="text-xs text-emerald-600 font-bold tracking-tight">
-                {limitSuccessMsg}
-              </p>
-            )}
-            {limitErrorMsg && (
-              <p className="text-xs text-red-600 font-bold tracking-tight">
-                {limitErrorMsg}
-              </p>
-            )}
-          </div>
-
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12 text-zinc-400 space-y-3">
-              <div className="w-6 h-6 border-2 border-zinc-200 border-t-[#003c3a] rounded-full animate-spin" />
-              <span className="text-xs text-zinc-500">Loading sessions...</span>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {sessions.map((session) => {
-                const isCurrent = session.session_token === currentSessionToken;
-                const isMobile = session.device_type === "Mobile";
-                const isTablet = session.device_type === "Tablet";
-
+        <div className="bg-white border border-zinc-200/80 shadow-xs rounded-3xl p-5 sm:p-7 md:p-8">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 min-h-[580px]">
+            {/* Left Navigation Sidebar with Liquid Glass Framer Motion Slider */}
+            <div className="w-full md:w-56 lg:w-60 shrink-0 flex flex-row md:flex-col gap-1.5 overflow-x-auto md:overflow-visible pb-3 md:pb-0 border-b md:border-b-0 md:border-r border-zinc-200/80 pr-0 md:pr-6 scrollbar-none relative">
+              {navTabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const Icon = tab.icon;
                 return (
-                  <div
-                    key={session.id}
-                    className={`flex flex-col gap-4 p-5 rounded-xl border transition-all ${
-                      isCurrent
-                        ? "bg-[#f0f6f6] border-[#003c3a]/30 shadow-xs"
-                        : "bg-zinc-50/50 border-zinc-200/60 hover:bg-zinc-50 hover:border-zinc-300"
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm transition-colors duration-200 cursor-pointer select-none whitespace-nowrap z-10 ${
+                      isActive
+                        ? "text-white font-semibold"
+                        : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80 font-medium"
                     }`}
                   >
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-                          isCurrent
-                            ? "bg-[#003c3a]/10 text-[#003c3a] border-[#003c3a]/20"
-                            : "bg-zinc-100 text-zinc-500 border-zinc-200"
-                        }`}
-                      >
-                        {isMobile ? (
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                            />
-                          </svg>
-                        ) : isTablet ? (
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                            />
-                          </svg>
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-sm text-zinc-900 truncate">
-                            {session.device_name || "Unknown Device"}
-                          </span>
-                          {isCurrent && (
-                            <span className="px-2 py-0.5 text-[9px] font-black bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/25 rounded-md">
-                              Current Device
-                            </span>
-                          )}
-                          {session.is_trusted && (
-                            <span className="px-2 py-0.5 text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md">
-                              Trusted Device
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="text-zinc-600 text-[12px] space-y-0.5">
-                          <p className="font-medium text-zinc-700">
-                            {session.browser_name || "Unknown Browser"}{" "}
-                            {session.browser_version || ""} on{" "}
-                            {session.os || "Unknown OS"}
-                          </p>
-                          <p className="text-zinc-500 text-[11px]">
-                            IP:{" "}
-                            <span className="text-zinc-700 font-medium mr-3">
-                              {session.ip_address || "Unknown"}
-                            </span>
-                            Location:{" "}
-                            <span className="text-zinc-700 font-medium">
-                              {session.location || "Unknown Location"}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <div className="relative group/trust">
-                          <button
-                            onClick={() => handleToggleTrust(session)}
-                            disabled={actionLoading === session.id}
-                            className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors shrink-0 cursor-pointer ${
-                              session.is_trusted
-                                ? "text-emerald-600 hover:text-emerald-700"
-                                : "text-zinc-400 hover:text-zinc-600"
-                            }`}
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill={
-                                session.is_trusted ? "currentColor" : "none"
-                              }
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                              />
-                            </svg>
-                          </button>
-                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex flex-col items-center opacity-0 group-hover/trust:opacity-100 transition-opacity duration-150 z-20">
-                            <div className="bg-zinc-900 text-white text-[10px] font-medium px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
-                              {session.is_trusted
-                                ? "Remove Trust"
-                                : "Mark as Trusted"}
-                            </div>
-                            <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
-                          </div>
-                        </div>
-                        <div className="relative group/logout">
-                          <button
-                            onClick={() =>
-                              handleRevoke(session.id, session.session_token)
-                            }
-                            disabled={actionLoading === session.id}
-                            className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-400 hover:text-red-600 shrink-0 cursor-pointer ${
-                              isCurrent
-                                ? "hover:bg-red-50 hover:text-red-600"
-                                : ""
-                            }`}
-                          >
-                            {actionLoading === session.id ? (
-                              <div className="w-4 h-4 border-2 border-zinc-200 border-t-zinc-500 rounded-full animate-spin" />
-                            ) : isCurrent ? (
-                              <ExitIcon className="w-4 h-4" />
-                            ) : (
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
-                              </svg>
-                            )}
-                          </button>
-                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex flex-col items-center opacity-0 group-hover/logout:opacity-100 transition-opacity duration-150 z-20">
-                            <div className="bg-zinc-900 text-white text-[10px] font-medium px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
-                              {isCurrent
-                                ? "Logout this device"
-                                : "Terminate session"}
-                            </div>
-                            <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-zinc-200/60 grid grid-cols-2 sm:grid-cols-4 gap-4 text-[11px] text-zinc-500">
-                      <div>
-                        <span className="block font-medium text-zinc-400">
-                          Session ID
-                        </span>
-                        <div className="relative group/sessionid inline-block">
-                          <code className="text-zinc-700 font-mono select-all cursor-default">
-                            {session.session_token.slice(0, 8)}...
-                          </code>
-                          <div className="pointer-events-none absolute bottom-full left-0 mb-2 flex flex-col items-start opacity-0 group-hover/sessionid:opacity-100 transition-opacity duration-150 z-20">
-                            <div className="bg-zinc-900 text-white text-[10px] font-mono px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
-                              {session.session_token}
-                            </div>
-                            <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1 ml-2" />
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <span className="block font-medium text-zinc-400">
-                          Status
-                        </span>
-                        <span className="inline-flex text-zinc-700 items-center text-[10px]">
-                          Active
-                        </span>
-                      </div>
-                      <div>
-                        <span className="block font-medium text-zinc-400">
-                          Expires At
-                        </span>
-                        <span className="text-zinc-700 font-medium">
-                          {formatDate(session.expires_at)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="block font-medium text-zinc-400">
-                          Last Refreshed
-                        </span>
-                        <span className="text-zinc-700 font-medium">
-                          {session.rotated_at
-                            ? formatDate(session.rotated_at)
-                            : formatDate(session.created_at)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTabLiquidGlass"
+                        className="absolute inset-0 bg-linear-to-b from-zinc-900/95 via-zinc-950 to-black border border-white/20 shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.35),0_8px_20px_-4px_rgba(0,0,0,0.4)] backdrop-blur-xl rounded-2xl z-[-1]"
+                        transition={{
+                          type: "spring",
+                          stiffness: 420,
+                          damping: 32,
+                        }}
+                      />
+                    )}
+                    <Icon
+                      className={`w-4 h-4 shrink-0 transition-colors ${
+                        isActive ? "text-white" : "text-zinc-500"
+                      }`}
+                    />
+                    <span>{tab.label}</span>
+                  </button>
                 );
               })}
             </div>
-          )}
-        </div>
 
-        {showReauthModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <button
-              type="button"
-              aria-label="Close modal"
-              className="absolute inset-0 bg-black/50 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
-              onClick={() => setShowReauthModal(false)}
-            />
-            <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-2xl p-6 sm:p-8 animate-fadeIn">
-              <button
-                onClick={() => setShowReauthModal(false)}
-                className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all"
-              >
-                <Cross1Icon className="w-4 h-4" />
-              </button>
+            {/* Right Main Content Area */}
+            <div className="flex-1 min-w-0 space-y-6">
+              {/* PROFILE TAB */}
+              {activeTab === "profile" && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+                      Profile Settings
+                    </h2>
+                    <p className="text-zinc-500 text-xs mt-1">
+                      Manage your public profile preferences, display identity, and handle.
+                    </p>
+                  </div>
 
-              <h3 className="text-lg font-bold text-zinc-900 mb-2">
-                Security Confirmation
-              </h3>
-              <p className="text-zinc-500 text-xs mb-6">
-                To perform this sensitive action, please enter your password to
-                confirm your identity.
-              </p>
+                  <div className="bg-zinc-50/50 border border-zinc-200/80 rounded-2xl p-6 space-y-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-[#003c3a] text-white flex items-center justify-center font-bold text-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
+                        {user?.avatar_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={user.avatar_url}
+                            alt="Avatar"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          user?.first_name?.charAt(0) || user?.username?.charAt(0) || "U"
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-zinc-900">
+                          {user?.first_name ? `${user.first_name} ${user.last_name || ""}` : user?.username || "Developer"}
+                        </h3>
+                        <p className="text-xs text-zinc-500 font-mono">@{user?.username}</p>
+                        <span className="inline-block mt-1.5 px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
+                          Dev Score: {user?.developer_score ?? 92}
+                        </span>
+                      </div>
+                    </div>
 
-              {reauthError && (
-                <p className="text-red-600 text-xs mb-4 bg-red-50 p-2.5 border border-red-200 rounded-lg">
-                  {reauthError}
-                </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-4 border-t border-zinc-200/80">
+                      <div>
+                        <span className="text-zinc-500 font-medium">Email Address</span>
+                        <p className="font-semibold text-zinc-800 mt-0.5">{user?.email}</p>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500 font-medium">Role Title</span>
+                        <p className="font-semibold text-zinc-800 mt-0.5">{user?.role_title || "Full-Stack Engineer"}</p>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="text-zinc-500 font-medium">Bio</span>
+                        <p className="font-medium text-zinc-700 mt-0.5 leading-relaxed">
+                          {user?.bio || "Building agentic AI tools and exploring next-gen developer platforms."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <Link
+                        href="/profile"
+                        className="inline-flex items-center gap-2 btn-candy px-4 py-2.5 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                      >
+                        <PersonIcon className="w-3.5 h-3.5" />
+                        Edit Full Profile
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               )}
 
-              <form onSubmit={handleReauthSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-700">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="Enter your account password"
-                    required
-                    value={reauthPassword}
-                    onChange={(e) => setReauthPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 text-sm"
-                  />
-                </div>
+              {/* NOTIFICATION TAB */}
+              {activeTab === "notification" && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+                      Notification Settings
+                    </h2>
+                    <p className="text-zinc-500 text-xs mt-1">
+                      Control how and when you receive notifications.
+                    </p>
+                  </div>
 
-                <div className="flex gap-3 justify-end pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowReauthModal(false)}
-                    className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={reauthLoading}
-                    className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer"
-                  >
-                    {reauthLoading ? "Confirming..." : "Confirm Password"}
-                  </button>
+                  <div className="bg-zinc-50/50 border border-zinc-200/80 rounded-2xl p-5 sm:p-6 space-y-4">
+                    <h3 className="text-sm font-semibold tracking-tight text-zinc-900">
+                      Notification Channels
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
+                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                          Email Notifications
+                        </span>
+                        <ToggleSwitch
+                          checked={notificationsState.emailNotifications}
+                          onChange={(val) => updateNotificationSetting("emailNotifications", val)}
+                          activeColor="bg-[#3b82f6]"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
+                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                          In-App Notifications
+                        </span>
+                        <ToggleSwitch
+                          checked={notificationsState.inAppNotifications}
+                          onChange={(val) => updateNotificationSetting("inAppNotifications", val)}
+                          activeColor="bg-[#3b82f6]"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
+                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                          Push Notifications
+                        </span>
+                        <ToggleSwitch
+                          checked={notificationsState.pushNotifications}
+                          onChange={(val) => updateNotificationSetting("pushNotifications", val)}
+                          activeColor="bg-[#3b82f6]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-zinc-50/50 border border-zinc-200/80 rounded-2xl p-5 sm:p-6 space-y-4">
+                    <h3 className="text-sm font-semibold tracking-tight text-zinc-900">
+                      Project Updates
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
+                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                          Task assigned to you
+                        </span>
+                        <ToggleSwitch
+                          checked={notificationsState.taskAssigned}
+                          onChange={(val) => updateNotificationSetting("taskAssigned", val)}
+                          activeColor="bg-[#3b82f6]"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
+                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                          Task status changes
+                        </span>
+                        <ToggleSwitch
+                          checked={notificationsState.taskStatusChanges}
+                          onChange={(val) => updateNotificationSetting("taskStatusChanges", val)}
+                          activeColor="bg-[#3b82f6]"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
+                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                          Project deadline reminders
+                        </span>
+                        <ToggleSwitch
+                          checked={notificationsState.projectDeadlines}
+                          onChange={(val) => updateNotificationSetting("projectDeadlines", val)}
+                          activeColor="bg-[#3b82f6]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-zinc-50/50 border border-zinc-200/80 rounded-2xl p-5 sm:p-6 space-y-4">
+                    <h3 className="text-sm font-semibold tracking-tight text-zinc-900">
+                      Team Activity
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
+                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                          New team member added
+                        </span>
+                        <ToggleSwitch
+                          checked={notificationsState.newTeamMember}
+                          onChange={(val) => updateNotificationSetting("newTeamMember", val)}
+                          activeColor="bg-[#3b82f6]"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
+                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                          Mentions in comments
+                        </span>
+                        <ToggleSwitch
+                          checked={notificationsState.mentionsInComments}
+                          onChange={(val) => updateNotificationSetting("mentionsInComments", val)}
+                          activeColor="bg-zinc-950"
+                        />
+                      </div>
+
+                      <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
+                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                          Message notifications
+                        </span>
+                        <ToggleSwitch
+                          checked={notificationsState.messageNotifications}
+                          onChange={(val) => updateNotificationSetting("messageNotifications", val)}
+                          activeColor="bg-zinc-950"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </form>
+              )}
+
+              {/* SECURITY TAB */}
+              {activeTab === "security" && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+                      Security Settings
+                    </h2>
+                    <p className="text-zinc-500 text-xs mt-1">
+                      Manage password changes, two-factor authentication, and account access.
+                    </p>
+                  </div>
+
+                  <div className="bg-white border border-zinc-200/80 shadow-2xs rounded-2xl p-5 sm:p-6 space-y-5">
+                    <div className="border-b border-zinc-200 pb-4">
+                      <h3 className="text-base font-semibold tracking-tight text-zinc-900">
+                        Update Password
+                      </h3>
+                      <p className="text-zinc-500 text-xs mt-0.5">
+                        Ensure your account is using a strong, unique password to stay protected.
+                      </p>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (isPasswordValid) {
+                          setShowForceLogoutModal(true);
+                        }
+                      }}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-zinc-700">
+                            Current Password
+                          </label>
+                          <input
+                            type="password"
+                            placeholder="••••••••"
+                            required
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-zinc-700">
+                            New Password
+                          </label>
+                          <input
+                            type="password"
+                            placeholder="••••••••"
+                            required
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-zinc-700">
+                            Confirm Password
+                          </label>
+                          <input
+                            type="password"
+                            placeholder="••••••••"
+                            required
+                            value={confirmNewPassword}
+                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      {newPassword && (
+                        <div className="p-4 border border-zinc-200 rounded-xl bg-zinc-50/50 space-y-3 animate-fadeIn">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="font-semibold text-zinc-600">
+                              Password Strength:
+                            </span>
+                            <span className="font-bold text-zinc-900">
+                              {strength.text}
+                            </span>
+                          </div>
+
+                          <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden flex gap-1">
+                            {[1, 2, 3, 4, 5].map((level) => (
+                              <div
+                                key={level}
+                                className={`h-full flex-1 transition-all duration-300 ${
+                                  strength.score >= level ? strength.color : "bg-zinc-200"
+                                }`}
+                              />
+                            ))}
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1 text-xs">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  strength.req?.length ? "bg-emerald-500" : "bg-zinc-300"
+                                }`}
+                              />
+                              <span
+                                className={
+                                  strength.req?.length
+                                    ? "text-emerald-700 font-medium"
+                                    : "text-zinc-500"
+                                }
+                              >
+                                At least 8 characters
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  strength.req?.uppercase
+                                    ? "bg-emerald-500"
+                                    : "bg-zinc-300"
+                                }`}
+                              />
+                              <span
+                                className={
+                                  strength.req?.uppercase
+                                    ? "text-emerald-700 font-medium"
+                                    : "text-zinc-500"
+                                }
+                              >
+                                At least one uppercase (A-Z)
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  strength.req?.lowercase
+                                    ? "bg-emerald-500"
+                                    : "bg-zinc-300"
+                                }`}
+                              />
+                              <span
+                                className={
+                                  strength.req?.lowercase
+                                    ? "text-emerald-700 font-medium"
+                                    : "text-zinc-500"
+                                }
+                              >
+                                At least one lowercase (a-z)
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  strength.req?.number ? "bg-emerald-500" : "bg-zinc-300"
+                                }`}
+                              />
+                              <span
+                                className={
+                                  strength.req?.number
+                                    ? "text-emerald-700 font-medium"
+                                    : "text-zinc-500"
+                                }
+                              >
+                                At least one number (0-9)
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  strength.req?.special ? "bg-emerald-500" : "bg-zinc-300"
+                                }`}
+                              />
+                              <span
+                                className={
+                                  strength.req?.special
+                                    ? "text-emerald-700 font-medium"
+                                    : "text-zinc-500"
+                                }
+                              >
+                                At least one special character
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  newPassword === confirmNewPassword && confirmNewPassword
+                                    ? "bg-emerald-500"
+                                    : "bg-zinc-300"
+                                }`}
+                              />
+                              <span
+                                className={
+                                  newPassword === confirmNewPassword && confirmNewPassword
+                                    ? "text-emerald-700 font-medium"
+                                    : "text-zinc-500"
+                                }
+                              >
+                                Passwords match
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={pwdLoading || !isPasswordValid}
+                        className="btn-candy px-4 py-2.5 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold shadow-[0px_4px_20px_-6px_rgba(0,60,58,0.6)] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                      >
+                        {pwdLoading ? "Updating..." : "Update Password"}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="bg-white border border-zinc-200/80 shadow-2xs rounded-2xl p-5 sm:p-6 space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-4">
+                      <div>
+                        <h3 className="text-base font-semibold tracking-tight text-zinc-900">
+                          Two-Factor Authentication (2FA)
+                        </h3>
+                        <p className="text-zinc-500 text-xs mt-0.5">
+                          Add an extra layer of security to your account by requiring verification codes.
+                        </p>
+                      </div>
+                      <div>
+                        {user?.two_factor_enabled ? (
+                          <span className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">
+                            Enabled
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 text-xs font-semibold bg-zinc-50 text-zinc-600 border border-zinc-200 rounded-lg">
+                            Disabled
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {!user?.two_factor_enabled ? (
+                      <div className="space-y-4">
+                        <p className="text-zinc-600 text-xs sm:text-sm leading-relaxed">
+                          Protect your account with Time-based One-Time Passwords (TOTP).
+                          Use Google Authenticator, Microsoft Authenticator, or Authy to scan the QR code.
+                        </p>
+                        {!showSetup2FA ? (
+                          <button
+                            onClick={() => openReauth("setup")}
+                            className="btn-candy px-4 py-2.5 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold cursor-pointer"
+                          >
+                            Enable 2FA
+                          </button>
+                        ) : (
+                          <div className="p-5 border border-zinc-200 rounded-xl bg-zinc-50/50 space-y-4 animate-fadeIn">
+                            <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider">
+                              Set up Authenticator App
+                            </h4>
+                            <div className="flex flex-col md:flex-row items-center gap-6">
+                              {qrCodeData && (
+                                <div className="bg-white p-3 border border-zinc-200 rounded-xl shadow-xs shrink-0">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={qrCodeData}
+                                    alt="Scan QR Code"
+                                    className="w-40 h-40"
+                                  />
+                                </div>
+                              )}
+                              <div className="space-y-2 flex-1">
+                                <p className="text-xs text-zinc-600 leading-relaxed">
+                                  1. Scan the QR code with your authenticator app.
+                                </p>
+                                <p className="text-xs text-zinc-600 leading-relaxed">
+                                  2. If you cannot scan the QR code, manually enter this text secret:
+                                </p>
+                                <code className="block p-2.5 bg-white border border-zinc-200 rounded-lg font-mono text-xs text-zinc-800 break-all select-all">
+                                  {secretData}
+                                </code>
+                              </div>
+                            </div>
+
+                            <form
+                              onSubmit={handleSetupConfirm}
+                              className="space-y-3 pt-3 border-t border-zinc-200"
+                            >
+                              <label className="block text-xs font-semibold text-zinc-700">
+                                Confirm setup by entering the 6-digit code:
+                              </label>
+                              <div className="flex gap-3">
+                                <input
+                                  type="text"
+                                  maxLength={6}
+                                  placeholder="000000"
+                                  required
+                                  value={confirmOtp}
+                                  onChange={(e) =>
+                                    setConfirmOtp(e.target.value.replace(/\D/g, ""))
+                                  }
+                                  className="max-w-[150px] px-3.5 py-2 bg-white border border-zinc-300 rounded-xl text-sm text-center font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                                />
+                                <button
+                                  type="submit"
+                                  disabled={setupLoading}
+                                  className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer"
+                                >
+                                  {setupLoading ? "Verifying..." : "Verify & Enable"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowSetup2FA(false)}
+                                  className="btn-candy px-4 py-2 bg-zinc-100 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-zinc-600 text-xs sm:text-sm leading-relaxed">
+                          Two-Factor Authentication is active. You can view or regenerate backup recovery codes, or disable 2FA.
+                        </p>
+
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            onClick={() => openReauth("view_codes")}
+                            className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
+                          >
+                            View Recovery Codes
+                          </button>
+                          <button
+                            onClick={() => openReauth("regen_codes")}
+                            className="btn-candy px-4 py-2 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
+                          >
+                            Regenerate Recovery Codes
+                          </button>
+                          <button
+                            onClick={() => openReauth("disable")}
+                            className="btn-candy px-4 py-2 bg-linear-to-b from-red-600 via-red-700 to-red-800 border border-red-500/50 text-white rounded-xl text-xs font-bold cursor-pointer"
+                          >
+                            Disable 2FA
+                          </button>
+                        </div>
+
+                        {showRecoveryCodes && recoveryCodes.length > 0 && (
+                          <div className="p-5 border border-zinc-200 rounded-xl bg-zinc-50/50 space-y-4 animate-fadeIn">
+                            <div className="flex justify-between items-center pb-2 border-b border-zinc-200">
+                              <div>
+                                <h4 className="text-xs font-bold text-zinc-800">
+                                  Backup Recovery Codes
+                                </h4>
+                                <p className="text-[10px] text-zinc-500 mt-0.5">
+                                  Keep these codes safe. Each code can be used once.
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => setShowRecoveryCodes(false)}
+                                className="text-zinc-400 hover:text-zinc-600 p-1"
+                              >
+                                <Cross1Icon className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                              {recoveryCodes.map((code, idx) => (
+                                <div
+                                  key={idx}
+                                  className="bg-white border border-zinc-200 rounded-lg p-2.5 text-center font-mono text-xs font-bold text-zinc-800 select-all"
+                                >
+                                  {code}
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="pt-1">
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(recoveryCodes.join("\n"));
+                                  alert("Recovery codes copied to clipboard!");
+                                }}
+                                className="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg text-[11px] font-bold transition-all"
+                              >
+                                Copy All Codes
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* SESSIONS & DEVICES TAB */}
+              {activeTab === "sessions" && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+                      Active Device Sessions
+                    </h2>
+                    <p className="text-zinc-500 text-xs mt-1">
+                      Manage active sign-ins, device trust, and concurrent session limits.
+                    </p>
+                  </div>
+
+                  <div className="bg-zinc-50/50 border border-zinc-200/80 rounded-2xl p-5 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2.5">
+                          <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
+                            Concurrent Session Limit
+                          </h3>
+                          <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
+                            {sessions.length} / {user?.max_sessions || sessionLimit || 5} active
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-zinc-500 font-medium mt-1">
+                          Set maximum allowed concurrent logins. Older sessions auto logout.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <select
+                          value={sessionLimit}
+                          onChange={(e) => setCustomSessionLimit(Number(e.target.value))}
+                          className="px-3 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#003c3a]/20 cursor-pointer shadow-2xs"
+                        >
+                          {[1, 2, 3, 5, 10, 15, 20].map((num) => (
+                            <option key={num} value={num}>
+                              {num} {num === 1 ? "Session" : "Sessions"}
+                            </option>
+                          ))}
+                        </select>
+
+                        <CandyButton
+                          onClick={handleSaveSessionLimit}
+                          disabled={savingLimit}
+                          className="text-xs px-4 py-2 font-bold whitespace-nowrap"
+                        >
+                          {savingLimit ? "Saving..." : "Save Limit"}
+                        </CandyButton>
+                      </div>
+                    </div>
+
+                    {limitSuccessMsg && (
+                      <p className="text-xs text-emerald-600 font-bold">{limitSuccessMsg}</p>
+                    )}
+                    {limitErrorMsg && (
+                      <p className="text-xs text-red-600 font-bold">{limitErrorMsg}</p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <h3 className="text-sm font-bold text-zinc-800">
+                      Logged-in Devices ({sessions.length})
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleRevokeAll}
+                        disabled={bulkLoading}
+                        className="btn-candy px-3.5 py-1.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white disabled:opacity-50 rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
+                      >
+                        {bulkLoading ? "Logging out all..." : "Logout All Devices"}
+                      </button>
+                      {sessions.length > 1 && (
+                        <button
+                          onClick={handleRevokeOther}
+                          disabled={bulkLoading}
+                          className="btn-candy px-3.5 py-1.5 bg-linear-to-b from-[#005451] to-[#002927] text-white disabled:opacity-50 rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
+                        >
+                          {bulkLoading ? "Logging out..." : "Logout Other Devices"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {loading ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-zinc-400 space-y-2">
+                      <div className="w-6 h-6 border-2 border-zinc-200 border-t-[#003c3a] rounded-full animate-spin" />
+                      <span className="text-xs text-zinc-500">Loading active sessions...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {sessions.map((session) => {
+                        const isCurrent = session.session_token === currentSessionToken;
+
+                        return (
+                          <div
+                            key={session.id}
+                            className={`flex flex-col gap-4 p-5 rounded-2xl border transition-all ${
+                              isCurrent
+                                ? "bg-[#f0f6f6] border-[#003c3a]/30 shadow-xs"
+                                : "bg-white border-zinc-200/80 hover:border-zinc-300"
+                            }`}
+                          >
+                            <div className="flex items-start gap-4">
+                              <div
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                                  isCurrent
+                                    ? "bg-[#003c3a]/10 text-[#003c3a] border-[#003c3a]/20"
+                                    : "bg-zinc-100 text-zinc-500 border-zinc-200"
+                                }`}
+                              >
+                                <DesktopIcon className="w-5 h-5" />
+                              </div>
+
+                              <div className="flex-1 min-w-0 space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-semibold text-sm text-zinc-900 truncate">
+                                    {session.device_name || "Unknown Device"}
+                                  </span>
+                                  {isCurrent && (
+                                    <span className="px-2 py-0.5 text-[9px] font-black bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/25 rounded-md">
+                                      Current Device
+                                    </span>
+                                  )}
+                                  {session.is_trusted && (
+                                    <span className="px-2 py-0.5 text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md">
+                                      Trusted Device
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="text-zinc-600 text-[12px] space-y-0.5">
+                                  <p className="font-medium text-zinc-700">
+                                    {session.browser_name || "Unknown Browser"}{" "}
+                                    {session.browser_version || ""} on{" "}
+                                    {session.os || "Unknown OS"}
+                                  </p>
+                                  <p className="text-zinc-500 text-[11px]">
+                                    IP:{" "}
+                                    <span className="text-zinc-700 font-medium mr-3">
+                                      {session.ip_address || "Unknown"}
+                                    </span>
+                                    Location:{" "}
+                                    <span className="text-zinc-700 font-medium">
+                                      {session.location || "Unknown Location"}
+                                    </span>
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleToggleTrust(session)}
+                                  disabled={actionLoading === session.id}
+                                  title={session.is_trusted ? "Remove Trust" : "Mark as Trusted"}
+                                  className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer ${
+                                    session.is_trusted
+                                      ? "text-emerald-600 hover:text-emerald-700"
+                                      : "text-zinc-400 hover:text-zinc-600"
+                                  }`}
+                                >
+                                  <Shield className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleRevoke(session.id, session.session_token)}
+                                  disabled={actionLoading === session.id}
+                                  title={isCurrent ? "Logout this device" : "Terminate session"}
+                                  className="p-2 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-600 transition-colors cursor-pointer"
+                                >
+                                  {actionLoading === session.id ? (
+                                    <div className="w-4 h-4 border-2 border-zinc-200 border-t-zinc-500 rounded-full animate-spin" />
+                                  ) : (
+                                    <ExitIcon className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="pt-3 border-t border-zinc-200/60 grid grid-cols-2 sm:grid-cols-4 gap-4 text-[11px] text-zinc-500">
+                              <div>
+                                <span className="block font-medium text-zinc-400">Session ID</span>
+                                <code className="text-zinc-700 font-mono select-all">
+                                  {session.session_token.slice(0, 8)}...
+                                </code>
+                              </div>
+                              <div>
+                                <span className="block font-medium text-zinc-400">Status</span>
+                                <span className="text-emerald-600 font-bold">Active</span>
+                              </div>
+                              <div>
+                                <span className="block font-medium text-zinc-400">Expires At</span>
+                                <span className="text-zinc-700 font-medium">
+                                  {formatDate(session.expires_at)}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="block font-medium text-zinc-400">Last Refreshed</span>
+                                <span className="text-zinc-700 font-medium">
+                                  {session.rotated_at ? formatDate(session.rotated_at) : formatDate(session.created_at)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SUBSCRIPTION TAB */}
+              {activeTab === "subscription" && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+                      Subscription & Billing
+                    </h2>
+                    <p className="text-zinc-500 text-xs mt-1">
+                      Manage your plan tier, usage limits, and workspace billing.
+                    </p>
+                  </div>
+
+                  <div className="bg-zinc-50/50 border border-zinc-200/80 rounded-2xl p-6 space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200/80">
+                      <div>
+                        <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20 uppercase tracking-wider">
+                          Current Plan
+                        </span>
+                        <h3 className="text-xl font-bold text-zinc-900 mt-2">
+                          Developer Pro Tier (Beta)
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                          Full access to AI Career Coach, GitHub Analytics, and 2FA Security.
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-2xl font-extrabold text-zinc-900">$0</span>
+                        <span className="text-xs text-zinc-500 font-medium"> / month</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
+                        Included Features
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div className="flex items-center gap-2 text-zinc-700 font-medium">
+                          <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                          Concurrent Active Sessions Management
+                        </div>
+                        <div className="flex items-center gap-2 text-zinc-700 font-medium">
+                          <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                          TOTP Two-Factor Authentication (2FA)
+                        </div>
+                        <div className="flex items-center gap-2 text-zinc-700 font-medium">
+                          <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                          Full Profile & Skills Matrix Sync
+                        </div>
+                        <div className="flex items-center gap-2 text-zinc-700 font-medium">
+                          <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                          Real-time GitHub & Competitive Stats
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* INTEGRATIONS TAB */}
+              {activeTab === "integrations" && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+                      Connected Integrations
+                    </h2>
+                    <p className="text-zinc-500 text-xs mt-1">
+                      Manage external developer platforms and OAuth service connections.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {integrationsList.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-5 bg-white border border-zinc-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs hover:border-zinc-300 transition-all"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-11 h-11 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex items-center justify-center p-2 shrink-0 shadow-2xs">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={item.logo}
+                              alt={item.name}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-sm font-bold text-zinc-900">
+                                {item.name}
+                              </h3>
+                              {item.connected && (
+                                <span className="text-[11px] text-zinc-500 font-mono">
+                                  ({item.username})
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-zinc-500 leading-relaxed">
+                              {item.desc}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0">
+                          {item.connected ? (
+                            <>
+                              <span className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">
+                                Connected
+                              </span>
+                              <button
+                                onClick={() =>
+                                  alert(`Disconnecting ${item.name}...`)
+                                }
+                                className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                              >
+                                Disconnect
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                alert(`Connecting ${item.name}...`)
+                              }
+                              className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold cursor-pointer"
+                            >
+                              Connect Platform
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
-        {showForceLogoutModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        </div>
+      </div>
+
+      {/* Security Reauth Modal */}
+      {showReauthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Close modal"
+            className="absolute inset-0 bg-black/50 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
+            onClick={() => setShowReauthModal(false)}
+          />
+          <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-2xl p-6 sm:p-8 animate-fadeIn">
             <button
-              type="button"
-              aria-label="Close modal"
-              className="absolute inset-0 bg-black/50 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
-              onClick={() => setShowForceLogoutModal(false)}
-            />
-            <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-2xl p-6 sm:p-8 animate-fadeIn">
-              <button
-                onClick={() => setShowForceLogoutModal(false)}
-                className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all"
-              >
-                <Cross1Icon className="w-4 h-4" />
-              </button>
+              onClick={() => setShowReauthModal(false)}
+              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all"
+            >
+              <Cross1Icon className="w-4 h-4" />
+            </button>
 
-              <h3 className="text-lg font-bold text-zinc-900 mb-2">
-                Sign out of other devices?
-              </h3>
-              <p className="text-zinc-500 text-xs mb-6 leading-relaxed">
-                Would you like to terminate all other active device sessions and
-                sign in again using your new password? This secures your account
-                if your previous password was compromised.
+            <h3 className="text-lg font-bold text-zinc-900 mb-2">
+              Security Confirmation
+            </h3>
+            <p className="text-zinc-500 text-xs mb-6">
+              To perform this sensitive action, please enter your password to confirm your identity.
+            </p>
+
+            {reauthError && (
+              <p className="text-red-600 text-xs mb-4 bg-red-50 p-2.5 border border-red-200 rounded-lg">
+                {reauthError}
               </p>
+            )}
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-end">
+            <form onSubmit={handleReauthSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-700">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="Enter your account password"
+                  required
+                  value={reauthPassword}
+                  onChange={(e) => setReauthPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-2">
                 <button
                   type="button"
-                  onClick={() => handlePasswordChangeSubmit(false)}
-                  className="btn-candy px-4 py-2.5 bg-linear-to-b from-zinc-100 to-zinc-200 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
+                  onClick={() => setShowReauthModal(false)}
+                  className="btn-candy px-4 py-2 bg-zinc-100 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
                 >
-                  No, Keep Other Sessions
+                  Cancel
                 </button>
                 <button
-                  type="button"
-                  onClick={() => handlePasswordChangeSubmit(true)}
-                  className="btn-candy px-4 py-2.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white border border-red-500/50 rounded-xl text-xs font-bold cursor-pointer"
+                  type="submit"
+                  disabled={reauthLoading}
+                  className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer"
                 >
-                  Yes, Sign Out Everywhere
+                  {reauthLoading ? "Confirming..." : "Confirm Password"}
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Force Logout Confirmation Modal */}
+      {showForceLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Close modal"
+            className="absolute inset-0 bg-black/50 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
+            onClick={() => setShowForceLogoutModal(false)}
+          />
+          <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-2xl p-6 sm:p-8 animate-fadeIn">
+            <button
+              onClick={() => setShowForceLogoutModal(false)}
+              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all"
+            >
+              <Cross1Icon className="w-4 h-4" />
+            </button>
+
+            <h3 className="text-lg font-bold text-zinc-900 mb-2">
+              Sign out of other devices?
+            </h3>
+            <p className="text-zinc-500 text-xs mb-6 leading-relaxed">
+              Would you like to terminate all other active device sessions and sign in again using your new password?
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => handlePasswordChangeSubmit(false)}
+                className="btn-candy px-4 py-2.5 bg-zinc-100 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
+              >
+                No, Keep Other Sessions
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePasswordChangeSubmit(true)}
+                className="btn-candy px-4 py-2.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white border border-red-500/50 rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Yes, Sign Out Everywhere
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
