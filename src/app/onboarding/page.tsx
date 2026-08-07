@@ -370,7 +370,15 @@ export default function OnboardingPage() {
 
                 {!resumeFile ? (
                   <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => fileInputRef.current?.click()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                      }
+                    }}
                     className="border-2 border-dashed border-zinc-800 hover:border-zinc-600 bg-[#181818] rounded-xl p-6 text-center cursor-pointer transition-colors group flex flex-col items-center justify-center min-h-40"
                   >
                     <input

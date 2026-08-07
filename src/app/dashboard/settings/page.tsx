@@ -2427,12 +2427,23 @@ export default function SettingsPage() {
                                 </span>
                                 <div className="relative group/sessionid inline-block">
                                   <code
+                                    role="button"
+                                    tabIndex={0}
                                     onClick={() =>
                                       copySessionToken(
                                         session.id,
                                         session.session_token,
                                       )
                                     }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        copySessionToken(
+                                          session.id,
+                                          session.session_token,
+                                        );
+                                      }
+                                    }}
                                     className="text-zinc-700 font-mono select-all cursor-pointer hover:text-zinc-950 hover:bg-zinc-100 px-1 py-0.5 rounded transition-all"
                                   >
                                     {session.session_token.slice(0, 8)}...

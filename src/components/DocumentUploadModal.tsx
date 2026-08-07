@@ -235,7 +235,15 @@ export default function DocumentUploadModal({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={handleClose}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleClose();
+        }
+      }}
       className={`fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 transition-all duration-200 ease-out ${
         isClosing
           ? "animate-out fade-out duration-200"
@@ -243,7 +251,10 @@ export default function DocumentUploadModal({
       }`}
     >
       <div
+        role="dialog"
+        aria-modal="true"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
         className={`bg-white rounded-[28px] sm:rounded-[32px] p-6 sm:p-8 max-w-md w-full shadow-2xl border border-zinc-200/90 space-y-5 text-left relative overflow-hidden transition-all duration-200 ease-out ${
           isClosing
             ? "animate-out zoom-out-95 fade-out duration-200"

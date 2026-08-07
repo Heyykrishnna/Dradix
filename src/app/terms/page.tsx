@@ -737,7 +737,7 @@ export default function TermsPage() {
             Math.abs(prev.boundingClientRect.top)
             ? curr
             : prev;
-        });
+        }, intersectingEntries[0]);
         setActiveSection(topEntry.target.id);
       }
     };

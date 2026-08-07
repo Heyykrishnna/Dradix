@@ -721,7 +721,7 @@ export default function PrivacyPage() {
           return Math.abs(curr.boundingClientRect.top) < Math.abs(prev.boundingClientRect.top)
             ? curr
             : prev;
-        });
+        }, intersectingEntries[0]);
         setActiveSection(topEntry.target.id);
       }
     };

@@ -542,8 +542,16 @@ function TechStackDropdown({
       </div>
 
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full min-h-11 rounded-xl border border-zinc-200 px-3 py-2 bg-white flex items-center justify-between gap-2 cursor-pointer hover:border-zinc-300 transition-all shadow-xs"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
+        className="w-full min-h-11 rounded-xl border border-zinc-200 px-3 py-2 bg-white flex items-center justify-between gap-2 cursor-pointer hover:border-zinc-300 transition-all shadow-xs text-left"
       >
         <div className="flex flex-wrap items-center gap-1.5 min-w-0">
           {selectedList.length > 0 ? (
@@ -554,11 +562,20 @@ function TechStackDropdown({
               >
                 <span>{tech}</span>
                 <span
+                  role="button"
+                  tabIndex={0}
                   onClick={(e) => {
                     e.stopPropagation();
                     removeTech(tech);
                   }}
-                  className="hover:text-red-400 text-zinc-400 text-[12px] font-bold px-0.5"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      removeTech(tech);
+                    }
+                  }}
+                  className="hover:text-red-400 text-zinc-400 text-[12px] font-bold px-0.5 cursor-pointer"
                 >
                   &times;
                 </span>
