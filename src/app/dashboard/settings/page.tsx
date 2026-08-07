@@ -19,7 +19,7 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
-import { Shield, Eye, Download, Mail, Activity, FileText, Globe, RefreshCw } from "lucide-react";
+import { Shield, Eye, Download, Mail, Activity, FileText, RefreshCw } from "lucide-react";
 import CandyButton from "@/components/ui/candy-button";
 
 interface Session {
@@ -223,6 +223,9 @@ export default function SettingsPage() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [logFilter, setLogFilter] = useState<string>("ALL");
   const [selectedRequestLog, setSelectedRequestLog] = useState<ActivityLogRecord | null>(null);
+
+  const [publicResumeAccessOverride, setPublicResumeAccessOverride] = useState<boolean | null>(null);
+  const publicResumeAccess = publicResumeAccessOverride ?? (user?.public_resume_access !== false);
 
   const fetchActivityLogs = async () => {
     setLogsLoading(true);
@@ -1249,49 +1252,85 @@ export default function SettingsPage() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-                    <div className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 space-y-1">
-                      <div className="flex items-center justify-between text-zinc-500">
-                        <span className="text-[11px] font-medium">Profile Views</span>
-                        <Eye className="w-4 h-4 text-[#003c3a]" />
+                  <div className="bg-zinc-50/70 border border-zinc-200/90 rounded-2xl p-5 space-y-2">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-bold text-zinc-900">Public Resume Access</h3>
+                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${
+                            publicResumeAccess
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                          }`}>
+                            {publicResumeAccess ? "Direct Download Enabled" : "Request Mode Only"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-zinc-500 mt-1 max-w-xl">
+                          Allow public visitors and recruiters on your profile page to download your resume directly. When disabled, visitors can only send formal Access Requests.
+                        </p>
                       </div>
-                      <div className="text-xl font-bold text-zinc-900">
+                      <ToggleSwitch
+                        checked={publicResumeAccess}
+                        onChange={async (val) => {
+                          setPublicResumeAccessOverride(val);
+                          try {
+                            await apiFetch("/user/profile", {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ public_resume_access: val }),
+                            });
+                            checkAuth();
+                          } catch (err) {
+                            console.error("Failed to update resume access setting:", err);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+                    <div className="p-4.5 rounded-2xl border border-zinc-200/90 bg-white shadow-2xs hover:border-zinc-300 transition-all space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Profile Views</span>
+                        <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>
+                      </div>
+                      <div className="text-2xl font-extrabold text-zinc-900 tracking-tight">
                         {activityMetrics.totalProfileViews}
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-normal">Public page hits</span>
+                      <p className="text-[11px] text-zinc-500 font-normal">Public page hits</p>
                     </div>
 
-                    <div className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 space-y-1">
-                      <div className="flex items-center justify-between text-zinc-500">
-                        <span className="text-[11px] font-medium">Resume Downloads</span>
-                        <Download className="w-4 h-4 text-emerald-600" />
+                    <div className="p-4.5 rounded-2xl border border-zinc-200/90 bg-white shadow-2xs hover:border-zinc-300 transition-all space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Resume Downloads</span>
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                       </div>
-                      <div className="text-xl font-bold text-zinc-900">
+                      <div className="text-2xl font-extrabold text-zinc-900 tracking-tight">
                         {activityMetrics.totalResumeDownloads}
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-normal">Files downloaded</span>
+                      <p className="text-[11px] text-zinc-500 font-normal">Files downloaded</p>
                     </div>
 
-                    <div className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 space-y-1">
-                      <div className="flex items-center justify-between text-zinc-500">
-                        <span className="text-[11px] font-medium">Access Requests</span>
-                        <Mail className="w-4 h-4 text-purple-600" />
+                    <div className="p-4.5 rounded-2xl border border-zinc-200/90 bg-white shadow-2xs hover:border-zinc-300 transition-all space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Access Requests</span>
+                        <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
                       </div>
-                      <div className="text-xl font-bold text-zinc-900">
+                      <div className="text-2xl font-extrabold text-zinc-900 tracking-tight">
                         {activityMetrics.totalResumeRequests}
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-normal">Recruiter inquiries</span>
+                      <p className="text-[11px] text-zinc-500 font-normal">Recruiter inquiries</p>
                     </div>
 
-                    <div className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 space-y-1">
-                      <div className="flex items-center justify-between text-zinc-500">
-                        <span className="text-[11px] font-medium">Unique Visitors</span>
-                        <Globe className="w-4 h-4 text-blue-600" />
+                    <div className="p-4.5 rounded-2xl border border-zinc-200/90 bg-white shadow-2xs hover:border-zinc-300 transition-all space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Unique Visitors</span>
+                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
                       </div>
-                      <div className="text-xl font-bold text-zinc-900">
+                      <div className="text-2xl font-extrabold text-zinc-900 tracking-tight">
                         {activityMetrics.uniqueVisitors}
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-normal">Distinct IP locations</span>
+                      <p className="text-[11px] text-zinc-500 font-normal">Distinct IP locations</p>
                     </div>
                   </div>
 

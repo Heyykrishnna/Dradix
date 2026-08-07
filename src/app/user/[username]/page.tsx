@@ -140,6 +140,7 @@ interface PublicUserData {
   socials?: Record<string, string>;
   resume_url?: string;
   resume_name?: string;
+  public_resume_access?: boolean;
   github?: {
     username?: string;
     total_commits?: number;
@@ -804,29 +805,31 @@ export default function PublicUserProfilePage() {
                 <FaPaperPlane className="w-2.5 h-2.5" /> Hire / Contact
               </button>
 
-              <button
-                onClick={async () => {
-                  apiFetch(`/users/profile/${username}/track-resume`, {
-                    method: "POST",
-                    skipAuth: true,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ actorName: "Visitor", actorEmail: "" }),
-                  }).catch(() => {});
-                  window.open(`/api/v1/users/profile/${username}/resume/download`, "_blank");
-                }}
-                className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-normal hover:bg-zinc-800 transition-all shadow-xs flex items-center justify-center gap-1.5 border border-zinc-900 cursor-pointer"
-                title="Download Resume"
-              >
-                <FaArrowUpRightFromSquare className="w-2.5 h-2.5" /> Resume
-              </button>
-
-              <button
-                onClick={() => setShowResumeRequestModal(true)}
-                className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white text-zinc-800 text-[10px] font-normal hover:bg-zinc-50 transition-all shadow-xs flex items-center justify-center gap-1.5 border-2 border-dotted border-zinc-300 cursor-pointer"
-                title="Request Resume Details"
-              >
-                <FaBriefcase className="w-2.5 h-2.5 text-[#015451]" /> Request Access
-              </button>
+              {Boolean(userData.resume_url || userData.resume_name) && userData.public_resume_access !== false ? (
+                <button
+                  onClick={async () => {
+                    apiFetch(`/users/profile/${username}/track-resume`, {
+                      method: "POST",
+                      skipAuth: true,
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ actorName: "Visitor", actorEmail: "" }),
+                    }).catch(() => {});
+                    window.open(`/api/v1/users/profile/${username}/resume/download`, "_blank");
+                  }}
+                  className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-normal hover:bg-zinc-800 transition-all shadow-xs flex items-center justify-center gap-1.5 border border-zinc-900 cursor-pointer"
+                  title="Download Resume"
+                >
+                  <FaArrowUpRightFromSquare className="w-2.5 h-2.5" /> Resume
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowResumeRequestModal(true)}
+                  className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white text-zinc-800 text-[10px] font-normal hover:bg-zinc-50 transition-all shadow-xs flex items-center justify-center gap-1.5 border-2 border-dotted border-zinc-300 cursor-pointer"
+                  title="Request Resume Access"
+                >
+                  <FaBriefcase className="w-2.5 h-2.5 text-[#015451]" /> Request Resume
+                </button>
+              )}
 
               <button
                 onClick={handleCopyShare}

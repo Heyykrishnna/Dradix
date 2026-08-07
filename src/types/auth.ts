@@ -19,6 +19,7 @@ export interface SafeUser {
   socials: Record<string, string>;
   two_factor_enabled: boolean;
   max_sessions?: number;
+  public_resume_access?: boolean;
   role?: Role;
   is_verified?: boolean;
   created_at: string;
