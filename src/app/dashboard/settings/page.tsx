@@ -109,29 +109,69 @@ export default function SettingsPage() {
     messageNotifications: true,
   });
 
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsSaving, setNotificationsSaving] = useState(false);
+
   useEffect(() => {
-    const saved = localStorage.getItem("dradix_settings_notifications");
-    if (saved) {
+    const fetchNotificationPreferences = async () => {
+      setNotificationsLoading(true);
       try {
-        setNotificationsState(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse notifications settings", e);
+        const res = await apiFetch<
+          ApiResponse<{ preferences: typeof notificationsState }>
+        >("/notifications/preferences");
+        if (res.success && res.data?.preferences) {
+          setNotificationsState(res.data.preferences);
+          localStorage.setItem(
+            "dradix_settings_notifications",
+            JSON.stringify(res.data.preferences),
+          );
+        }
+      } catch (err) {
+        console.error(
+          "Failed to fetch notification preferences from backend",
+          err,
+        );
+        const saved = localStorage.getItem("dradix_settings_notifications");
+        if (saved) {
+          try {
+            setNotificationsState(JSON.parse(saved));
+          } catch (e) {
+            console.error("Failed to parse notifications settings", e);
+          }
+        }
+      } finally {
+        setNotificationsLoading(false);
       }
-    }
+    };
+
+    fetchNotificationPreferences();
   }, []);
 
-  const updateNotificationSetting = (
+  const updateNotificationSetting = async (
     key: keyof typeof notificationsState,
     value: boolean,
   ) => {
-    setNotificationsState((prev) => {
-      const next = { ...prev, [key]: value };
-      localStorage.setItem(
-        "dradix_settings_notifications",
-        JSON.stringify(next),
+    const updated = { ...notificationsState, [key]: value };
+    setNotificationsState(updated);
+    localStorage.setItem(
+      "dradix_settings_notifications",
+      JSON.stringify(updated),
+    );
+
+    setNotificationsSaving(true);
+    try {
+      await apiFetch<ApiResponse<{ preferences: typeof notificationsState }>>(
+        "/notifications/preferences",
+        {
+          method: "PUT",
+          body: JSON.stringify({ preferences: updated }),
+        },
       );
-      return next;
-    });
+    } catch (err) {
+      console.error("Failed to sync notification preference to backend", err);
+    } finally {
+      setNotificationsSaving(false);
+    }
   };
 
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -800,13 +840,15 @@ export default function SettingsPage() {
 
               {activeTab === "notification" && (
                 <div className="space-y-6 animate-fadeIn">
-                  <div>
-                    <h2 className="text-xl font-bold tracking-tight text-zinc-900">
-                      Notification Settings
-                    </h2>
-                    <p className="text-zinc-500 text-xs mt-1">
-                      Control how and when you receive notifications.
-                    </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-xl font-bold tracking-tight text-zinc-900">
+                        Notification Settings
+                      </h2>
+                      <p className="text-zinc-500 text-xs mt-1">
+                        Control how and when you receive notifications.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="bg-zinc-50/50 border border-zinc-200/80 rounded-2xl p-5 sm:p-6 space-y-4">
