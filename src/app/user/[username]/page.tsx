@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, notFound } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, API_URL } from "@/lib/api";
 import {
   FaBriefcase,
   FaCheck,
@@ -814,7 +814,7 @@ export default function PublicUserProfilePage() {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ actorName: "Visitor", actorEmail: "" }),
                     }).catch(() => {});
-                    window.open(`/api/v1/users/profile/${username}/resume/download`, "_blank");
+                    window.open(`${API_URL}/users/profile/${username}/resume/download`, "_blank");
                   }}
                   className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-normal hover:bg-zinc-800 transition-all shadow-xs flex items-center justify-center gap-1.5 border border-zinc-900 cursor-pointer"
                   title="Download Resume"
