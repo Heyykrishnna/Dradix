@@ -247,7 +247,7 @@ export default function SettingsPage() {
           logs: ActivityLogRecord[];
           metrics: typeof activityMetrics;
         }>
-      >(`/users/activity-logs?type=${logFilter}`);
+      >(`/users/activity-logs?type=ALL`);
       if (res.success && res.data) {
         setActivityLogs(res.data.logs || []);
         if (res.data.metrics) {
@@ -269,7 +269,7 @@ export default function SettingsPage() {
         logs: ActivityLogRecord[];
         metrics: typeof activityMetrics;
       }>
-    >(`/users/activity-logs?type=${logFilter}`)
+    >(`/users/activity-logs?type=ALL`)
       .then((res) => {
         if (isMounted && res.success && res.data) {
           setActivityLogs(res.data.logs || []);
@@ -287,7 +287,12 @@ export default function SettingsPage() {
     return () => {
       isMounted = false;
     };
-  }, [activeTab, logFilter]);
+  }, [activeTab]);
+
+  const filteredActivityLogs = React.useMemo(() => {
+    if (logFilter === "ALL") return activityLogs;
+    return activityLogs.filter((log) => log.action_type === logFilter);
+  }, [activityLogs, logFilter]);
 
   const copySessionToken = (id: number, token: string) => {
     navigator.clipboard.writeText(token);
@@ -1378,33 +1383,47 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-zinc-200/80 scrollbar-none">
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 border-b border-zinc-200/80 scrollbar-none relative">
                     {[
                       { id: "ALL", label: "All Logs" },
                       { id: "PROFILE_VIEW", label: "Profile Views" },
                       { id: "RESUME_DOWNLOAD", label: "Downloads" },
                       { id: "RESUME_REQUEST", label: "Access Requests" },
                       { id: "PROJECT_VIEW", label: "Project Views" },
-                    ].map((f) => (
-                      <button
-                        key={f.id}
-                        onClick={() => setLogFilter(f.id)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                          logFilter === f.id
-                            ? "bg-[#003c3a] text-white shadow-xs"
-                            : "bg-zinc-100/80 hover:bg-zinc-200/80 text-zinc-600"
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
+                    ].map((f) => {
+                      const isActive = logFilter === f.id;
+                      return (
+                        <button
+                          key={f.id}
+                          onClick={() => setLogFilter(f.id)}
+                          className={`relative px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer select-none ${
+                            isActive
+                              ? "text-white"
+                              : "text-zinc-600 hover:text-zinc-900 bg-zinc-100/80 hover:bg-zinc-200/70"
+                          }`}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="activeLogFilterPill"
+                              className="absolute inset-0 bg-[#003c3a] rounded-full shadow-xs z-0"
+                              transition={{
+                                type: "spring",
+                                stiffness: 450,
+                                damping: 35,
+                              }}
+                            />
+                          )}
+                          <span className="relative z-10">{f.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
 
                   {logsLoading ? (
                     <div className="p-12 text-center text-zinc-400 text-xs font-medium">
                       Loading real-time activity logs...
                     </div>
-                  ) : activityLogs.length === 0 ? (
+                  ) : filteredActivityLogs.length === 0 ? (
                     <div className="p-12 border border-dashed border-zinc-200 rounded-2xl text-center space-y-2">
                       <Activity className="w-8 h-8 text-zinc-300 mx-auto" />
                       <p className="text-xs font-semibold text-zinc-700">
@@ -1417,7 +1436,7 @@ export default function SettingsPage() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {activityLogs.map((log) => {
+                      {filteredActivityLogs.map((log) => {
                         let badgeColor =
                           "bg-teal-50 text-teal-700 border-teal-200";
                         let actionLabel = "Profile View";
