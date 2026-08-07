@@ -142,6 +142,16 @@ export default function SettingsPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  const [copiedSessionTokenId, setCopiedSessionTokenId] = useState<
+    number | null
+  >(null);
+
+  const copySessionToken = (id: number, token: string) => {
+    navigator.clipboard.writeText(token);
+    setCopiedSessionTokenId(id);
+    setTimeout(() => setCopiedSessionTokenId(null), 2000);
+  };
+
   const [customSessionLimit, setCustomSessionLimit] = useState<number | null>(
     null,
   );
@@ -805,7 +815,7 @@ export default function SettingsPage() {
                     </h3>
                     <div className="space-y-3">
                       <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
-                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                        <span className="text-xs font-medium text-zinc-800">
                           Email Notifications
                         </span>
                         <ToggleSwitch
@@ -818,7 +828,7 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
-                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                        <span className="text-xs font-medium text-zinc-800">
                           In-App Notifications
                         </span>
                         <ToggleSwitch
@@ -831,7 +841,7 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
-                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                        <span className="text-xs font-medium text-zinc-800">
                           Push Notifications
                         </span>
                         <ToggleSwitch
@@ -851,7 +861,7 @@ export default function SettingsPage() {
                     </h3>
                     <div className="space-y-3">
                       <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
-                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                        <span className="text-xs font-medium text-zinc-800">
                           Task assigned to you
                         </span>
                         <ToggleSwitch
@@ -864,7 +874,7 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
-                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                        <span className="text-xs font-medium text-zinc-800">
                           Task status changes
                         </span>
                         <ToggleSwitch
@@ -877,7 +887,7 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
-                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                        <span className="text-xs font-medium text-zinc-800">
                           Project deadline reminders
                         </span>
                         <ToggleSwitch
@@ -897,7 +907,7 @@ export default function SettingsPage() {
                     </h3>
                     <div className="space-y-3">
                       <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
-                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                        <span className="text-xs font-medium text-zinc-800">
                           New team member added
                         </span>
                         <ToggleSwitch
@@ -910,7 +920,7 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
-                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                        <span className="text-xs font-medium text-zinc-800">
                           Mentions in comments
                         </span>
                         <ToggleSwitch
@@ -923,7 +933,7 @@ export default function SettingsPage() {
                       </div>
 
                       <div className="p-4 bg-white border border-zinc-200/80 rounded-xl flex items-center justify-between shadow-2xs hover:border-zinc-300 transition-all">
-                        <span className="text-xs sm:text-sm font-medium text-zinc-800">
+                        <span className="text-xs font-medium text-zinc-800">
                           Message notifications
                         </span>
                         <ToggleSwitch
@@ -1378,10 +1388,6 @@ export default function SettingsPage() {
                           <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
                             Concurrent Session Limit
                           </h3>
-                          <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
-                            {sessions.length} /{" "}
-                            {user?.max_sessions || sessionLimit || 5} active
-                          </span>
                         </div>
                         <p className="text-[11px] text-zinc-500 font-medium mt-1">
                           Set maximum allowed concurrent logins. Older sessions
@@ -1524,43 +1530,54 @@ export default function SettingsPage() {
                               </div>
 
                               <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => handleToggleTrust(session)}
-                                  disabled={actionLoading === session.id}
-                                  title={
-                                    session.is_trusted
-                                      ? "Remove Trust"
-                                      : "Mark as Trusted"
-                                  }
-                                  className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer ${
-                                    session.is_trusted
-                                      ? "text-emerald-600 hover:text-emerald-700"
-                                      : "text-zinc-400 hover:text-zinc-600"
-                                  }`}
-                                >
-                                  <Shield className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleRevoke(
-                                      session.id,
-                                      session.session_token,
-                                    )
-                                  }
-                                  disabled={actionLoading === session.id}
-                                  title={
-                                    isCurrent
-                                      ? "Logout this device"
-                                      : "Terminate session"
-                                  }
-                                  className="p-2 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-600 transition-colors cursor-pointer"
-                                >
-                                  {actionLoading === session.id ? (
-                                    <div className="w-4 h-4 border-2 border-zinc-200 border-t-zinc-500 rounded-full animate-spin" />
-                                  ) : (
-                                    <ExitIcon className="w-4 h-4" />
-                                  )}
-                                </button>
+                                <div className="relative group/trust">
+                                  <button
+                                    onClick={() => handleToggleTrust(session)}
+                                    disabled={actionLoading === session.id}
+                                    className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer ${
+                                      session.is_trusted
+                                        ? "text-emerald-600 hover:text-emerald-700"
+                                        : "text-zinc-400 hover:text-zinc-600"
+                                    }`}
+                                  >
+                                    <Shield className="w-4 h-4" />
+                                  </button>
+                                  <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex flex-col items-center opacity-0 group-hover/trust:opacity-100 transition-opacity duration-150 z-30">
+                                    <div className="bg-zinc-900 text-white text-[10px] font-medium px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
+                                      {session.is_trusted
+                                        ? "Remove Device Trust"
+                                        : "Mark Device as Trusted"}
+                                    </div>
+                                    <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
+                                  </div>
+                                </div>
+
+                                <div className="relative group/revoke">
+                                  <button
+                                    onClick={() =>
+                                      handleRevoke(
+                                        session.id,
+                                        session.session_token,
+                                      )
+                                    }
+                                    disabled={actionLoading === session.id}
+                                    className="p-2 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-600 transition-colors cursor-pointer"
+                                  >
+                                    {actionLoading === session.id ? (
+                                      <div className="w-4 h-4 border-2 border-zinc-200 border-t-zinc-500 rounded-full animate-spin" />
+                                    ) : (
+                                      <ExitIcon className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                  <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex flex-col items-center opacity-0 group-hover/revoke:opacity-100 transition-opacity duration-150 z-30">
+                                    <div className="bg-zinc-900 text-white text-[10px] font-medium px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
+                                      {isCurrent
+                                        ? "Logout Current Device"
+                                        : "Terminate Device Session"}
+                                    </div>
+                                    <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
@@ -1569,9 +1586,27 @@ export default function SettingsPage() {
                                 <span className="block font-medium text-zinc-400">
                                   Session ID
                                 </span>
-                                <code className="text-zinc-700 font-mono select-all">
-                                  {session.session_token.slice(0, 8)}...
-                                </code>
+                                <div className="relative group/sessionid inline-block">
+                                  <code
+                                    onClick={() =>
+                                      copySessionToken(
+                                        session.id,
+                                        session.session_token,
+                                      )
+                                    }
+                                    className="text-zinc-700 font-mono select-all cursor-pointer hover:text-zinc-950 hover:bg-zinc-100 px-1 py-0.5 rounded transition-all"
+                                  >
+                                    {session.session_token.slice(0, 8)}...
+                                  </code>
+                                  <div className="pointer-events-none absolute bottom-full left-0 mb-2 flex flex-col items-start opacity-0 group-hover/sessionid:opacity-100 transition-opacity duration-150 z-30">
+                                    <div className="bg-zinc-900 text-white text-[10px] font-mono px-2.5 py-1 rounded-md whitespace-nowrap shadow-lg">
+                                      {copiedSessionTokenId === session.id
+                                        ? "Copied Full Session Token! ✓"
+                                        : session.session_token}
+                                    </div>
+                                    <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1 ml-2" />
+                                  </div>
+                                </div>
                               </div>
                               <div>
                                 <span className="block font-medium text-zinc-400">
