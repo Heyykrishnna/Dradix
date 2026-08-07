@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/auth";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Cross1Icon,
   ExitIcon,
@@ -287,6 +287,17 @@ export default function SettingsPage() {
     setDangerInputValue("");
     setDangerError("");
   };
+
+  useEffect(() => {
+    if (activeDangerAction || showReauthModal || showForceLogoutModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [activeDangerAction, showReauthModal, showForceLogoutModal]);
 
   const getPasswordRequirements = (pwd: string) => {
     return {
@@ -2373,267 +2384,305 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {activeDangerAction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button
-            type="button"
-            aria-label="Close modal"
-            className="absolute inset-0 bg-black/60 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
-            onClick={() => setActiveDangerAction(null)}
-          />
-          <div className="relative w-full max-w-lg bg-white border border-red-200 rounded-3xl shadow-2xl p-6 sm:p-8 animate-fadeIn space-y-5">
-            <button
+      <AnimatePresence>
+        {activeDangerAction && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.button
+              type="button"
+              aria-label="Close modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-black/65 backdrop-blur-md cursor-default w-full h-full border-none outline-hidden"
               onClick={() => setActiveDangerAction(null)}
-              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28 }}
+              className="relative w-full max-w-lg bg-white/95 backdrop-blur-2xl border border-zinc-200/90 rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] p-6 sm:p-8 space-y-5"
             >
-              <Cross1Icon className="w-4 h-4" />
-            </button>
+              <button
+                onClick={() => setActiveDangerAction(null)}
+                className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all cursor-pointer"
+              >
+                <Cross1Icon className="w-4 h-4" />
+              </button>
 
-            <div className="flex items-center gap-3 border-b border-zinc-200 pb-4">
-              <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                <ExclamationTriangleIcon className="w-5 h-5" />
+              <div className="flex items-center gap-3 border-b border-zinc-200/80 pb-4">
+                <div className="w-10 h-10 rounded-2xl bg-red-100/90 text-red-600 flex items-center justify-center shrink-0 shadow-2xs">
+                  <ExclamationTriangleIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-zinc-900 tracking-tight">
+                    {dangerActionConfigs[activeDangerAction].title}
+                  </h3>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    {dangerActionConfigs[activeDangerAction].description}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-zinc-900">
-                  {dangerActionConfigs[activeDangerAction].title}
-                </h3>
-                <p className="text-xs text-zinc-500">
-                  {dangerActionConfigs[activeDangerAction].description}
-                </p>
+
+              <div className="p-3.5 bg-red-50/80 border border-red-200/80 rounded-2xl flex items-start gap-2.5 text-xs text-red-900 leading-relaxed font-medium">
+                <ExclamationTriangleIcon className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <span>{dangerActionConfigs[activeDangerAction].warning}</span>
               </div>
-            </div>
 
-            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-900 leading-relaxed font-medium">
-              ⚠️ {dangerActionConfigs[activeDangerAction].warning}
-            </div>
+              {dangerError && (
+                <div className="p-3 bg-red-100/90 border border-red-300 text-red-800 rounded-xl text-xs font-semibold">
+                  {dangerError}
+                </div>
+              )}
 
-            {dangerError && (
-              <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-xl text-xs font-semibold">
-                {dangerError}
-              </div>
-            )}
+              <form onSubmit={handleDangerActionSubmit} className="space-y-4">
+                {dangerActionConfigs[activeDangerAction].inputLabel && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-zinc-700">
+                      {dangerActionConfigs[activeDangerAction].inputLabel}
+                    </label>
+                    <input
+                      type={
+                        dangerActionConfigs[activeDangerAction].inputType ||
+                        "text"
+                      }
+                      placeholder={
+                        dangerActionConfigs[activeDangerAction].inputPlaceholder
+                      }
+                      required
+                      value={dangerInputValue}
+                      onChange={(e) => setDangerInputValue(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white border border-zinc-200 rounded-xl focus:outline-none focus:border-zinc-800 focus:ring-2 focus:ring-zinc-800/10 text-sm transition-all shadow-2xs"
+                    />
+                  </div>
+                )}
 
-            <form onSubmit={handleDangerActionSubmit} className="space-y-4">
-              {dangerActionConfigs[activeDangerAction].inputLabel && (
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-zinc-700">
-                    {dangerActionConfigs[activeDangerAction].inputLabel}
+                    Confirm Password <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type={
-                      dangerActionConfigs[activeDangerAction].inputType ||
-                      "text"
-                    }
-                    placeholder={
-                      dangerActionConfigs[activeDangerAction].inputPlaceholder
-                    }
+                    type="password"
+                    placeholder="Enter your account password"
                     required
-                    value={dangerInputValue}
-                    onChange={(e) => setDangerInputValue(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
+                    value={dangerPassword}
+                    onChange={(e) => setDangerPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white border border-zinc-200 rounded-xl focus:outline-none focus:border-zinc-800 focus:ring-2 focus:ring-zinc-800/10 text-sm transition-all shadow-2xs"
                   />
                 </div>
-              )}
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700">
-                  Confirm Password <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  placeholder="Enter your account password"
-                  required
-                  value={dangerPassword}
-                  onChange={(e) => setDangerPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
-                />
-              </div>
+                {user?.two_factor_enabled && (
+                  <div className="space-y-1.5 p-3.5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl">
+                    <label className="text-xs font-bold text-emerald-900 flex items-center justify-between">
+                      <span>
+                        2FA Security Code{" "}
+                        <span className="text-red-500">*</span>
+                      </span>
+                      <span className="text-[10px] font-semibold text-emerald-700">
+                        2FA Active
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="000000"
+                      required
+                      value={dangerOtp}
+                      onChange={(e) =>
+                        setDangerOtp(e.target.value.replace(/\D/g, ""))
+                      }
+                      className="w-full px-4 py-2 bg-white border border-emerald-300 rounded-xl text-sm font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-emerald-600/10"
+                    />
+                  </div>
+                )}
 
-              {user?.two_factor_enabled && (
-                <div className="space-y-1.5 p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl">
-                  <label className="text-xs font-bold text-emerald-900 flex items-center justify-between">
-                    <span>
-                      2FA Security Code <span className="text-red-500">*</span>
-                    </span>
-                    <span className="text-[10px] font-normal text-emerald-700">
-                      2FA Active
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    placeholder="000000"
-                    required
-                    value={dangerOtp}
-                    onChange={(e) =>
-                      setDangerOtp(e.target.value.replace(/\D/g, ""))
+                {dangerActionConfigs[activeDangerAction].confirmText && (
+                  <div className="space-y-2.5 pt-1">
+                    <label className="block text-xs font-semibold text-zinc-800 leading-relaxed">
+                      Type{" "}
+                      <code className="px-2 py-0.5 bg-red-50/90 border border-red-200/80 rounded-md text-red-600 font-bold text-xs select-all">
+                        {dangerActionConfigs[activeDangerAction].confirmText}
+                      </code>{" "}
+                      to confirm:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={
+                        dangerActionConfigs[activeDangerAction].confirmText
+                      }
+                      required
+                      value={dangerTypedConfirm}
+                      onChange={(e) => setDangerTypedConfirm(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white border border-zinc-200 rounded-xl focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/10 text-sm uppercase transition-all shadow-2xs tracking-wide"
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-3 justify-end pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setActiveDangerAction(null)}
+                    className="btn-candy px-4 py-2.5 bg-zinc-100 border border-zinc-200/80 text-zinc-700 hover:bg-zinc-200 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={
+                      dangerLoading ||
+                      !dangerPassword ||
+                      (!!user?.two_factor_enabled && dangerOtp.length < 6) ||
+                      (!!dangerActionConfigs[activeDangerAction].confirmText &&
+                        dangerTypedConfirm.trim() !==
+                          dangerActionConfigs[activeDangerAction].confirmText)
                     }
-                    className="w-full px-3.5 py-2 bg-white border border-emerald-300 rounded-xl text-sm font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-emerald-600"
-                  />
+                    className="btn-candy px-4 py-2.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {dangerLoading
+                      ? "Executing..."
+                      : dangerActionConfigs[activeDangerAction].buttonLabel}
+                  </button>
                 </div>
-              )}
-
-              {dangerActionConfigs[activeDangerAction].confirmText && (
-                <div className="space-y-1.5 pt-1">
-                  <label className="text-xs font-semibold text-zinc-800">
-                    Type{" "}
-                    <code className="px-1.5 py-0.5 bg-zinc-100 border border-zinc-300 rounded text-red-600 font-bold select-all">
-                      {dangerActionConfigs[activeDangerAction].confirmText}
-                    </code>{" "}
-                    to confirm:
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={
-                      dangerActionConfigs[activeDangerAction].confirmText
-                    }
-                    required
-                    value={dangerTypedConfirm}
-                    onChange={(e) => setDangerTypedConfirm(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-red-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-600 text-sm font-mono uppercase"
-                  />
-                </div>
-              )}
-
-              <div className="flex gap-3 justify-end pt-3">
-                <button
-                  type="button"
-                  onClick={() => setActiveDangerAction(null)}
-                  className="btn-candy px-4 py-2.5 bg-zinc-100 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    dangerLoading ||
-                    !dangerPassword ||
-                    (!!user?.two_factor_enabled && dangerOtp.length < 6) ||
-                    (!!dangerActionConfigs[activeDangerAction].confirmText &&
-                      dangerTypedConfirm.trim() !==
-                        dangerActionConfigs[activeDangerAction].confirmText)
-                  }
-                  className="btn-candy px-4 py-2.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                >
-                  {dangerLoading
-                    ? "Executing..."
-                    : dangerActionConfigs[activeDangerAction].buttonLabel}
-                </button>
-              </div>
-            </form>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
-      {showReauthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button
-            type="button"
-            aria-label="Close modal"
-            className="absolute inset-0 bg-black/50 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
-            onClick={() => setShowReauthModal(false)}
-          />
-          <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-2xl p-6 sm:p-8 animate-fadeIn">
-            <button
+      <AnimatePresence>
+        {showReauthModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.button
+              type="button"
+              aria-label="Close modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-black/65 backdrop-blur-md cursor-default w-full h-full border-none outline-hidden"
               onClick={() => setShowReauthModal(false)}
-              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28 }}
+              className="relative w-full max-w-md bg-white/95 backdrop-blur-2xl border border-zinc-200/90 rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] p-6 sm:p-8 space-y-5"
             >
-              <Cross1Icon className="w-4 h-4" />
-            </button>
+              <button
+                onClick={() => setShowReauthModal(false)}
+                className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all cursor-pointer"
+              >
+                <Cross1Icon className="w-4 h-4" />
+              </button>
 
-            <h3 className="text-lg font-bold text-zinc-900 mb-2">
-              Security Confirmation
-            </h3>
-            <p className="text-zinc-500 text-xs mb-6">
-              To perform this sensitive action, please enter your password to
-              confirm your identity.
-            </p>
-
-            {reauthError && (
-              <p className="text-red-600 text-xs mb-4 bg-red-50 p-2.5 border border-red-200 rounded-lg">
-                {reauthError}
+              <h3 className="text-lg font-bold text-zinc-900 tracking-tight">
+                Security Confirmation
+              </h3>
+              <p className="text-zinc-500 text-xs">
+                To perform this sensitive action, please enter your password to
+                confirm your identity.
               </p>
-            )}
 
-            <form onSubmit={handleReauthSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="Enter your account password"
-                  required
-                  value={reauthPassword}
-                  onChange={(e) => setReauthPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
-                />
-              </div>
+              {reauthError && (
+                <p className="text-red-600 text-xs p-3 bg-red-50 border border-red-200 rounded-xl font-semibold">
+                  {reauthError}
+                </p>
+              )}
 
-              <div className="flex gap-3 justify-end pt-2">
+              <form onSubmit={handleReauthSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-zinc-700">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Enter your account password"
+                    required
+                    value={reauthPassword}
+                    onChange={(e) => setReauthPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white border border-zinc-200 rounded-xl focus:outline-none focus:border-zinc-800 focus:ring-2 focus:ring-zinc-800/10 text-sm transition-all shadow-2xs"
+                  />
+                </div>
+
+                <div className="flex gap-3 justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowReauthModal(false)}
+                    className="btn-candy px-4 py-2 bg-zinc-100 border border-zinc-200/80 text-zinc-700 hover:bg-zinc-200 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={reauthLoading}
+                    className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer shadow-xs"
+                  >
+                    {reauthLoading ? "Confirming..." : "Confirm Password"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showForceLogoutModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.button
+              type="button"
+              aria-label="Close modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-black/65 backdrop-blur-md cursor-default w-full h-full border-none outline-hidden"
+              onClick={() => setShowForceLogoutModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28 }}
+              className="relative w-full max-w-md bg-white/95 backdrop-blur-2xl border border-zinc-200/90 rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] p-6 sm:p-8 space-y-5"
+            >
+              <button
+                onClick={() => setShowForceLogoutModal(false)}
+                className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all cursor-pointer"
+              >
+                <Cross1Icon className="w-4 h-4" />
+              </button>
+
+              <h3 className="text-lg font-bold text-zinc-900 tracking-tight">
+                Sign out of other devices?
+              </h3>
+              <p className="text-zinc-500 text-xs leading-relaxed">
+                Would you like to terminate all other active device sessions and
+                sign in again using your new password?
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-end pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowReauthModal(false)}
-                  className="btn-candy px-4 py-2 bg-zinc-100 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
+                  onClick={() => handlePasswordChangeSubmit(false)}
+                  className="btn-candy px-4 py-2.5 bg-zinc-100 border border-zinc-200/80 text-zinc-700 hover:bg-zinc-200 rounded-xl text-xs font-bold transition-all cursor-pointer"
                 >
-                  Cancel
+                  No, Keep Other Sessions
                 </button>
                 <button
-                  type="submit"
-                  disabled={reauthLoading}
-                  className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer"
+                  type="button"
+                  onClick={() => handlePasswordChangeSubmit(true)}
+                  className="btn-candy px-4 py-2.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white border border-red-500/50 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
                 >
-                  {reauthLoading ? "Confirming..." : "Confirm Password"}
+                  Yes, Sign Out Everywhere
                 </button>
               </div>
-            </form>
+            </motion.div>
           </div>
-        </div>
-      )}
-
-      {showForceLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button
-            type="button"
-            aria-label="Close modal"
-            className="absolute inset-0 bg-black/50 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
-            onClick={() => setShowForceLogoutModal(false)}
-          />
-          <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-2xl p-6 sm:p-8 animate-fadeIn">
-            <button
-              onClick={() => setShowForceLogoutModal(false)}
-              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all"
-            >
-              <Cross1Icon className="w-4 h-4" />
-            </button>
-
-            <h3 className="text-lg font-bold text-zinc-900 mb-2">
-              Sign out of other devices?
-            </h3>
-            <p className="text-zinc-500 text-xs mb-6 leading-relaxed">
-              Would you like to terminate all other active device sessions and
-              sign in again using your new password?
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-end">
-              <button
-                type="button"
-                onClick={() => handlePasswordChangeSubmit(false)}
-                className="btn-candy px-4 py-2.5 bg-zinc-100 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
-              >
-                No, Keep Other Sessions
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePasswordChangeSubmit(true)}
-                className="btn-candy px-4 py-2.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white border border-red-500/50 rounded-xl text-xs font-bold cursor-pointer"
-              >
-                Yes, Sign Out Everywhere
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }
