@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/auth";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Cross1Icon,
   ExitIcon,
@@ -77,7 +77,9 @@ const ToggleSwitch = ({
       <span
         aria-hidden="true"
         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition-transform duration-300 ease-out ${
-          checked ? "translate-x-5.5 bg-linear-to-b from-white to-zinc-100" : "translate-x-0"
+          checked
+            ? "translate-x-5.5 bg-linear-to-b from-white to-zinc-100"
+            : "translate-x-0"
         }`}
       />
     </button>
@@ -87,7 +89,12 @@ const ToggleSwitch = ({
 export default function SettingsPage() {
   const { user, logout, checkAuth } = useAuth();
   const [activeTab, setActiveTab] = useState<
-    "profile" | "notification" | "security" | "sessions" | "subscription" | "integrations"
+    | "profile"
+    | "notification"
+    | "security"
+    | "sessions"
+    | "subscription"
+    | "integrations"
   >("notification");
 
   const [notificationsState, setNotificationsState] = useState({
@@ -113,10 +120,16 @@ export default function SettingsPage() {
     }
   }, []);
 
-  const updateNotificationSetting = (key: keyof typeof notificationsState, value: boolean) => {
+  const updateNotificationSetting = (
+    key: keyof typeof notificationsState,
+    value: boolean,
+  ) => {
     setNotificationsState((prev) => {
       const next = { ...prev, [key]: value };
-      localStorage.setItem("dradix_settings_notifications", JSON.stringify(next));
+      localStorage.setItem(
+        "dradix_settings_notifications",
+        JSON.stringify(next),
+      );
       return next;
     });
   };
@@ -129,7 +142,9 @@ export default function SettingsPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const [customSessionLimit, setCustomSessionLimit] = useState<number | null>(null);
+  const [customSessionLimit, setCustomSessionLimit] = useState<number | null>(
+    null,
+  );
   const sessionLimit = customSessionLimit ?? (user?.max_sessions || 5);
   const [savingLimit, setSavingLimit] = useState(false);
   const [limitSuccessMsg, setLimitSuccessMsg] = useState("");
@@ -148,7 +163,7 @@ export default function SettingsPage() {
       });
       if (res.success && res.data) {
         setLimitSuccessMsg(
-          `Concurrent session limit set to ${res.data.max_sessions} active sessions.`
+          `Concurrent session limit set to ${res.data.max_sessions} active sessions.`,
         );
         setCustomSessionLimit(res.data.max_sessions);
         if (res.data.activeSessions) {
@@ -163,7 +178,7 @@ export default function SettingsPage() {
       }
     } catch (err) {
       setLimitErrorMsg(
-        err instanceof Error ? err.message : "Failed to update session limit"
+        err instanceof Error ? err.message : "Failed to update session limit",
       );
     } finally {
       setSavingLimit(false);
@@ -254,7 +269,7 @@ export default function SettingsPage() {
             newPassword,
             logoutAllDevices: logoutAll,
           }),
-        }
+        },
       );
 
       setSuccessMsg("Password changed successfully!");
@@ -269,7 +284,7 @@ export default function SettingsPage() {
       }
     } catch (err) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to change password"
+        err instanceof Error ? err.message : "Failed to change password",
       );
     } finally {
       setPwdLoading(false);
@@ -277,7 +292,7 @@ export default function SettingsPage() {
   };
 
   const openReauth = (
-    action: "setup" | "disable" | "view_codes" | "regen_codes"
+    action: "setup" | "disable" | "view_codes" | "regen_codes",
   ) => {
     setReauthAction(action);
     setReauthPassword("");
@@ -314,7 +329,7 @@ export default function SettingsPage() {
         if (res.success) {
           await checkAuth();
           setSuccessMsg(
-            "Two-Factor Authentication (2FA) has been successfully disabled."
+            "Two-Factor Authentication (2FA) has been successfully disabled.",
           );
           setShowReauthModal(false);
           setShowRecoveryCodes(false);
@@ -325,7 +340,7 @@ export default function SettingsPage() {
           {
             method: "POST",
             body: JSON.stringify({ password: reauthPassword }),
-          }
+          },
         );
         if (res.success && res.data) {
           setRecoveryCodes(res.data.recoveryCodes);
@@ -338,7 +353,7 @@ export default function SettingsPage() {
           {
             method: "POST",
             body: JSON.stringify({ password: reauthPassword }),
-          }
+          },
         );
         if (res.success && res.data) {
           setRecoveryCodes(res.data.recoveryCodes);
@@ -349,7 +364,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setReauthError(
-        err instanceof Error ? err.message : "Authentication failed"
+        err instanceof Error ? err.message : "Authentication failed",
       );
     } finally {
       setReauthLoading(false);
@@ -368,7 +383,7 @@ export default function SettingsPage() {
         {
           method: "POST",
           body: JSON.stringify({ otp: confirmOtp }),
-        }
+        },
       );
       if (res.success && res.data) {
         await checkAuth();
@@ -379,7 +394,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to confirm 2FA code"
+        err instanceof Error ? err.message : "Failed to confirm 2FA code",
       );
     } finally {
       setSetupLoading(false);
@@ -403,7 +418,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to load active sessions"
+        err instanceof Error ? err.message : "Failed to load active sessions",
       );
     } finally {
       setLoading(false);
@@ -445,13 +460,13 @@ export default function SettingsPage() {
         setSuccessMsg(
           isCurrentlyTrusted
             ? "Device trust removed."
-            : "Device marked as trusted."
+            : "Device marked as trusted.",
         );
         fetchSessions();
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to update trust settings"
+        err instanceof Error ? err.message : "Failed to update trust settings",
       );
     } finally {
       setActionLoading(null);
@@ -468,7 +483,7 @@ export default function SettingsPage() {
 
     if (
       !confirm(
-        "Are you sure you want to terminate this session? The device will be logged out immediately."
+        "Are you sure you want to terminate this session? The device will be logged out immediately.",
       )
     ) {
       return;
@@ -487,7 +502,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to terminate session"
+        err instanceof Error ? err.message : "Failed to terminate session",
       );
     } finally {
       setActionLoading(null);
@@ -497,7 +512,7 @@ export default function SettingsPage() {
   const handleRevokeOther = async () => {
     if (
       !confirm(
-        "Are you sure you want to log out of all other devices? This action cannot be undone."
+        "Are you sure you want to log out of all other devices? This action cannot be undone.",
       )
     ) {
       return;
@@ -511,19 +526,19 @@ export default function SettingsPage() {
         "/auth/sessions/logout-other",
         {
           method: "POST",
-        }
+        },
       );
       if (res.success) {
         setSuccessMsg("Logged out of all other devices successfully.");
         setSessions(
-          sessions.filter((s) => s.session_token === currentSessionToken)
+          sessions.filter((s) => s.session_token === currentSessionToken),
         );
       }
     } catch (err: unknown) {
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : "Failed to terminate other sessions"
+          : "Failed to terminate other sessions",
       );
     } finally {
       setBulkLoading(false);
@@ -533,7 +548,7 @@ export default function SettingsPage() {
   const handleRevokeAll = async () => {
     if (
       !confirm(
-        "Are you sure you want to log out of all devices? You will be logged out of this session immediately."
+        "Are you sure you want to log out of all devices? You will be logged out of this session immediately.",
       )
     ) {
       return;
@@ -547,7 +562,7 @@ export default function SettingsPage() {
         "/auth/sessions/logout-all",
         {
           method: "POST",
-        }
+        },
       );
       if (res.success) {
         setSuccessMsg("Successfully logged out of all devices.");
@@ -555,7 +570,7 @@ export default function SettingsPage() {
       }
     } catch (err: unknown) {
       setErrorMsg(
-        err instanceof Error ? err.message : "Failed to log out of all devices"
+        err instanceof Error ? err.message : "Failed to log out of all devices",
       );
     } finally {
       setBulkLoading(false);
@@ -654,8 +669,7 @@ export default function SettingsPage() {
         )}
 
         <div className="bg-white border border-zinc-200/80 shadow-xs rounded-3xl p-5 sm:p-7 md:p-8">
-          <div className="flex flex-col md:flex-row gap-6 md:gap-8 min-h-[580px]">
-            {/* Left Navigation Sidebar with Liquid Glass Framer Motion Slider */}
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 min-h-145">
             <div className="w-full md:w-56 lg:w-60 shrink-0 flex flex-row md:flex-col gap-1.5 overflow-x-auto md:overflow-visible pb-3 md:pb-0 border-b md:border-b-0 md:border-r border-zinc-200/80 pr-0 md:pr-6 scrollbar-none relative">
               {navTabs.map((tab) => {
                 const isActive = activeTab === tab.id;
@@ -692,9 +706,7 @@ export default function SettingsPage() {
               })}
             </div>
 
-            {/* Right Main Content Area */}
             <div className="flex-1 min-w-0 space-y-6">
-              {/* PROFILE TAB */}
               {activeTab === "profile" && (
                 <div className="space-y-6 animate-fadeIn">
                   <div>
@@ -702,7 +714,8 @@ export default function SettingsPage() {
                       Profile Settings
                     </h2>
                     <p className="text-zinc-500 text-xs mt-1">
-                      Manage your public profile preferences, display identity, and handle.
+                      Manage your public profile preferences, display identity,
+                      and handle.
                     </p>
                   </div>
 
@@ -710,21 +723,26 @@ export default function SettingsPage() {
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 rounded-full bg-[#003c3a] text-white flex items-center justify-center font-bold text-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
                         {user?.avatar_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={user.avatar_url}
                             alt="Avatar"
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          user?.first_name?.charAt(0) || user?.username?.charAt(0) || "U"
+                          user?.first_name?.charAt(0) ||
+                          user?.username?.charAt(0) ||
+                          "U"
                         )}
                       </div>
                       <div>
                         <h3 className="text-base font-bold text-zinc-900">
-                          {user?.first_name ? `${user.first_name} ${user.last_name || ""}` : user?.username || "Developer"}
+                          {user?.first_name
+                            ? `${user.first_name} ${user.last_name || ""}`
+                            : user?.username || "Developer"}
                         </h3>
-                        <p className="text-xs text-zinc-500 font-mono">@{user?.username}</p>
+                        <p className="text-xs text-zinc-500 font-mono">
+                          @{user?.username}
+                        </p>
                         <span className="inline-block mt-1.5 px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
                           Dev Score: {user?.developer_score ?? 92}
                         </span>
@@ -733,17 +751,26 @@ export default function SettingsPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-4 border-t border-zinc-200/80">
                       <div>
-                        <span className="text-zinc-500 font-medium">Email Address</span>
-                        <p className="font-semibold text-zinc-800 mt-0.5">{user?.email}</p>
+                        <span className="text-zinc-500 font-medium">
+                          Email Address
+                        </span>
+                        <p className="font-semibold text-zinc-800 mt-0.5">
+                          {user?.email}
+                        </p>
                       </div>
                       <div>
-                        <span className="text-zinc-500 font-medium">Role Title</span>
-                        <p className="font-semibold text-zinc-800 mt-0.5">{user?.role_title || "Full-Stack Engineer"}</p>
+                        <span className="text-zinc-500 font-medium">
+                          Role Title
+                        </span>
+                        <p className="font-semibold text-zinc-800 mt-0.5">
+                          {user?.role_title || "Full-Stack Engineer"}
+                        </p>
                       </div>
                       <div className="sm:col-span-2">
                         <span className="text-zinc-500 font-medium">Bio</span>
                         <p className="font-medium text-zinc-700 mt-0.5 leading-relaxed">
-                          {user?.bio || "Building agentic AI tools and exploring next-gen developer platforms."}
+                          {user?.bio ||
+                            "Building agentic AI tools and exploring next-gen developer platforms."}
                         </p>
                       </div>
                     </div>
@@ -761,7 +788,6 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* NOTIFICATION TAB */}
               {activeTab === "notification" && (
                 <div className="space-y-6 animate-fadeIn">
                   <div>
@@ -784,7 +810,9 @@ export default function SettingsPage() {
                         </span>
                         <ToggleSwitch
                           checked={notificationsState.emailNotifications}
-                          onChange={(val) => updateNotificationSetting("emailNotifications", val)}
+                          onChange={(val) =>
+                            updateNotificationSetting("emailNotifications", val)
+                          }
                           activeColor="bg-[#3b82f6]"
                         />
                       </div>
@@ -795,7 +823,9 @@ export default function SettingsPage() {
                         </span>
                         <ToggleSwitch
                           checked={notificationsState.inAppNotifications}
-                          onChange={(val) => updateNotificationSetting("inAppNotifications", val)}
+                          onChange={(val) =>
+                            updateNotificationSetting("inAppNotifications", val)
+                          }
                           activeColor="bg-[#3b82f6]"
                         />
                       </div>
@@ -806,7 +836,9 @@ export default function SettingsPage() {
                         </span>
                         <ToggleSwitch
                           checked={notificationsState.pushNotifications}
-                          onChange={(val) => updateNotificationSetting("pushNotifications", val)}
+                          onChange={(val) =>
+                            updateNotificationSetting("pushNotifications", val)
+                          }
                           activeColor="bg-[#3b82f6]"
                         />
                       </div>
@@ -824,7 +856,9 @@ export default function SettingsPage() {
                         </span>
                         <ToggleSwitch
                           checked={notificationsState.taskAssigned}
-                          onChange={(val) => updateNotificationSetting("taskAssigned", val)}
+                          onChange={(val) =>
+                            updateNotificationSetting("taskAssigned", val)
+                          }
                           activeColor="bg-[#3b82f6]"
                         />
                       </div>
@@ -835,7 +869,9 @@ export default function SettingsPage() {
                         </span>
                         <ToggleSwitch
                           checked={notificationsState.taskStatusChanges}
-                          onChange={(val) => updateNotificationSetting("taskStatusChanges", val)}
+                          onChange={(val) =>
+                            updateNotificationSetting("taskStatusChanges", val)
+                          }
                           activeColor="bg-[#3b82f6]"
                         />
                       </div>
@@ -846,7 +882,9 @@ export default function SettingsPage() {
                         </span>
                         <ToggleSwitch
                           checked={notificationsState.projectDeadlines}
-                          onChange={(val) => updateNotificationSetting("projectDeadlines", val)}
+                          onChange={(val) =>
+                            updateNotificationSetting("projectDeadlines", val)
+                          }
                           activeColor="bg-[#3b82f6]"
                         />
                       </div>
@@ -864,7 +902,9 @@ export default function SettingsPage() {
                         </span>
                         <ToggleSwitch
                           checked={notificationsState.newTeamMember}
-                          onChange={(val) => updateNotificationSetting("newTeamMember", val)}
+                          onChange={(val) =>
+                            updateNotificationSetting("newTeamMember", val)
+                          }
                           activeColor="bg-[#3b82f6]"
                         />
                       </div>
@@ -875,7 +915,9 @@ export default function SettingsPage() {
                         </span>
                         <ToggleSwitch
                           checked={notificationsState.mentionsInComments}
-                          onChange={(val) => updateNotificationSetting("mentionsInComments", val)}
+                          onChange={(val) =>
+                            updateNotificationSetting("mentionsInComments", val)
+                          }
                           activeColor="bg-zinc-950"
                         />
                       </div>
@@ -886,7 +928,12 @@ export default function SettingsPage() {
                         </span>
                         <ToggleSwitch
                           checked={notificationsState.messageNotifications}
-                          onChange={(val) => updateNotificationSetting("messageNotifications", val)}
+                          onChange={(val) =>
+                            updateNotificationSetting(
+                              "messageNotifications",
+                              val,
+                            )
+                          }
                           activeColor="bg-zinc-950"
                         />
                       </div>
@@ -895,7 +942,6 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* SECURITY TAB */}
               {activeTab === "security" && (
                 <div className="space-y-6 animate-fadeIn">
                   <div>
@@ -903,7 +949,8 @@ export default function SettingsPage() {
                       Security Settings
                     </h2>
                     <p className="text-zinc-500 text-xs mt-1">
-                      Manage password changes, two-factor authentication, and account access.
+                      Manage password changes, two-factor authentication, and
+                      account access.
                     </p>
                   </div>
 
@@ -913,7 +960,8 @@ export default function SettingsPage() {
                         Update Password
                       </h3>
                       <p className="text-zinc-500 text-xs mt-0.5">
-                        Ensure your account is using a strong, unique password to stay protected.
+                        Ensure your account is using a strong, unique password
+                        to stay protected.
                       </p>
                     </div>
 
@@ -964,7 +1012,9 @@ export default function SettingsPage() {
                             placeholder="••••••••"
                             required
                             value={confirmNewPassword}
-                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            onChange={(e) =>
+                              setConfirmNewPassword(e.target.value)
+                            }
                             className="w-full px-3.5 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
                           />
                         </div>
@@ -986,7 +1036,9 @@ export default function SettingsPage() {
                               <div
                                 key={level}
                                 className={`h-full flex-1 transition-all duration-300 ${
-                                  strength.score >= level ? strength.color : "bg-zinc-200"
+                                  strength.score >= level
+                                    ? strength.color
+                                    : "bg-zinc-200"
                                 }`}
                               />
                             ))}
@@ -996,7 +1048,9 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-2">
                               <div
                                 className={`w-1.5 h-1.5 rounded-full ${
-                                  strength.req?.length ? "bg-emerald-500" : "bg-zinc-300"
+                                  strength.req?.length
+                                    ? "bg-emerald-500"
+                                    : "bg-zinc-300"
                                 }`}
                               />
                               <span
@@ -1048,7 +1102,9 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-2">
                               <div
                                 className={`w-1.5 h-1.5 rounded-full ${
-                                  strength.req?.number ? "bg-emerald-500" : "bg-zinc-300"
+                                  strength.req?.number
+                                    ? "bg-emerald-500"
+                                    : "bg-zinc-300"
                                 }`}
                               />
                               <span
@@ -1064,7 +1120,9 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-2">
                               <div
                                 className={`w-1.5 h-1.5 rounded-full ${
-                                  strength.req?.special ? "bg-emerald-500" : "bg-zinc-300"
+                                  strength.req?.special
+                                    ? "bg-emerald-500"
+                                    : "bg-zinc-300"
                                 }`}
                               />
                               <span
@@ -1080,14 +1138,16 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-2">
                               <div
                                 className={`w-1.5 h-1.5 rounded-full ${
-                                  newPassword === confirmNewPassword && confirmNewPassword
+                                  newPassword === confirmNewPassword &&
+                                  confirmNewPassword
                                     ? "bg-emerald-500"
                                     : "bg-zinc-300"
                                 }`}
                               />
                               <span
                                 className={
-                                  newPassword === confirmNewPassword && confirmNewPassword
+                                  newPassword === confirmNewPassword &&
+                                  confirmNewPassword
                                     ? "text-emerald-700 font-medium"
                                     : "text-zinc-500"
                                 }
@@ -1116,7 +1176,8 @@ export default function SettingsPage() {
                           Two-Factor Authentication (2FA)
                         </h3>
                         <p className="text-zinc-500 text-xs mt-0.5">
-                          Add an extra layer of security to your account by requiring verification codes.
+                          Add an extra layer of security to your account by
+                          requiring verification codes.
                         </p>
                       </div>
                       <div>
@@ -1135,8 +1196,9 @@ export default function SettingsPage() {
                     {!user?.two_factor_enabled ? (
                       <div className="space-y-4">
                         <p className="text-zinc-600 text-xs sm:text-sm leading-relaxed">
-                          Protect your account with Time-based One-Time Passwords (TOTP).
-                          Use Google Authenticator, Microsoft Authenticator, or Authy to scan the QR code.
+                          Protect your account with Time-based One-Time
+                          Passwords (TOTP). Use Google Authenticator, Microsoft
+                          Authenticator, or Authy to scan the QR code.
                         </p>
                         {!showSetup2FA ? (
                           <button
@@ -1153,7 +1215,6 @@ export default function SettingsPage() {
                             <div className="flex flex-col md:flex-row items-center gap-6">
                               {qrCodeData && (
                                 <div className="bg-white p-3 border border-zinc-200 rounded-xl shadow-xs shrink-0">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
                                     src={qrCodeData}
                                     alt="Scan QR Code"
@@ -1163,10 +1224,12 @@ export default function SettingsPage() {
                               )}
                               <div className="space-y-2 flex-1">
                                 <p className="text-xs text-zinc-600 leading-relaxed">
-                                  1. Scan the QR code with your authenticator app.
+                                  1. Scan the QR code with your authenticator
+                                  app.
                                 </p>
                                 <p className="text-xs text-zinc-600 leading-relaxed">
-                                  2. If you cannot scan the QR code, manually enter this text secret:
+                                  2. If you cannot scan the QR code, manually
+                                  enter this text secret:
                                 </p>
                                 <code className="block p-2.5 bg-white border border-zinc-200 rounded-lg font-mono text-xs text-zinc-800 break-all select-all">
                                   {secretData}
@@ -1189,16 +1252,20 @@ export default function SettingsPage() {
                                   required
                                   value={confirmOtp}
                                   onChange={(e) =>
-                                    setConfirmOtp(e.target.value.replace(/\D/g, ""))
+                                    setConfirmOtp(
+                                      e.target.value.replace(/\D/g, ""),
+                                    )
                                   }
-                                  className="max-w-[150px] px-3.5 py-2 bg-white border border-zinc-300 rounded-xl text-sm text-center font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                                  className="max-w-37.5 px-3.5 py-2 bg-white border border-zinc-300 rounded-xl text-sm text-center font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-zinc-600"
                                 />
                                 <button
                                   type="submit"
                                   disabled={setupLoading}
                                   className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer"
                                 >
-                                  {setupLoading ? "Verifying..." : "Verify & Enable"}
+                                  {setupLoading
+                                    ? "Verifying..."
+                                    : "Verify & Enable"}
                                 </button>
                                 <button
                                   type="button"
@@ -1215,7 +1282,8 @@ export default function SettingsPage() {
                     ) : (
                       <div className="space-y-4">
                         <p className="text-zinc-600 text-xs sm:text-sm leading-relaxed">
-                          Two-Factor Authentication is active. You can view or regenerate backup recovery codes, or disable 2FA.
+                          Two-Factor Authentication is active. You can view or
+                          regenerate backup recovery codes, or disable 2FA.
                         </p>
 
                         <div className="flex flex-wrap gap-3">
@@ -1247,7 +1315,8 @@ export default function SettingsPage() {
                                   Backup Recovery Codes
                                 </h4>
                                 <p className="text-[10px] text-zinc-500 mt-0.5">
-                                  Keep these codes safe. Each code can be used once.
+                                  Keep these codes safe. Each code can be used
+                                  once.
                                 </p>
                               </div>
                               <button
@@ -1272,7 +1341,9 @@ export default function SettingsPage() {
                             <div className="pt-1">
                               <button
                                 onClick={() => {
-                                  navigator.clipboard.writeText(recoveryCodes.join("\n"));
+                                  navigator.clipboard.writeText(
+                                    recoveryCodes.join("\n"),
+                                  );
                                   alert("Recovery codes copied to clipboard!");
                                 }}
                                 className="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg text-[11px] font-bold transition-all"
@@ -1288,7 +1359,6 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* SESSIONS & DEVICES TAB */}
               {activeTab === "sessions" && (
                 <div className="space-y-6 animate-fadeIn">
                   <div>
@@ -1296,7 +1366,8 @@ export default function SettingsPage() {
                       Active Device Sessions
                     </h2>
                     <p className="text-zinc-500 text-xs mt-1">
-                      Manage active sign-ins, device trust, and concurrent session limits.
+                      Manage active sign-ins, device trust, and concurrent
+                      session limits.
                     </p>
                   </div>
 
@@ -1308,18 +1379,22 @@ export default function SettingsPage() {
                             Concurrent Session Limit
                           </h3>
                           <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-[#003c3a]/10 text-[#003c3a] border border-[#003c3a]/20">
-                            {sessions.length} / {user?.max_sessions || sessionLimit || 5} active
+                            {sessions.length} /{" "}
+                            {user?.max_sessions || sessionLimit || 5} active
                           </span>
                         </div>
                         <p className="text-[11px] text-zinc-500 font-medium mt-1">
-                          Set maximum allowed concurrent logins. Older sessions auto logout.
+                          Set maximum allowed concurrent logins. Older sessions
+                          auto logout.
                         </p>
                       </div>
 
                       <div className="flex items-center gap-2.5 shrink-0">
                         <select
                           value={sessionLimit}
-                          onChange={(e) => setCustomSessionLimit(Number(e.target.value))}
+                          onChange={(e) =>
+                            setCustomSessionLimit(Number(e.target.value))
+                          }
                           className="px-3 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#003c3a]/20 cursor-pointer shadow-2xs"
                         >
                           {[1, 2, 3, 5, 10, 15, 20].map((num) => (
@@ -1340,10 +1415,14 @@ export default function SettingsPage() {
                     </div>
 
                     {limitSuccessMsg && (
-                      <p className="text-xs text-emerald-600 font-bold">{limitSuccessMsg}</p>
+                      <p className="text-xs text-emerald-600 font-bold">
+                        {limitSuccessMsg}
+                      </p>
                     )}
                     {limitErrorMsg && (
-                      <p className="text-xs text-red-600 font-bold">{limitErrorMsg}</p>
+                      <p className="text-xs text-red-600 font-bold">
+                        {limitErrorMsg}
+                      </p>
                     )}
                   </div>
 
@@ -1357,7 +1436,9 @@ export default function SettingsPage() {
                         disabled={bulkLoading}
                         className="btn-candy px-3.5 py-1.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white disabled:opacity-50 rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
                       >
-                        {bulkLoading ? "Logging out all..." : "Logout All Devices"}
+                        {bulkLoading
+                          ? "Logging out all..."
+                          : "Logout All Devices"}
                       </button>
                       {sessions.length > 1 && (
                         <button
@@ -1365,7 +1446,9 @@ export default function SettingsPage() {
                           disabled={bulkLoading}
                           className="btn-candy px-3.5 py-1.5 bg-linear-to-b from-[#005451] to-[#002927] text-white disabled:opacity-50 rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
                         >
-                          {bulkLoading ? "Logging out..." : "Logout Other Devices"}
+                          {bulkLoading
+                            ? "Logging out..."
+                            : "Logout Other Devices"}
                         </button>
                       )}
                     </div>
@@ -1374,12 +1457,15 @@ export default function SettingsPage() {
                   {loading ? (
                     <div className="flex flex-col items-center justify-center py-12 text-zinc-400 space-y-2">
                       <div className="w-6 h-6 border-2 border-zinc-200 border-t-[#003c3a] rounded-full animate-spin" />
-                      <span className="text-xs text-zinc-500">Loading active sessions...</span>
+                      <span className="text-xs text-zinc-500">
+                        Loading active sessions...
+                      </span>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {sessions.map((session) => {
-                        const isCurrent = session.session_token === currentSessionToken;
+                        const isCurrent =
+                          session.session_token === currentSessionToken;
 
                         return (
                           <div
@@ -1441,7 +1527,11 @@ export default function SettingsPage() {
                                 <button
                                   onClick={() => handleToggleTrust(session)}
                                   disabled={actionLoading === session.id}
-                                  title={session.is_trusted ? "Remove Trust" : "Mark as Trusted"}
+                                  title={
+                                    session.is_trusted
+                                      ? "Remove Trust"
+                                      : "Mark as Trusted"
+                                  }
                                   className={`p-2 rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer ${
                                     session.is_trusted
                                       ? "text-emerald-600 hover:text-emerald-700"
@@ -1451,9 +1541,18 @@ export default function SettingsPage() {
                                   <Shield className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => handleRevoke(session.id, session.session_token)}
+                                  onClick={() =>
+                                    handleRevoke(
+                                      session.id,
+                                      session.session_token,
+                                    )
+                                  }
                                   disabled={actionLoading === session.id}
-                                  title={isCurrent ? "Logout this device" : "Terminate session"}
+                                  title={
+                                    isCurrent
+                                      ? "Logout this device"
+                                      : "Terminate session"
+                                  }
                                   className="p-2 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-600 transition-colors cursor-pointer"
                                 >
                                   {actionLoading === session.id ? (
@@ -1467,25 +1566,37 @@ export default function SettingsPage() {
 
                             <div className="pt-3 border-t border-zinc-200/60 grid grid-cols-2 sm:grid-cols-4 gap-4 text-[11px] text-zinc-500">
                               <div>
-                                <span className="block font-medium text-zinc-400">Session ID</span>
+                                <span className="block font-medium text-zinc-400">
+                                  Session ID
+                                </span>
                                 <code className="text-zinc-700 font-mono select-all">
                                   {session.session_token.slice(0, 8)}...
                                 </code>
                               </div>
                               <div>
-                                <span className="block font-medium text-zinc-400">Status</span>
-                                <span className="text-emerald-600 font-bold">Active</span>
+                                <span className="block font-medium text-zinc-400">
+                                  Status
+                                </span>
+                                <span className="text-emerald-600 font-bold">
+                                  Active
+                                </span>
                               </div>
                               <div>
-                                <span className="block font-medium text-zinc-400">Expires At</span>
+                                <span className="block font-medium text-zinc-400">
+                                  Expires At
+                                </span>
                                 <span className="text-zinc-700 font-medium">
                                   {formatDate(session.expires_at)}
                                 </span>
                               </div>
                               <div>
-                                <span className="block font-medium text-zinc-400">Last Refreshed</span>
+                                <span className="block font-medium text-zinc-400">
+                                  Last Refreshed
+                                </span>
                                 <span className="text-zinc-700 font-medium">
-                                  {session.rotated_at ? formatDate(session.rotated_at) : formatDate(session.created_at)}
+                                  {session.rotated_at
+                                    ? formatDate(session.rotated_at)
+                                    : formatDate(session.created_at)}
                                 </span>
                               </div>
                             </div>
@@ -1497,7 +1608,6 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* SUBSCRIPTION TAB */}
               {activeTab === "subscription" && (
                 <div className="space-y-6 animate-fadeIn">
                   <div>
@@ -1505,7 +1615,8 @@ export default function SettingsPage() {
                       Subscription & Billing
                     </h2>
                     <p className="text-zinc-500 text-xs mt-1">
-                      Manage your plan tier, usage limits, and workspace billing.
+                      Manage your plan tier, usage limits, and workspace
+                      billing.
                     </p>
                   </div>
 
@@ -1519,12 +1630,18 @@ export default function SettingsPage() {
                           Developer Pro Tier (Beta)
                         </h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          Full access to AI Career Coach, GitHub Analytics, and 2FA Security.
+                          Full access to AI Career Coach, GitHub Analytics, and
+                          2FA Security.
                         </p>
                       </div>
                       <div>
-                        <span className="text-2xl font-extrabold text-zinc-900">$0</span>
-                        <span className="text-xs text-zinc-500 font-medium"> / month</span>
+                        <span className="text-2xl font-extrabold text-zinc-900">
+                          $0
+                        </span>
+                        <span className="text-xs text-zinc-500 font-medium">
+                          {" "}
+                          / month
+                        </span>
                       </div>
                     </div>
 
@@ -1555,7 +1672,6 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* INTEGRATIONS TAB */}
               {activeTab === "integrations" && (
                 <div className="space-y-6 animate-fadeIn">
                   <div>
@@ -1563,8 +1679,24 @@ export default function SettingsPage() {
                       Connected Integrations
                     </h2>
                     <p className="text-zinc-500 text-xs mt-1">
-                      Manage external developer platforms and OAuth service connections.
+                      View external developer platforms and linked OAuth account
+                      connections.
                     </p>
+                  </div>
+
+                  <div className="p-4 bg-amber-50/80 border border-amber-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-amber-950">
+                    <div className="flex items-start gap-3">
+                      <div className="space-y-0.5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-amber-950">
+                          Managed via Profile Page
+                        </h4>
+                        <p className="text-xs text-amber-800 leading-relaxed">
+                          Platform connections, profile handles, and account
+                          syncs are managed on your Profile page. Visit your
+                          profile to connect, update, or disconnect platforms.
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4">
@@ -1575,7 +1707,6 @@ export default function SettingsPage() {
                       >
                         <div className="flex items-center gap-4">
                           <div className="w-11 h-11 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex items-center justify-center p-2 shrink-0 shadow-2xs">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={item.logo}
                               alt={item.name}
@@ -1601,28 +1732,13 @@ export default function SettingsPage() {
 
                         <div className="flex items-center gap-3 shrink-0">
                           {item.connected ? (
-                            <>
-                              <span className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">
-                                Connected
-                              </span>
-                              <button
-                                onClick={() =>
-                                  alert(`Disconnecting ${item.name}...`)
-                                }
-                                className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                              >
-                                Disconnect
-                              </button>
-                            </>
+                            <span className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">
+                              Connected
+                            </span>
                           ) : (
-                            <button
-                              onClick={() =>
-                                alert(`Connecting ${item.name}...`)
-                              }
-                              className="btn-candy px-4 py-2 bg-linear-to-b from-[#005451] to-[#002927] text-white rounded-xl text-xs font-bold cursor-pointer"
-                            >
-                              Connect Platform
-                            </button>
+                            <span className="px-2.5 py-1 text-xs font-semibold bg-zinc-100 text-zinc-500 border border-zinc-200 rounded-lg">
+                              Not Connected
+                            </span>
                           )}
                         </div>
                       </div>
@@ -1635,7 +1751,6 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Security Reauth Modal */}
       {showReauthModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
@@ -1656,7 +1771,8 @@ export default function SettingsPage() {
               Security Confirmation
             </h3>
             <p className="text-zinc-500 text-xs mb-6">
-              To perform this sensitive action, please enter your password to confirm your identity.
+              To perform this sensitive action, please enter your password to
+              confirm your identity.
             </p>
 
             {reauthError && (
@@ -1701,7 +1817,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Force Logout Confirmation Modal */}
       {showForceLogoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
@@ -1722,7 +1837,8 @@ export default function SettingsPage() {
               Sign out of other devices?
             </h3>
             <p className="text-zinc-500 text-xs mb-6 leading-relaxed">
-              Would you like to terminate all other active device sessions and sign in again using your new password?
+              Would you like to terminate all other active device sessions and
+              sign in again using your new password?
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-end">
