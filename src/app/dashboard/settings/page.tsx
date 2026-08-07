@@ -19,7 +19,15 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
-import { Shield, Eye, Download, Mail, Activity, FileText, RefreshCw } from "lucide-react";
+import {
+  Shield,
+  Eye,
+  Download,
+  Mail,
+  Activity,
+  FileText,
+  RefreshCw,
+} from "lucide-react";
 import CandyButton from "@/components/ui/candy-button";
 
 interface Session {
@@ -222,10 +230,14 @@ export default function SettingsPage() {
   });
   const [logsLoading, setLogsLoading] = useState(false);
   const [logFilter, setLogFilter] = useState<string>("ALL");
-  const [selectedRequestLog, setSelectedRequestLog] = useState<ActivityLogRecord | null>(null);
+  const [selectedRequestLog, setSelectedRequestLog] =
+    useState<ActivityLogRecord | null>(null);
 
-  const [publicResumeAccessOverride, setPublicResumeAccessOverride] = useState<boolean | null>(null);
-  const publicResumeAccess = publicResumeAccessOverride ?? (user?.public_resume_access !== false);
+  const [publicResumeAccessOverride, setPublicResumeAccessOverride] = useState<
+    boolean | null
+  >(null);
+  const publicResumeAccess =
+    publicResumeAccessOverride ?? user?.public_resume_access !== false;
 
   const fetchActivityLogs = async () => {
     setLogsLoading(true);
@@ -235,7 +247,7 @@ export default function SettingsPage() {
           logs: ActivityLogRecord[];
           metrics: typeof activityMetrics;
         }>
-      >(`/user/activity-logs?type=${logFilter}`);
+      >(`/users/activity-logs?type=${logFilter}`);
       if (res.success && res.data) {
         setActivityLogs(res.data.logs || []);
         if (res.data.metrics) {
@@ -257,7 +269,7 @@ export default function SettingsPage() {
         logs: ActivityLogRecord[];
         metrics: typeof activityMetrics;
       }>
-    >(`/user/activity-logs?type=${logFilter}`)
+    >(`/users/activity-logs?type=${logFilter}`)
       .then((res) => {
         if (isMounted && res.success && res.data) {
           setActivityLogs(res.data.logs || []);
@@ -1238,7 +1250,8 @@ export default function SettingsPage() {
                         Profile Access &amp; Activity Logs
                       </h2>
                       <p className="text-zinc-500 text-xs mt-1">
-                        Live audit feed of public profile visits, resume access requests, downloads, and project interactions.
+                        Live audit feed of public profile visits, resume access
+                        requests, downloads, and project interactions.
                       </p>
                     </div>
 
@@ -1247,7 +1260,9 @@ export default function SettingsPage() {
                       disabled={logsLoading}
                       className="px-3 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium flex items-center gap-1.5 transition-all self-start sm:self-auto cursor-pointer"
                     >
-                      <RefreshCw className={`w-3.5 h-3.5 ${logsLoading ? "animate-spin text-[#003c3a]" : ""}`} />
+                      <RefreshCw
+                        className={`w-3.5 h-3.5 ${logsLoading ? "animate-spin text-[#003c3a]" : ""}`}
+                      />
                       Refresh Logs
                     </button>
                   </div>
@@ -1256,17 +1271,25 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-bold text-zinc-900">Public Resume Access</h3>
-                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${
-                            publicResumeAccess
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : "bg-amber-50 text-amber-700 border-amber-200"
-                          }`}>
-                            {publicResumeAccess ? "Direct Download Enabled" : "Request Mode Only"}
+                          <h3 className="text-sm font-bold text-zinc-900">
+                            Public Resume Access
+                          </h3>
+                          <span
+                            className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${
+                              publicResumeAccess
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-amber-50 text-amber-700 border-amber-200"
+                            }`}
+                          >
+                            {publicResumeAccess
+                              ? "Direct Download Enabled"
+                              : "Request Mode Only"}
                           </span>
                         </div>
                         <p className="text-xs text-zinc-500 mt-1 max-w-xl">
-                          Allow public visitors and recruiters on your profile page to download your resume directly. When disabled, visitors can only send formal Access Requests.
+                          Allow public visitors and recruiters on your profile
+                          page to download your resume directly. When disabled,
+                          visitors can only send formal Access Requests.
                         </p>
                       </div>
                       <ToggleSwitch
@@ -1274,14 +1297,19 @@ export default function SettingsPage() {
                         onChange={async (val) => {
                           setPublicResumeAccessOverride(val);
                           try {
-                            await apiFetch("/user/profile", {
+                            await apiFetch("/users/profile", {
                               method: "PATCH",
                               headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ public_resume_access: val }),
+                              body: JSON.stringify({
+                                public_resume_access: val,
+                              }),
                             });
                             checkAuth();
                           } catch (err) {
-                            console.error("Failed to update resume access setting:", err);
+                            console.error(
+                              "Failed to update resume access setting:",
+                              err,
+                            );
                           }
                         }}
                       />
@@ -1291,46 +1319,62 @@ export default function SettingsPage() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
                     <div className="p-4.5 rounded-2xl border border-zinc-200/90 bg-white shadow-2xs hover:border-zinc-300 transition-all space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Profile Views</span>
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                          Profile Views
+                        </span>
                         <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>
                       </div>
                       <div className="text-2xl font-extrabold text-zinc-900 tracking-tight">
                         {activityMetrics.totalProfileViews}
                       </div>
-                      <p className="text-[11px] text-zinc-500 font-normal">Public page hits</p>
+                      <p className="text-[11px] text-zinc-500 font-normal">
+                        Public page hits
+                      </p>
                     </div>
 
                     <div className="p-4.5 rounded-2xl border border-zinc-200/90 bg-white shadow-2xs hover:border-zinc-300 transition-all space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Resume Downloads</span>
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                          Resume Downloads
+                        </span>
                         <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                       </div>
                       <div className="text-2xl font-extrabold text-zinc-900 tracking-tight">
                         {activityMetrics.totalResumeDownloads}
                       </div>
-                      <p className="text-[11px] text-zinc-500 font-normal">Files downloaded</p>
+                      <p className="text-[11px] text-zinc-500 font-normal">
+                        Files downloaded
+                      </p>
                     </div>
 
                     <div className="p-4.5 rounded-2xl border border-zinc-200/90 bg-white shadow-2xs hover:border-zinc-300 transition-all space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Access Requests</span>
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                          Access Requests
+                        </span>
                         <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
                       </div>
                       <div className="text-2xl font-extrabold text-zinc-900 tracking-tight">
                         {activityMetrics.totalResumeRequests}
                       </div>
-                      <p className="text-[11px] text-zinc-500 font-normal">Recruiter inquiries</p>
+                      <p className="text-[11px] text-zinc-500 font-normal">
+                        Recruiter inquiries
+                      </p>
                     </div>
 
                     <div className="p-4.5 rounded-2xl border border-zinc-200/90 bg-white shadow-2xs hover:border-zinc-300 transition-all space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Unique Visitors</span>
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                          Unique Visitors
+                        </span>
                         <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
                       </div>
                       <div className="text-2xl font-extrabold text-zinc-900 tracking-tight">
                         {activityMetrics.uniqueVisitors}
                       </div>
-                      <p className="text-[11px] text-zinc-500 font-normal">Distinct IP locations</p>
+                      <p className="text-[11px] text-zinc-500 font-normal">
+                        Distinct IP locations
+                      </p>
                     </div>
                   </div>
 
@@ -1363,34 +1407,44 @@ export default function SettingsPage() {
                   ) : activityLogs.length === 0 ? (
                     <div className="p-12 border border-dashed border-zinc-200 rounded-2xl text-center space-y-2">
                       <Activity className="w-8 h-8 text-zinc-300 mx-auto" />
-                      <p className="text-xs font-semibold text-zinc-700">No Activity Logs Found</p>
+                      <p className="text-xs font-semibold text-zinc-700">
+                        No Activity Logs Found
+                      </p>
                       <p className="text-[11px] text-zinc-500 max-w-sm mx-auto">
-                        Events will appear here automatically when visitors view your public profile page or request resume access.
+                        Events will appear here automatically when visitors view
+                        your public profile page or request resume access.
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {activityLogs.map((log) => {
-                        let badgeColor = "bg-teal-50 text-teal-700 border-teal-200";
+                        let badgeColor =
+                          "bg-teal-50 text-teal-700 border-teal-200";
                         let actionLabel = "Profile View";
                         let IconComponent = Eye;
 
                         if (log.action_type === "RESUME_DOWNLOAD") {
-                          badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                          badgeColor =
+                            "bg-emerald-50 text-emerald-700 border-emerald-200";
                           actionLabel = "Resume Downloaded";
                           IconComponent = Download;
                         } else if (log.action_type === "RESUME_REQUEST") {
-                          badgeColor = "bg-purple-50 text-purple-700 border-purple-200";
+                          badgeColor =
+                            "bg-purple-50 text-purple-700 border-purple-200";
                           actionLabel = "Resume Access Request";
                           IconComponent = Mail;
                         } else if (log.action_type === "PROJECT_VIEW") {
-                          badgeColor = "bg-blue-50 text-blue-700 border-blue-200";
+                          badgeColor =
+                            "bg-blue-50 text-blue-700 border-blue-200";
                           actionLabel = "Project View";
                           IconComponent = FileText;
                         }
 
                         const meta = log.metadata;
-                        const createdTime = getRelativeTime(log.created_at, renderTimestamp);
+                        const createdTime = getRelativeTime(
+                          log.created_at,
+                          renderTimestamp,
+                        );
 
                         return (
                           <div
@@ -1398,12 +1452,16 @@ export default function SettingsPage() {
                             className="p-4 bg-white border border-zinc-200/80 rounded-2xl shadow-2xs hover:border-zinc-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                           >
                             <div className="flex items-start gap-3">
-                              <div className={`p-2.5 rounded-xl border ${badgeColor} shrink-0 mt-0.5`}>
+                              <div
+                                className={`p-2.5 rounded-xl border ${badgeColor} shrink-0 mt-0.5`}
+                              >
                                 <IconComponent className="w-4 h-4" />
                               </div>
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${badgeColor}`}>
+                                  <span
+                                    className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${badgeColor}`}
+                                  >
                                     {actionLabel}
                                   </span>
                                   <span className="text-[11px] text-zinc-500 font-normal">
@@ -1415,21 +1473,30 @@ export default function SettingsPage() {
                                   {log.action_type === "RESUME_REQUEST"
                                     ? `${log.actor_name || "Recruiter"} (${log.actor_email || "Guest"}) requested resume access`
                                     : log.action_type === "RESUME_DOWNLOAD"
-                                    ? `${log.actor_name || "Visitor"} downloaded your resume`
-                                    : log.action_type === "PROJECT_VIEW"
-                                    ? `Viewed project "${meta?.projectTitle || "Showcase"}"`
-                                    : `Public profile view from ${log.ip_address || "Visitor"}`}
+                                      ? `${log.actor_name || "Visitor"} downloaded your resume`
+                                      : log.action_type === "PROJECT_VIEW"
+                                        ? `Viewed project "${meta?.projectTitle || "Showcase"}"`
+                                        : `Public profile view from ${log.ip_address || "Visitor"}`}
                                 </p>
 
                                 <div className="flex items-center gap-3 text-[11px] text-zinc-500 font-normal flex-wrap">
                                   {log.ip_address && (
-                                    <span>IP: <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">{log.ip_address}</code></span>
+                                    <span>
+                                      IP:{" "}
+                                      <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">
+                                        {log.ip_address}
+                                      </code>
+                                    </span>
                                   )}
                                   {meta?.company && (
-                                    <span>Company: <strong>{meta.company}</strong></span>
+                                    <span>
+                                      Company: <strong>{meta.company}</strong>
+                                    </span>
                                   )}
                                   {meta?.role && (
-                                    <span>Role: <strong>{meta.role}</strong></span>
+                                    <span>
+                                      Role: <strong>{meta.role}</strong>
+                                    </span>
                                   )}
                                 </div>
                               </div>
@@ -1461,33 +1528,53 @@ export default function SettingsPage() {
 
                         <div className="flex items-center gap-2 text-[#003c3a]">
                           <Mail className="w-5 h-5" />
-                          <h3 className="text-base font-bold">Resume Access Request Details</h3>
+                          <h3 className="text-base font-bold">
+                            Resume Access Request Details
+                          </h3>
                         </div>
 
                         <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200 text-xs space-y-2">
                           <div>
-                            <span className="text-zinc-500 font-medium">Requester Name:</span>
-                            <p className="font-semibold text-zinc-900">{selectedRequestLog.actor_name || "N/A"}</p>
+                            <span className="text-zinc-500 font-medium">
+                              Requester Name:
+                            </span>
+                            <p className="font-semibold text-zinc-900">
+                              {selectedRequestLog.actor_name || "N/A"}
+                            </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 font-medium">Contact Email:</span>
-                            <p className="font-semibold text-zinc-900">{selectedRequestLog.actor_email || "N/A"}</p>
+                            <span className="text-zinc-500 font-medium">
+                              Contact Email:
+                            </span>
+                            <p className="font-semibold text-zinc-900">
+                              {selectedRequestLog.actor_email || "N/A"}
+                            </p>
                           </div>
                           {selectedRequestLog.metadata?.company && (
                             <div>
-                              <span className="text-zinc-500 font-medium">Organization / Company:</span>
-                              <p className="font-semibold text-zinc-900">{selectedRequestLog.metadata.company}</p>
+                              <span className="text-zinc-500 font-medium">
+                                Organization / Company:
+                              </span>
+                              <p className="font-semibold text-zinc-900">
+                                {selectedRequestLog.metadata.company}
+                              </p>
                             </div>
                           )}
                           {selectedRequestLog.metadata?.role && (
                             <div>
-                              <span className="text-zinc-500 font-medium">Proposed Role:</span>
-                              <p className="font-semibold text-zinc-900">{selectedRequestLog.metadata.role}</p>
+                              <span className="text-zinc-500 font-medium">
+                                Proposed Role:
+                              </span>
+                              <p className="font-semibold text-zinc-900">
+                                {selectedRequestLog.metadata.role}
+                              </p>
                             </div>
                           )}
                           {selectedRequestLog.metadata?.note && (
                             <div>
-                              <span className="text-zinc-500 font-medium">Note / Message:</span>
+                              <span className="text-zinc-500 font-medium">
+                                Note / Message:
+                              </span>
                               <p className="font-medium text-zinc-700 bg-white p-2.5 rounded-xl border border-zinc-200 mt-1 leading-relaxed">
                                 &quot;{selectedRequestLog.metadata.note}&quot;
                               </p>
