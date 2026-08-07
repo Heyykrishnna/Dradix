@@ -805,16 +805,23 @@ export default function PublicUserProfilePage() {
                 <FaPaperPlane className="w-2.5 h-2.5" /> Hire / Contact
               </button>
 
-              {Boolean(userData.resume_url || userData.resume_name) && userData.public_resume_access !== false ? (
+              {userData.public_resume_access !== false ? (
                 <button
-                  onClick={async () => {
+                  onClick={() => {
                     apiFetch(`/users/profile/${username}/track-resume`, {
                       method: "POST",
                       skipAuth: true,
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ actorName: "Visitor", actorEmail: "" }),
                     }).catch(() => {});
-                    window.open(`${API_URL}/users/profile/${username}/resume/download`, "_blank");
+
+                    const downloadUrl = `${API_URL}/users/profile/${username}/resume/download`;
+                    const link = document.createElement("a");
+                    link.href = downloadUrl;
+                    link.download = `${username}_Resume`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                   }}
                   className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-normal hover:bg-zinc-800 transition-all shadow-xs flex items-center justify-center gap-1.5 border border-zinc-900 cursor-pointer"
                   title="Download Resume"
