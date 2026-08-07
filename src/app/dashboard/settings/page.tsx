@@ -19,7 +19,7 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
-import { Shield } from "lucide-react";
+import { Shield, Eye, Download, Mail, Activity, FileText, Globe, RefreshCw } from "lucide-react";
 import CandyButton from "@/components/ui/candy-button";
 
 interface Session {
@@ -53,6 +53,18 @@ type DangerActionType =
   | "delete_account"
   | "permanently_remove_data"
   | null;
+
+interface ActivityLogRecord {
+  id: number;
+  user_id: number;
+  action_type: string;
+  actor_name: string | null;
+  actor_email: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  metadata: Record<string, string | undefined> | null;
+  created_at: string;
+}
 
 const getRelativeTime = (dateStr: string, now: number): string => {
   const diff = now - new Date(dateStr).getTime();
@@ -106,6 +118,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<
     | "profile"
     | "notification"
+    | "logs"
     | "security"
     | "sessions"
     | "subscription"
@@ -197,6 +210,69 @@ export default function SettingsPage() {
   const [copiedSessionTokenId, setCopiedSessionTokenId] = useState<
     number | null
   >(null);
+
+  const [activityLogs, setActivityLogs] = useState<ActivityLogRecord[]>([]);
+  const [renderTimestamp] = useState(() => Date.now());
+  const [activityMetrics, setActivityMetrics] = useState({
+    totalProfileViews: 0,
+    totalResumeDownloads: 0,
+    totalResumeRequests: 0,
+    totalProjectViews: 0,
+    uniqueVisitors: 0,
+  });
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logFilter, setLogFilter] = useState<string>("ALL");
+  const [selectedRequestLog, setSelectedRequestLog] = useState<ActivityLogRecord | null>(null);
+
+  const fetchActivityLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const res = await apiFetch<
+        ApiResponse<{
+          logs: ActivityLogRecord[];
+          metrics: typeof activityMetrics;
+        }>
+      >(`/user/activity-logs?type=${logFilter}`);
+      if (res.success && res.data) {
+        setActivityLogs(res.data.logs || []);
+        if (res.data.metrics) {
+          setActivityMetrics(res.data.metrics);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load activity logs:", err);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab !== "logs") return;
+    let isMounted = true;
+    apiFetch<
+      ApiResponse<{
+        logs: ActivityLogRecord[];
+        metrics: typeof activityMetrics;
+      }>
+    >(`/user/activity-logs?type=${logFilter}`)
+      .then((res) => {
+        if (isMounted && res.success && res.data) {
+          setActivityLogs(res.data.logs || []);
+          if (res.data.metrics) {
+            setActivityMetrics(res.data.metrics);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load activity logs:", err);
+      })
+      .finally(() => {
+        if (isMounted) setLogsLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, logFilter]);
 
   const copySessionToken = (id: number, token: string) => {
     navigator.clipboard.writeText(token);
@@ -688,6 +764,12 @@ export default function SettingsPage() {
       isDanger: false,
     },
     {
+      id: "logs",
+      label: "Access & Activity Logs",
+      icon: CardStackIcon,
+      isDanger: false,
+    },
+    {
       id: "security",
       label: "Security",
       icon: LockClosedIcon,
@@ -1142,6 +1224,259 @@ export default function SettingsPage() {
                       </Link>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {activeTab === "logs" && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
+                        Profile Access &amp; Activity Logs
+                      </h2>
+                      <p className="text-zinc-500 text-xs mt-1">
+                        Live audit feed of public profile visits, resume access requests, downloads, and project interactions.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={fetchActivityLogs}
+                      disabled={logsLoading}
+                      className="px-3 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium flex items-center gap-1.5 transition-all self-start sm:self-auto cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${logsLoading ? "animate-spin text-[#003c3a]" : ""}`} />
+                      Refresh Logs
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+                    <div className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 space-y-1">
+                      <div className="flex items-center justify-between text-zinc-500">
+                        <span className="text-[11px] font-medium">Profile Views</span>
+                        <Eye className="w-4 h-4 text-[#003c3a]" />
+                      </div>
+                      <div className="text-xl font-bold text-zinc-900">
+                        {activityMetrics.totalProfileViews}
+                      </div>
+                      <span className="text-[10px] text-zinc-500 font-normal">Public page hits</span>
+                    </div>
+
+                    <div className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 space-y-1">
+                      <div className="flex items-center justify-between text-zinc-500">
+                        <span className="text-[11px] font-medium">Resume Downloads</span>
+                        <Download className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      <div className="text-xl font-bold text-zinc-900">
+                        {activityMetrics.totalResumeDownloads}
+                      </div>
+                      <span className="text-[10px] text-zinc-500 font-normal">Files downloaded</span>
+                    </div>
+
+                    <div className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 space-y-1">
+                      <div className="flex items-center justify-between text-zinc-500">
+                        <span className="text-[11px] font-medium">Access Requests</span>
+                        <Mail className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div className="text-xl font-bold text-zinc-900">
+                        {activityMetrics.totalResumeRequests}
+                      </div>
+                      <span className="text-[10px] text-zinc-500 font-normal">Recruiter inquiries</span>
+                    </div>
+
+                    <div className="p-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/60 space-y-1">
+                      <div className="flex items-center justify-between text-zinc-500">
+                        <span className="text-[11px] font-medium">Unique Visitors</span>
+                        <Globe className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="text-xl font-bold text-zinc-900">
+                        {activityMetrics.uniqueVisitors}
+                      </div>
+                      <span className="text-[10px] text-zinc-500 font-normal">Distinct IP locations</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-zinc-200/80 scrollbar-none">
+                    {[
+                      { id: "ALL", label: "All Logs" },
+                      { id: "PROFILE_VIEW", label: "Profile Views" },
+                      { id: "RESUME_DOWNLOAD", label: "Downloads" },
+                      { id: "RESUME_REQUEST", label: "Access Requests" },
+                      { id: "PROJECT_VIEW", label: "Project Views" },
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => setLogFilter(f.id)}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                          logFilter === f.id
+                            ? "bg-[#003c3a] text-white shadow-xs"
+                            : "bg-zinc-100/80 hover:bg-zinc-200/80 text-zinc-600"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {logsLoading ? (
+                    <div className="p-12 text-center text-zinc-400 text-xs font-medium">
+                      Loading real-time activity logs...
+                    </div>
+                  ) : activityLogs.length === 0 ? (
+                    <div className="p-12 border border-dashed border-zinc-200 rounded-2xl text-center space-y-2">
+                      <Activity className="w-8 h-8 text-zinc-300 mx-auto" />
+                      <p className="text-xs font-semibold text-zinc-700">No Activity Logs Found</p>
+                      <p className="text-[11px] text-zinc-500 max-w-sm mx-auto">
+                        Events will appear here automatically when visitors view your public profile page or request resume access.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {activityLogs.map((log) => {
+                        let badgeColor = "bg-teal-50 text-teal-700 border-teal-200";
+                        let actionLabel = "Profile View";
+                        let IconComponent = Eye;
+
+                        if (log.action_type === "RESUME_DOWNLOAD") {
+                          badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                          actionLabel = "Resume Downloaded";
+                          IconComponent = Download;
+                        } else if (log.action_type === "RESUME_REQUEST") {
+                          badgeColor = "bg-purple-50 text-purple-700 border-purple-200";
+                          actionLabel = "Resume Access Request";
+                          IconComponent = Mail;
+                        } else if (log.action_type === "PROJECT_VIEW") {
+                          badgeColor = "bg-blue-50 text-blue-700 border-blue-200";
+                          actionLabel = "Project View";
+                          IconComponent = FileText;
+                        }
+
+                        const meta = log.metadata;
+                        const createdTime = getRelativeTime(log.created_at, renderTimestamp);
+
+                        return (
+                          <div
+                            key={log.id}
+                            className="p-4 bg-white border border-zinc-200/80 rounded-2xl shadow-2xs hover:border-zinc-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`p-2.5 rounded-xl border ${badgeColor} shrink-0 mt-0.5`}>
+                                <IconComponent className="w-4 h-4" />
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${badgeColor}`}>
+                                    {actionLabel}
+                                  </span>
+                                  <span className="text-[11px] text-zinc-500 font-normal">
+                                    {createdTime}
+                                  </span>
+                                </div>
+
+                                <p className="text-xs font-semibold text-zinc-900">
+                                  {log.action_type === "RESUME_REQUEST"
+                                    ? `${log.actor_name || "Recruiter"} (${log.actor_email || "Guest"}) requested resume access`
+                                    : log.action_type === "RESUME_DOWNLOAD"
+                                    ? `${log.actor_name || "Visitor"} downloaded your resume`
+                                    : log.action_type === "PROJECT_VIEW"
+                                    ? `Viewed project "${meta?.projectTitle || "Showcase"}"`
+                                    : `Public profile view from ${log.ip_address || "Visitor"}`}
+                                </p>
+
+                                <div className="flex items-center gap-3 text-[11px] text-zinc-500 font-normal flex-wrap">
+                                  {log.ip_address && (
+                                    <span>IP: <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">{log.ip_address}</code></span>
+                                  )}
+                                  {meta?.company && (
+                                    <span>Company: <strong>{meta.company}</strong></span>
+                                  )}
+                                  {meta?.role && (
+                                    <span>Role: <strong>{meta.role}</strong></span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {log.action_type === "RESUME_REQUEST" && (
+                              <button
+                                onClick={() => setSelectedRequestLog(log)}
+                                className="px-3 py-1.5 rounded-xl bg-[#003c3a] text-white text-xs font-medium hover:bg-[#002b2a] transition-all shrink-0 cursor-pointer self-end sm:self-auto"
+                              >
+                                Review Request
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {selectedRequestLog && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-md">
+                      <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl space-y-4 text-zinc-900 font-sans relative">
+                        <button
+                          onClick={() => setSelectedRequestLog(null)}
+                          className="absolute top-5 right-5 p-1.5 rounded-full text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-all cursor-pointer"
+                        >
+                          <Cross1Icon className="w-4 h-4" />
+                        </button>
+
+                        <div className="flex items-center gap-2 text-[#003c3a]">
+                          <Mail className="w-5 h-5" />
+                          <h3 className="text-base font-bold">Resume Access Request Details</h3>
+                        </div>
+
+                        <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200 text-xs space-y-2">
+                          <div>
+                            <span className="text-zinc-500 font-medium">Requester Name:</span>
+                            <p className="font-semibold text-zinc-900">{selectedRequestLog.actor_name || "N/A"}</p>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 font-medium">Contact Email:</span>
+                            <p className="font-semibold text-zinc-900">{selectedRequestLog.actor_email || "N/A"}</p>
+                          </div>
+                          {selectedRequestLog.metadata?.company && (
+                            <div>
+                              <span className="text-zinc-500 font-medium">Organization / Company:</span>
+                              <p className="font-semibold text-zinc-900">{selectedRequestLog.metadata.company}</p>
+                            </div>
+                          )}
+                          {selectedRequestLog.metadata?.role && (
+                            <div>
+                              <span className="text-zinc-500 font-medium">Proposed Role:</span>
+                              <p className="font-semibold text-zinc-900">{selectedRequestLog.metadata.role}</p>
+                            </div>
+                          )}
+                          {selectedRequestLog.metadata?.note && (
+                            <div>
+                              <span className="text-zinc-500 font-medium">Note / Message:</span>
+                              <p className="font-medium text-zinc-700 bg-white p-2.5 rounded-xl border border-zinc-200 mt-1 leading-relaxed">
+                                &quot;{selectedRequestLog.metadata.note}&quot;
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2">
+                          {selectedRequestLog.actor_email && (
+                            <a
+                              href={`mailto:${selectedRequestLog.actor_email}?subject=Regarding%20Resume%20Access%20Request%20on%20Dradix`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 py-2.5 text-center rounded-xl bg-[#003c3a] text-white text-xs font-bold hover:bg-[#002b2a] transition-all"
+                            >
+                              Send Direct Email Reply
+                            </a>
+                          )}
+                          <button
+                            onClick={() => setSelectedRequestLog(null)}
+                            className="px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium transition-all cursor-pointer"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

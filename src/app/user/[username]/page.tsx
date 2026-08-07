@@ -192,6 +192,17 @@ export default function PublicUserProfilePage() {
     message: "",
   });
 
+  const [showResumeRequestModal, setShowResumeRequestModal] = useState(false);
+  const [resumeRequestForm, setResumeRequestForm] = useState({
+    actorName: "",
+    actorEmail: "",
+    company: "",
+    role: "",
+    message: "",
+  });
+  const [resumeRequestSuccess, setResumeRequestSuccess] = useState(false);
+  const [isSubmittingResumeRequest, setIsSubmittingResumeRequest] = useState(false);
+
   const dynamicMonthLabels = useMemo(() => {
     const allMonths = [
       "Jan",
@@ -231,6 +242,10 @@ export default function PublicUserProfilePage() {
 
         if (res && res.success && res.data) {
           setUserData(res.data);
+          apiFetch(`/users/profile/${username}/track-view`, {
+            method: "POST",
+            skipAuth: true,
+          }).catch(() => {});
         } else {
           setIsProfileNotFound(true);
         }
@@ -784,9 +799,33 @@ export default function PublicUserProfilePage() {
             <div className="flex items-center gap-2 flex-wrap w-full md:w-auto shrink-0">
               <button
                 onClick={() => setShowHireModal(true)}
-                className="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-[#015451] text-white text-[10px] font-normal hover:bg-[#01413e] transition-all shadow-xs flex items-center justify-center gap-1.5 border border-[#015451] cursor-pointer"
+                className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-[#015451] text-white text-[10px] font-normal hover:bg-[#01413e] transition-all shadow-xs flex items-center justify-center gap-1.5 border border-[#015451] cursor-pointer"
               >
                 <FaPaperPlane className="w-2.5 h-2.5" /> Hire / Contact
+              </button>
+
+              <button
+                onClick={async () => {
+                  apiFetch(`/users/profile/${username}/track-resume`, {
+                    method: "POST",
+                    skipAuth: true,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ actorName: "Visitor", actorEmail: "" }),
+                  }).catch(() => {});
+                  window.open(`/api/v1/users/profile/${username}/resume/download`, "_blank");
+                }}
+                className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-zinc-900 text-white text-[10px] font-normal hover:bg-zinc-800 transition-all shadow-xs flex items-center justify-center gap-1.5 border border-zinc-900 cursor-pointer"
+                title="Download Resume"
+              >
+                <FaArrowUpRightFromSquare className="w-2.5 h-2.5" /> Resume
+              </button>
+
+              <button
+                onClick={() => setShowResumeRequestModal(true)}
+                className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white text-zinc-800 text-[10px] font-normal hover:bg-zinc-50 transition-all shadow-xs flex items-center justify-center gap-1.5 border-2 border-dotted border-zinc-300 cursor-pointer"
+                title="Request Resume Details"
+              >
+                <FaBriefcase className="w-2.5 h-2.5 text-[#015451]" /> Request Access
               </button>
 
               <button
@@ -1900,6 +1939,163 @@ export default function PublicUserProfilePage() {
                   >
                     <FaPaperPlane className="w-3.5 h-3.5" /> Dispatch Hiring
                     Offer
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showResumeRequestModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="w-full max-w-lg bg-white/95 backdrop-blur-2xl rounded-3xl p-7 sm:p-8 shadow-2xl shadow-zinc-950/20 relative text-zinc-900 font-sans space-y-6"
+            >
+              <button
+                onClick={() => setShowResumeRequestModal(false)}
+                className="absolute top-6 right-6 p-2 rounded-full text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
+              >
+                <FaXmark className="w-4 h-4" />
+              </button>
+
+              {resumeRequestSuccess ? (
+                <div className="py-10 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-[#015451] text-white flex items-center justify-center mx-auto text-xl shadow-lg shadow-[#015451]/30">
+                    <FaCheck className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-zinc-900 tracking-tight">
+                    Request Submitted!
+                  </h3>
+                  <p className="text-xs text-zinc-600 max-w-xs mx-auto font-normal leading-relaxed">
+                    Your request for resume access has been logged and sent to {displayName}.
+                  </p>
+                </div>
+              ) : (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setIsSubmittingResumeRequest(true);
+                    try {
+                      const res = await apiFetch<{ success: boolean }>(`/users/profile/${username}/request-resume`, {
+                        method: "POST",
+                        skipAuth: true,
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          actorName: resumeRequestForm.actorName,
+                          actorEmail: resumeRequestForm.actorEmail,
+                          company: resumeRequestForm.company,
+                          role: resumeRequestForm.role,
+                          message: resumeRequestForm.message,
+                        }),
+                      });
+                      if (res && res.success) {
+                        setResumeRequestSuccess(true);
+                        setTimeout(() => {
+                          setShowResumeRequestModal(false);
+                          setResumeRequestSuccess(false);
+                          setResumeRequestForm({ actorName: "", actorEmail: "", company: "", role: "", message: "" });
+                        }, 2000);
+                      }
+                    } catch (err) {
+                      console.error("Failed to submit request:", err);
+                    } finally {
+                      setIsSubmittingResumeRequest(false);
+                    }
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#015451] tracking-tight">
+                      Request Resume Access from {displayName}
+                    </h3>
+                    <p className="text-[12px] text-zinc-500 mt-1 font-normal">
+                      Submit your details so {displayName} receives an in-app notification and logged request.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                        Your Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Alex Morgan"
+                        value={resumeRequestForm.actorName}
+                        onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, actorName: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                        Contact Email *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="alex@techcorp.com"
+                        value={resumeRequestForm.actorEmail}
+                        onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, actorEmail: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                        Company / Organization
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Google / Stripe"
+                        value={resumeRequestForm.company}
+                        onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, company: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                        Target Role
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Staff Engineer"
+                        value={resumeRequestForm.role}
+                        onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, role: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                      Note / Request Details
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Reason for resume request..."
+                      value={resumeRequestForm.message}
+                      onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, message: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none resize-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmittingResumeRequest}
+                    className="w-full py-3 px-5 rounded-xl bg-[#015451] hover:bg-[#013e3c] text-white text-xs font-semibold uppercase tracking-wider transition-all shadow-md shadow-[#015451]/20 flex items-center justify-center gap-2 cursor-pointer border-0"
+                  >
+                    {isSubmittingResumeRequest ? "Submitting..." : "Submit Access Request"}
                   </button>
                 </form>
               )}
