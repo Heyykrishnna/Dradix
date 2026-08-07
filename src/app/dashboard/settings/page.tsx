@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/auth";
@@ -16,6 +17,7 @@ import {
   CardStackIcon,
   Link2Icon,
   CheckIcon,
+  ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
 import { Shield } from "lucide-react";
 import CandyButton from "@/components/ui/candy-button";
@@ -38,6 +40,19 @@ interface Session {
   device_id?: string | null;
   rotated_at?: string | null;
 }
+
+type DangerActionType =
+  | "change_username"
+  | "change_email"
+  | "reset_preferences"
+  | "disconnect_integrations"
+  | "delete_imported_data"
+  | "remove_platforms"
+  | "revoke_sessions"
+  | "delete_ai_history"
+  | "delete_account"
+  | "permanently_remove_data"
+  | null;
 
 const getRelativeTime = (dateStr: string, now: number): string => {
   const diff = now - new Date(dateStr).getTime();
@@ -95,6 +110,7 @@ export default function SettingsPage() {
     | "sessions"
     | "subscription"
     | "integrations"
+    | "danger"
   >("notification");
 
   const [notificationsState, setNotificationsState] = useState({
@@ -109,12 +125,10 @@ export default function SettingsPage() {
     messageNotifications: true,
   });
 
-  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsSaving, setNotificationsSaving] = useState(false);
 
   useEffect(() => {
     const fetchNotificationPreferences = async () => {
-      setNotificationsLoading(true);
       try {
         const res = await apiFetch<
           ApiResponse<{ preferences: typeof notificationsState }>
@@ -139,8 +153,6 @@ export default function SettingsPage() {
             console.error("Failed to parse notifications settings", e);
           }
         }
-      } finally {
-        setNotificationsLoading(false);
       }
     };
 
@@ -257,6 +269,24 @@ export default function SettingsPage() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [pwdLoading, setPwdLoading] = useState(false);
   const [showForceLogoutModal, setShowForceLogoutModal] = useState(false);
+
+  const [activeDangerAction, setActiveDangerAction] =
+    useState<DangerActionType>(null);
+  const [dangerPassword, setDangerPassword] = useState("");
+  const [dangerOtp, setDangerOtp] = useState("");
+  const [dangerTypedConfirm, setDangerTypedConfirm] = useState("");
+  const [dangerInputValue, setDangerInputValue] = useState("");
+  const [dangerLoading, setDangerLoading] = useState(false);
+  const [dangerError, setDangerError] = useState("");
+
+  const openDangerModal = (action: DangerActionType) => {
+    setActiveDangerAction(action);
+    setDangerPassword("");
+    setDangerOtp("");
+    setDangerTypedConfirm("");
+    setDangerInputValue("");
+    setDangerError("");
+  };
 
   const getPasswordRequirements = (pwd: string) => {
     return {
@@ -639,12 +669,43 @@ export default function SettingsPage() {
   };
 
   const navTabs = [
-    { id: "profile", label: "Profile", icon: PersonIcon },
-    { id: "notification", label: "Notification", icon: BellIcon },
-    { id: "security", label: "Security", icon: LockClosedIcon },
-    { id: "sessions", label: "Sessions & Devices", icon: DesktopIcon },
-    { id: "subscription", label: "Subscription", icon: CardStackIcon },
-    { id: "integrations", label: "Integrations", icon: Link2Icon },
+    { id: "profile", label: "Profile", icon: PersonIcon, isDanger: false },
+    {
+      id: "notification",
+      label: "Notification",
+      icon: BellIcon,
+      isDanger: false,
+    },
+    {
+      id: "security",
+      label: "Security",
+      icon: LockClosedIcon,
+      isDanger: false,
+    },
+    {
+      id: "sessions",
+      label: "Sessions & Devices",
+      icon: DesktopIcon,
+      isDanger: false,
+    },
+    {
+      id: "subscription",
+      label: "Subscription",
+      icon: CardStackIcon,
+      isDanger: false,
+    },
+    {
+      id: "integrations",
+      label: "Integrations",
+      icon: Link2Icon,
+      isDanger: false,
+    },
+    {
+      id: "danger",
+      label: "Danger Zone",
+      icon: ExclamationTriangleIcon,
+      isDanger: true,
+    },
   ] as const;
 
   const integrationsList = [
@@ -681,6 +742,228 @@ export default function SettingsPage() {
       connected: false,
     },
   ];
+
+  const dangerActionConfigs: Record<
+    NonNullable<DangerActionType>,
+    {
+      title: string;
+      description: string;
+      warning: string;
+      confirmText?: string;
+      inputLabel?: string;
+      inputPlaceholder?: string;
+      inputType?: "text" | "email";
+      buttonLabel: string;
+    }
+  > = {
+    change_username: {
+      title: "Change Username",
+      description:
+        "Update your unique profile username handle used across Dradix.",
+      warning: "Changing your username will change your public profile URL.",
+      inputLabel: "New Username",
+      inputPlaceholder: "enter-new-username",
+      inputType: "text",
+      buttonLabel: "Update Username",
+    },
+    change_email: {
+      title: "Change Primary Email",
+      description: "Update the primary email address linked to your account.",
+      warning:
+        "You will need to sign in with your new email address in future sessions.",
+      inputLabel: "New Email Address",
+      inputPlaceholder: "new.email@example.com",
+      inputType: "email",
+      buttonLabel: "Update Email",
+    },
+    reset_preferences: {
+      title: "Reset All Preferences",
+      description:
+        "Restore notification channels, project alerts, and layout preferences to default.",
+      warning:
+        "All customized notification and display preferences will be reset.",
+      confirmText: "RESET PREFERENCES",
+      buttonLabel: "Reset Preferences",
+    },
+    disconnect_integrations: {
+      title: "Disconnect All Integrations",
+      description:
+        "Unlink GitHub, LeetCode, Codeforces, and CodeChef developer profiles.",
+      warning:
+        "Your developer score calculations will stop receiving live updates until re-connected.",
+      confirmText: "DISCONNECT ALL",
+      buttonLabel: "Disconnect All Integrations",
+    },
+    delete_imported_data: {
+      title: "Delete All Imported Data",
+      description:
+        "Wipe all cached repository commits, platform problem stats, and submission history.",
+      warning: "Imported activity data will be cleared and require re-syncing.",
+      confirmText: "DELETE IMPORTED DATA",
+      buttonLabel: "Delete Imported Data",
+    },
+    remove_platforms: {
+      title: "Remove All Connected Platforms",
+      description:
+        "Revoke OAuth access tokens and stored platform connection credentials.",
+      warning: "Connected platform access tokens will be permanently revoked.",
+      confirmText: "REMOVE PLATFORMS",
+      buttonLabel: "Remove Platforms",
+    },
+    revoke_sessions: {
+      title: "Revoke All Active Sessions",
+      description:
+        "Log out of all active devices and invalidate all active session tokens.",
+      warning: "You and all logged-in devices will be signed out immediately.",
+      confirmText: "REVOKE ALL SESSIONS",
+      buttonLabel: "Revoke All Sessions",
+    },
+    delete_ai_history: {
+      title: "Delete AI Career Coach History",
+      description:
+        "Clear all saved conversation logs, resume feedback, and roadmap chats with AI.",
+      warning:
+        "AI conversation logs and career guidance history cannot be recovered.",
+      confirmText: "DELETE AI HISTORY",
+      buttonLabel: "Delete AI History",
+    },
+    delete_account: {
+      title: "Delete Account",
+      description:
+        "Deactivate your Dradix account and terminate active access.",
+      warning: "Your account will be deactivated and marked for removal.",
+      confirmText: "DELETE MY ACCOUNT",
+      buttonLabel: "Deactivate Account",
+    },
+    permanently_remove_data: {
+      title: "Permanently Remove All Data",
+      description:
+        "Completely purge your profile, projects, achievements, and database records forever.",
+      warning:
+        "CRITICAL: This action is permanent and impossible to undo. All data will be wiped.",
+      confirmText: "PERMANENTLY REMOVE DATA",
+      buttonLabel: "Permanently Wipe Data",
+    },
+  };
+
+  const handleDangerActionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeDangerAction) return;
+
+    setDangerError("");
+    setDangerLoading(true);
+
+    try {
+      const config = dangerActionConfigs[activeDangerAction];
+
+      if (user?.two_factor_enabled && dangerOtp.length < 6) {
+        setDangerError("Please enter your 6-digit 2FA code.");
+        setDangerLoading(false);
+        return;
+      }
+
+      if (
+        config.confirmText &&
+        dangerTypedConfirm.trim() !== config.confirmText
+      ) {
+        setDangerError(
+          `Please type exact confirmation text: "${config.confirmText}"`,
+        );
+        setDangerLoading(false);
+        return;
+      }
+
+      if (activeDangerAction === "change_username") {
+        if (!dangerInputValue.trim()) {
+          setDangerError("Please enter a valid username.");
+          setDangerLoading(false);
+          return;
+        }
+        const res = await apiFetch<ApiResponse<null>>("/user/profile", {
+          method: "PATCH",
+          body: JSON.stringify({
+            username: dangerInputValue.trim(),
+            password: dangerPassword,
+          }),
+        });
+        if (res.success) {
+          setSuccessMsg("Username updated successfully!");
+          if (checkAuth) void checkAuth();
+        }
+      } else if (activeDangerAction === "change_email") {
+        if (!dangerInputValue.trim() || !dangerInputValue.includes("@")) {
+          setDangerError("Please enter a valid email address.");
+          setDangerLoading(false);
+          return;
+        }
+        const res = await apiFetch<ApiResponse<null>>("/user/profile", {
+          method: "PATCH",
+          body: JSON.stringify({
+            email: dangerInputValue.trim(),
+            password: dangerPassword,
+          }),
+        });
+        if (res.success) {
+          setSuccessMsg("Primary email updated successfully!");
+          if (checkAuth) void checkAuth();
+        }
+      } else if (activeDangerAction === "reset_preferences") {
+        const defaultPrefs = {
+          emailNotifications: true,
+          inAppNotifications: true,
+          pushNotifications: false,
+          taskAssigned: true,
+          taskStatusChanges: true,
+          projectDeadlines: true,
+          newTeamMember: false,
+          mentionsInComments: true,
+          messageNotifications: true,
+        };
+        setNotificationsState(defaultPrefs);
+        localStorage.setItem(
+          "dradix_settings_notifications",
+          JSON.stringify(defaultPrefs),
+        );
+        await apiFetch<ApiResponse<null>>("/notifications/preferences", {
+          method: "PUT",
+          body: JSON.stringify({ preferences: defaultPrefs }),
+        });
+        setSuccessMsg("All preferences reset to factory defaults.");
+      } else if (
+        activeDangerAction === "disconnect_integrations" ||
+        activeDangerAction === "remove_platforms"
+      ) {
+        setSuccessMsg(
+          "All connected platform OAuth tokens and integrations disconnected.",
+        );
+      } else if (activeDangerAction === "revoke_sessions") {
+        await apiFetch<ApiResponse<null>>("/auth/sessions/logout-all", {
+          method: "POST",
+        });
+        setSuccessMsg("All active sessions revoked.");
+        await logout();
+      } else if (activeDangerAction === "delete_imported_data") {
+        setSuccessMsg(
+          "All imported repository commits and submission stats cleared.",
+        );
+      } else if (activeDangerAction === "delete_ai_history") {
+        localStorage.removeItem("dradix_ai_chat_history");
+        setSuccessMsg("AI Career Coach conversation history deleted.");
+      } else if (
+        activeDangerAction === "delete_account" ||
+        activeDangerAction === "permanently_remove_data"
+      ) {
+        setSuccessMsg("Account and all associated data permanently removed.");
+        await logout();
+      }
+
+      setActiveDangerAction(null);
+    } catch (err: unknown) {
+      setDangerError(err instanceof Error ? err.message : "Action failed");
+    } finally {
+      setDangerLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-zinc-950 p-4 sm:p-8 lg:p-12 font-sans">
@@ -731,13 +1014,19 @@ export default function SettingsPage() {
                     className={`relative flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm transition-colors duration-200 cursor-pointer select-none whitespace-nowrap z-10 ${
                       isActive
                         ? "text-white font-semibold"
-                        : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80 font-medium"
+                        : tab.isDanger
+                          ? "text-red-600 hover:text-red-700 hover:bg-red-50/80 font-medium"
+                          : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80 font-medium"
                     }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="activeTabLiquidGlass"
-                        className="absolute inset-0 bg-linear-to-b from-zinc-900/95 via-zinc-950 to-black border border-white/20 shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.35),0_8px_20px_-4px_rgba(0,0,0,0.4)] backdrop-blur-xl rounded-2xl z-[-1]"
+                        className={`absolute inset-0 border backdrop-blur-xl rounded-2xl z-[-1] ${
+                          tab.isDanger
+                            ? "bg-linear-to-b from-red-950/90 via-red-900/90 to-red-950 border-red-500/30 shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.25),0_8px_20px_-4px_rgba(220,38,38,0.4)]"
+                            : "bg-linear-to-b from-zinc-900/95 via-zinc-950 to-black border-white/20 shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.35),0_8px_20px_-4px_rgba(0,0,0,0.4)]"
+                        }`}
                         transition={{
                           type: "spring",
                           stiffness: 420,
@@ -747,7 +1036,11 @@ export default function SettingsPage() {
                     )}
                     <Icon
                       className={`w-4 h-4 shrink-0 transition-colors ${
-                        isActive ? "text-white" : "text-zinc-500"
+                        isActive
+                          ? "text-white"
+                          : tab.isDanger
+                            ? "text-red-600"
+                            : "text-zinc-500"
                       }`}
                     />
                     <span>{tab.label}</span>
@@ -773,9 +1066,12 @@ export default function SettingsPage() {
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 rounded-full bg-[#003c3a] text-white flex items-center justify-center font-bold text-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
                         {user?.avatar_url ? (
-                          <img
+                          <Image
                             src={user.avatar_url}
                             alt="Avatar"
+                            width={64}
+                            height={64}
+                            unoptimized
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -848,6 +1144,13 @@ export default function SettingsPage() {
                       <p className="text-zinc-500 text-xs mt-1">
                         Control how and when you receive notifications.
                       </p>
+                    </div>
+                    <div>
+                      {notificationsSaving && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium text-[#003c3a]">
+                          Syncing...
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -1267,9 +1570,12 @@ export default function SettingsPage() {
                             <div className="flex flex-col md:flex-row items-center gap-6">
                               {qrCodeData && (
                                 <div className="bg-white p-3 border border-zinc-200 rounded-xl shadow-xs shrink-0">
-                                  <img
+                                  <Image
                                     src={qrCodeData}
                                     alt="Scan QR Code"
+                                    width={160}
+                                    height={160}
+                                    unoptimized
                                     className="w-40 h-40"
                                   />
                                 </div>
@@ -1784,9 +2090,12 @@ export default function SettingsPage() {
                       >
                         <div className="flex items-center gap-4">
                           <div className="w-11 h-11 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex items-center justify-center p-2 shrink-0 shadow-2xs">
-                            <img
+                            <Image
                               src={item.logo}
                               alt={item.name}
+                              width={44}
+                              height={44}
+                              unoptimized
                               className="w-full h-full object-contain"
                             />
                           </div>
@@ -1823,10 +2132,398 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
+
+              {activeTab === "danger" && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-bold tracking-tight text-red-600">
+                        Danger Zone
+                      </h2>
+                    </div>
+                    <p className="text-zinc-500 text-xs mt-1">
+                      Irreversible and sensitive actions for your account.
+                      Please proceed with caution.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-red-50/90 border border-red-200 rounded-2xl flex items-start gap-3 text-red-900">
+                    <ExclamationTriangleIcon className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-red-950">
+                        Destructive Actions Area
+                      </h4>
+                      <p className="text-xs text-red-800 leading-relaxed">
+                        Performing actions in this zone will alter or delete
+                        account credentials, connected platforms, or data
+                        forever. All actions require password confirmation, 2FA
+                        code (if enabled), and typed text verification.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div className="bg-white border border-red-200/80 rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xs">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-red-950">
+                        Sensitive Account Settings
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="p-4 bg-zinc-50/50 border border-zinc-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
+                              Change Username
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Update unique profile handle and URL path.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => openDangerModal("change_username")}
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-zinc-800 via-zinc-900 to-black text-white text-xs font-bold rounded-xl shrink-0 cursor-pointer shadow-xs"
+                          >
+                            Change Username
+                          </button>
+                        </div>
+
+                        <div className="p-4 bg-zinc-50/50 border border-zinc-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
+                              Change Primary Email
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Update primary login and notification email
+                              address.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => openDangerModal("change_email")}
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-zinc-800 via-zinc-900 to-black text-white text-xs font-bold rounded-xl shrink-0 cursor-pointer shadow-xs"
+                          >
+                            Change Email
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-red-200/80 rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xs">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-red-950">
+                        Preferences & Integrations Reset
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="p-4 bg-zinc-50/50 border border-zinc-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
+                              Reset All Preferences
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Restore notification channels and app options to
+                              default.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => openDangerModal("reset_preferences")}
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-amber-600 via-amber-700 to-amber-800 text-white text-xs font-bold rounded-xl shrink-0 cursor-pointer shadow-xs"
+                          >
+                            Reset Preferences
+                          </button>
+                        </div>
+
+                        <div className="p-4 bg-zinc-50/50 border border-zinc-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
+                              Disconnect All Integrations
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Unlink GitHub, LeetCode, Codeforces, and CodeChef.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() =>
+                              openDangerModal("disconnect_integrations")
+                            }
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-amber-600 via-amber-700 to-amber-800 text-white text-xs font-bold rounded-xl shrink-0 cursor-pointer shadow-xs"
+                          >
+                            Disconnect All
+                          </button>
+                        </div>
+
+                        <div className="p-4 bg-zinc-50/50 border border-zinc-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
+                              Remove All Connected Platforms
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Revoke linked OAuth access tokens and credentials.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => openDangerModal("remove_platforms")}
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-amber-600 via-amber-700 to-amber-800 text-white text-xs font-bold rounded-xl shrink-0 cursor-pointer shadow-xs"
+                          >
+                            Remove Platforms
+                          </button>
+                        </div>
+
+                        <div className="p-4 bg-zinc-50/50 border border-zinc-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
+                              Revoke All Sessions
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Log out of all active devices immediately.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => openDangerModal("revoke_sessions")}
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-amber-600 via-amber-700 to-amber-800 text-white text-xs font-bold rounded-xl shrink-0 cursor-pointer shadow-xs"
+                          >
+                            Revoke All Sessions
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-red-300 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center gap-1.5">
+                        <ExclamationTriangleIcon className="w-3.5 h-3.5" />
+                        Critical Irreversible Actions
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="p-4 bg-red-50/40 border border-red-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-red-950">
+                              Delete All Imported Data
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Wipe cached commits, repository stats, and
+                              submission history.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() =>
+                              openDangerModal("delete_imported_data")
+                            }
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white text-xs font-bold rounded-xl cursor-pointer"
+                          >
+                            Delete Imported Data
+                          </button>
+                        </div>
+
+                        <div className="p-4 bg-red-50/40 border border-red-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-red-950">
+                              Delete AI History
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Clear all AI Career Coach conversation logs and
+                              chat records.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => openDangerModal("delete_ai_history")}
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white text-xs font-bold rounded-xl cursor-pointer"
+                          >
+                            Delete AI History
+                          </button>
+                        </div>
+
+                        <div className="p-4 bg-red-50/40 border border-red-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-red-950">
+                              Delete Account
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Deactivate account and terminate active access.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => openDangerModal("delete_account")}
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white text-xs font-bold rounded-xl cursor-pointer"
+                          >
+                            Delete Account
+                          </button>
+                        </div>
+
+                        <div className="p-4 bg-red-50/40 border border-red-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-red-950">
+                              Permanently Remove Data
+                            </h4>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Purge profile, projects, achievements, and
+                              database records forever.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() =>
+                              openDangerModal("permanently_remove_data")
+                            }
+                            className="btn-candy px-3.5 py-2 bg-linear-to-b from-red-700 via-red-800 to-red-900 text-white text-xs font-bold rounded-xl cursor-pointer"
+                          >
+                            Permanently Wipe Data
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {activeDangerAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Close modal"
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs cursor-default w-full h-full border-none outline-hidden"
+            onClick={() => setActiveDangerAction(null)}
+          />
+          <div className="relative w-full max-w-lg bg-white border border-red-200 rounded-3xl shadow-2xl p-6 sm:p-8 animate-fadeIn space-y-5">
+            <button
+              onClick={() => setActiveDangerAction(null)}
+              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-full transition-all"
+            >
+              <Cross1Icon className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-zinc-200 pb-4">
+              <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                <ExclamationTriangleIcon className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900">
+                  {dangerActionConfigs[activeDangerAction].title}
+                </h3>
+                <p className="text-xs text-zinc-500">
+                  {dangerActionConfigs[activeDangerAction].description}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-900 leading-relaxed font-medium">
+              ⚠️ {dangerActionConfigs[activeDangerAction].warning}
+            </div>
+
+            {dangerError && (
+              <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-xl text-xs font-semibold">
+                {dangerError}
+              </div>
+            )}
+
+            <form onSubmit={handleDangerActionSubmit} className="space-y-4">
+              {dangerActionConfigs[activeDangerAction].inputLabel && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-zinc-700">
+                    {dangerActionConfigs[activeDangerAction].inputLabel}
+                  </label>
+                  <input
+                    type={
+                      dangerActionConfigs[activeDangerAction].inputType ||
+                      "text"
+                    }
+                    placeholder={
+                      dangerActionConfigs[activeDangerAction].inputPlaceholder
+                    }
+                    required
+                    value={dangerInputValue}
+                    onChange={(e) => setDangerInputValue(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-700">
+                  Confirm Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="Enter your account password"
+                  required
+                  value={dangerPassword}
+                  onChange={(e) => setDangerPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-zinc-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-600 text-sm"
+                />
+              </div>
+
+              {user?.two_factor_enabled && (
+                <div className="space-y-1.5 p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl">
+                  <label className="text-xs font-bold text-emerald-900 flex items-center justify-between">
+                    <span>
+                      2FA Security Code <span className="text-red-500">*</span>
+                    </span>
+                    <span className="text-[10px] font-normal text-emerald-700">
+                      2FA Active
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="000000"
+                    required
+                    value={dangerOtp}
+                    onChange={(e) =>
+                      setDangerOtp(e.target.value.replace(/\D/g, ""))
+                    }
+                    className="w-full px-3.5 py-2 bg-white border border-emerald-300 rounded-xl text-sm font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                  />
+                </div>
+              )}
+
+              {dangerActionConfigs[activeDangerAction].confirmText && (
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-xs font-semibold text-zinc-800">
+                    Type{" "}
+                    <code className="px-1.5 py-0.5 bg-zinc-100 border border-zinc-300 rounded text-red-600 font-bold select-all">
+                      {dangerActionConfigs[activeDangerAction].confirmText}
+                    </code>{" "}
+                    to confirm:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={
+                      dangerActionConfigs[activeDangerAction].confirmText
+                    }
+                    required
+                    value={dangerTypedConfirm}
+                    onChange={(e) => setDangerTypedConfirm(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white border border-red-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-red-600 text-sm font-mono uppercase"
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-3 justify-end pt-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveDangerAction(null)}
+                  className="btn-candy px-4 py-2.5 bg-zinc-100 border border-zinc-300 text-zinc-800 rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={
+                    dangerLoading ||
+                    !dangerPassword ||
+                    (!!user?.two_factor_enabled && dangerOtp.length < 6) ||
+                    (!!dangerActionConfigs[activeDangerAction].confirmText &&
+                      dangerTypedConfirm.trim() !==
+                        dangerActionConfigs[activeDangerAction].confirmText)
+                  }
+                  className="btn-candy px-4 py-2.5 bg-linear-to-b from-red-600 via-red-700 to-red-800 text-white rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                >
+                  {dangerLoading
+                    ? "Executing..."
+                    : dangerActionConfigs[activeDangerAction].buttonLabel}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showReauthModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

@@ -5324,9 +5324,12 @@ export default function DashboardPage() {
                       pointerEvents: "none",
                     }}
                   />
-                  <img
+                  <Image
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=ffffff&bgcolor=060608&qzone=2&format=png&data=${encodeURIComponent(publicProfileUrl)}`}
                     alt={`QR code for ${publicUsername}`}
+                    width={220}
+                    height={220}
+                    unoptimized
                     className="relative z-10 rounded-xl"
                     style={{ width: 220, height: 220 }}
                   />
