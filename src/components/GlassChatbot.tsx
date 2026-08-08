@@ -28,9 +28,8 @@ import {
   CameraIcon,
   EyeOpenIcon,
   DesktopIcon,
-  SpeakerLoudIcon,
-  SpeakerOffIcon,
 } from "@radix-ui/react-icons";
+import { Mic, MicOff } from "lucide-react";
 
 export interface AttachedScreenData {
   dataUrl: string;
@@ -859,9 +858,9 @@ export function GlassChatbot() {
                       }
                     >
                       {isListening ? (
-                        <SpeakerLoudIcon className="w-3.5 h-3.5" />
+                        <Mic className="w-3.5 h-3.5" />
                       ) : (
-                        <SpeakerOffIcon className="w-3.5 h-3.5" />
+                        <MicOff className="w-3.5 h-3.5" />
                       )}
                     </motion.button>
 
