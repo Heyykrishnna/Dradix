@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/auth";
+import { GlassChatbot } from "@/components/GlassChatbot";
 import {
   BellIcon,
   HomeIcon,
@@ -694,6 +695,8 @@ export default function MainLayout({
       >
         {children}
       </main>
+
+      <GlassChatbot />
     </div>
   );
 }

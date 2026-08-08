@@ -8,6 +8,7 @@ import React, {
   useMemo,
 } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -666,94 +667,10 @@ function FormattedCoachMessage({
   sender: "user" | "coach";
 }) {
   if (sender === "user") {
-    return <p className="leading-relaxed font-medium">{text}</p>;
+    return <p className="leading-relaxed font-medium text-xs">{text}</p>;
   }
 
-  let formattedText = text;
-
-  formattedText = formattedText
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(
-      /<\/?(think|thought|comment|message|reasoning|system|prompt)[^>]*>/gi,
-      "",
-    )
-    .replace(/(\d+\.\s+\*\*)/g, "\n$1");
-
-  const lines = formattedText
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
-
-  const formatInlineText = (inlineStr: string) => {
-    const parts = inlineStr.split(/(\*\*.*?\*\*|`.*?`|\*.*?\*)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return (
-          <strong key={i} className="font-black text-zinc-950">
-            {part.slice(2, -2)}
-          </strong>
-        );
-      }
-      if (part.startsWith("`") && part.endsWith("`")) {
-        return (
-          <code
-            key={i}
-            className="px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-900 font-mono text-[10px] font-bold"
-          >
-            {part.slice(1, -1)}
-          </code>
-        );
-      }
-      if (part.startsWith("*") && part.endsWith("*")) {
-        return (
-          <em key={i} className="italic text-zinc-800">
-            {part.slice(1, -1)}
-          </em>
-        );
-      }
-      return part;
-    });
-  };
-
-  return (
-    <div className="space-y-2 text-zinc-800 leading-relaxed font-normal text-[11px]">
-      {lines.map((line, idx) => {
-        const numMatch = line.match(/^(\d+)\.\s+(.*)$/);
-        if (numMatch) {
-          const [, num, content] = numMatch;
-          return (
-            <div key={idx} className="flex items-start gap-2 my-1 pl-0.5">
-              <span className="shrink-0 w-4 h-4 rounded-full bg-zinc-900 text-white text-[9px] font-extrabold flex items-center justify-center mt-0.5 shadow-xs">
-                {num}
-              </span>
-              <div className="flex-1 text-[11px] leading-relaxed">
-                {formatInlineText(content)}
-              </div>
-            </div>
-          );
-        }
-
-        const bulletMatch = line.match(/^[*•-]\s+(.*)$/);
-        if (bulletMatch) {
-          const [, content] = bulletMatch;
-          return (
-            <div key={idx} className="flex items-start gap-2 my-1 pl-0.5">
-              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-zinc-900 mt-1.5" />
-              <div className="flex-1 text-[11px] leading-relaxed">
-                {formatInlineText(content)}
-              </div>
-            </div>
-          );
-        }
-
-        return (
-          <p key={idx} className="text-[11px] leading-relaxed">
-            {formatInlineText(line)}
-          </p>
-        );
-      })}
-    </div>
-  );
+  return <MarkdownRenderer content={text} />;
 }
 
 function SkillsSection({ projectsList }: { projectsList: Project[] }) {
