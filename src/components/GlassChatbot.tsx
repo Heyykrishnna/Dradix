@@ -53,16 +53,6 @@ interface SpeechRecognitionInstance {
   start: () => void;
 }
 
-interface ChatUser {
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  ats_score?: number;
-  skills?: string[];
-  projects?: { name: string; stack: string; status: string }[];
-  codingStats?: { problemsSolved: number; rating: number; commits: number };
-}
-
 interface ChatApiResponse {
   success?: boolean;
   message?: string;
@@ -173,14 +163,14 @@ export function GlassChatbot() {
       } else {
         throw new Error("No response string returned");
       }
-    } catch {
-      const fallbackReply = generateClientFallbackReply(
-        query,
-        user as ChatUser,
-      );
+    } catch (err) {
+      console.error("Dradix AI connection error:", err);
       setMessages((prev) => [
         ...prev,
-        { sender: "coach", text: fallbackReply },
+        {
+          sender: "coach",
+          text: "I am having trouble connecting to **Dradix AI** server right now. Please ensure the backend is running and try sending your question again.",
+        },
       ]);
     } finally {
       setIsAsking(false);
@@ -594,72 +584,4 @@ export function GlassChatbot() {
       </AnimatePresence>
     </>
   );
-}
-
-function generateClientFallbackReply(query: string, user?: ChatUser): string {
-  const q = query.toLowerCase();
-  const userName = user?.first_name
-    ? `@${user.first_name}`
-    : user?.username
-      ? `@${user.username}`
-      : "developer";
-
-  const isProfileRelated =
-    q.includes("profile") ||
-    q.includes("resume") ||
-    q.includes("cv") ||
-    q.includes("ats") ||
-    q.includes("skill") ||
-    q.includes("experience") ||
-    q.includes("bio") ||
-    q.includes("who am i");
-
-  const isJobRelated =
-    q.includes("job") ||
-    q.includes("career") ||
-    q.includes("interview") ||
-    q.includes("role") ||
-    q.includes("salary") ||
-    q.includes("apply") ||
-    q.includes("hiring") ||
-    q.includes("leetcode") ||
-    q.includes("algo") ||
-    q.includes("system design");
-
-  const isDashboardRelated =
-    q.includes("dashboard") ||
-    q.includes("project") ||
-    q.includes("commit") ||
-    q.includes("stat") ||
-    q.includes("overview") ||
-    q.includes("metric") ||
-    q.includes("rank") ||
-    q.includes("badge") ||
-    q.includes("xp") ||
-    q.includes("github") ||
-    q.includes("build");
-
-  if (!isProfileRelated && !isJobRelated && !isDashboardRelated) {
-    return "I am specialized strictly in your **Profile**, **Jobs**, and **Dashboard**. Please ask me any questions regarding your engineering profile, resume optimization, job opportunities, or dashboard analytics!";
-  }
-
-  if (isProfileRelated) {
-    return `Based on your profile evaluation (**85% ATS Score**), your developer profile is strongest in \`TypeScript\` and \`Node.js\`.
-1. **Quantify Achievements**: Bullet points with metrics perform **38% better** with tech recruiters.
-2. **Featured Repositories**: Link production repositories from your dashboard.
-3. **Core Skills**: Highlight \`React\`, \`Next.js\`, and \`PostgreSQL\`.`;
-  }
-
-  if (isJobRelated) {
-    return `Here are top developer role recommendations for **${userName}**:
-- **Senior Full-Stack Developer** (*92% Fit*) - High-concurrency React & Node.js ecosystem.
-- **Backend Systems Engineer** (*88% Fit*) - Focus on Redis caching and PostgreSQL performance.
-- **Interview Prep**: Practice *System Design* and algorithm patterns on LeetCode.`;
-  }
-
-  return `Here is your current **Dashboard & Workspace Overview**:
-- **Active Projects**: Connected repositories and showcases.
-- **Coding Activity**: High commit velocity verified on GitHub.
-- **ATS Resume Status**: Optimized at **85% recruiter readiness**.
-Let me know if you would like specific guidance on any dashboard feature!`;
 }
