@@ -210,10 +210,16 @@ export default function PublicUserProfilePage() {
     message: "",
   });
   const [resumeRequestSuccess, setResumeRequestSuccess] = useState(false);
-  const [isSubmittingResumeRequest, setIsSubmittingResumeRequest] = useState(false);
+  const [isSubmittingResumeRequest, setIsSubmittingResumeRequest] =
+    useState(false);
 
   const [showShareModal, setShowShareModal] = useState(false);
-  const [shareTab, setShareTab] = useState<"social" | "qrcode" | "embed">("social");
+  const [shareTab, setShareTab] = useState<"social" | "qrcode" | "embed">(
+    "social",
+  );
+  const [badgeStyle, setBadgeStyle] = useState<
+    "for-the-badge" | "flat" | "flat-square" | "plastic"
+  >("for-the-badge");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const triggerToast = (msg: string) => {
@@ -222,6 +228,24 @@ export default function PublicUserProfilePage() {
       setToastMessage((prev) => (prev === msg ? null : prev));
     }, 3000);
   };
+
+  const isAnyModalOpen =
+    showShareModal || showHireModal || showResumeRequestModal;
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      if (isAnyModalOpen) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
+    }
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.style.overflow = "";
+      }
+    };
+  }, [isAnyModalOpen]);
 
   const dynamicMonthLabels = useMemo(() => {
     const allMonths = [
@@ -714,7 +738,9 @@ export default function PublicUserProfilePage() {
   const handleNativeSystemShare = async () => {
     if (typeof navigator !== "undefined" && "share" in navigator) {
       try {
-        await (navigator as unknown as { share: (data: ShareData) => Promise<void> }).share({
+        await (
+          navigator as unknown as { share: (data: ShareData) => Promise<void> }
+        ).share({
           title: `${displayName}'s Dradix Profile`,
           text: `Check out ${displayName}'s developer profile on Dradix`,
           url: profileShareUrl,
@@ -855,7 +881,10 @@ export default function PublicUserProfilePage() {
                       method: "POST",
                       skipAuth: true,
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ actorName: "Visitor", actorEmail: "" }),
+                      body: JSON.stringify({
+                        actorName: "Visitor",
+                        actorEmail: "",
+                      }),
                     }).catch(() => {});
 
                     const downloadUrl = `${API_URL}/users/profile/${username}/resume/download`;
@@ -877,7 +906,8 @@ export default function PublicUserProfilePage() {
                   className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white text-zinc-800 text-[10px] font-normal hover:bg-zinc-50 transition-all shadow-xs flex items-center justify-center gap-1.5 border-2 border-dotted border-zinc-300 cursor-pointer"
                   title="Request Resume Access"
                 >
-                  <FaBriefcase className="w-2.5 h-2.5 text-[#015451]" /> Request Resume
+                  <FaBriefcase className="w-2.5 h-2.5 text-[#015451]" /> Request
+                  Resume
                 </button>
               )}
 
@@ -886,7 +916,8 @@ export default function PublicUserProfilePage() {
                 className="flex-1 md:flex-none px-4 py-2 rounded-xl bg-white text-zinc-800 text-[10px] font-normal hover:bg-zinc-50 hover:text-zinc-900 transition-all shadow-xs flex items-center justify-center gap-1.5 border-2 border-dotted border-zinc-300 cursor-pointer"
                 title="Share developer profile"
               >
-                <FaShareNodes className="w-2.5 h-2.5 text-[#015451]" /> Share Profile
+                <FaShareNodes className="w-2.5 h-2.5 text-[#015451]" /> Share
+                Profile
               </button>
 
               <button
@@ -1645,7 +1676,7 @@ export default function PublicUserProfilePage() {
                             const projUrl = `${profileShareUrl}#project-${proj.id}`;
                             handleCopyShareLink(
                               projUrl,
-                              `Project "${proj.title}" link copied!`
+                              `Project "${proj.title}" link copied!`,
                             );
                           }}
                           className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 transition-all text-xs cursor-pointer"
@@ -2035,7 +2066,8 @@ export default function PublicUserProfilePage() {
                     Request Submitted!
                   </h3>
                   <p className="text-xs text-zinc-600 max-w-xs mx-auto font-normal leading-relaxed">
-                    Your request for resume access has been logged and sent to {displayName}.
+                    Your request for resume access has been logged and sent to{" "}
+                    {displayName}.
                   </p>
                 </div>
               ) : (
@@ -2044,24 +2076,33 @@ export default function PublicUserProfilePage() {
                     e.preventDefault();
                     setIsSubmittingResumeRequest(true);
                     try {
-                      const res = await apiFetch<{ success: boolean }>(`/users/profile/${username}/request-resume`, {
-                        method: "POST",
-                        skipAuth: true,
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          actorName: resumeRequestForm.actorName,
-                          actorEmail: resumeRequestForm.actorEmail,
-                          company: resumeRequestForm.company,
-                          role: resumeRequestForm.role,
-                          message: resumeRequestForm.message,
-                        }),
-                      });
+                      const res = await apiFetch<{ success: boolean }>(
+                        `/users/profile/${username}/request-resume`,
+                        {
+                          method: "POST",
+                          skipAuth: true,
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            actorName: resumeRequestForm.actorName,
+                            actorEmail: resumeRequestForm.actorEmail,
+                            company: resumeRequestForm.company,
+                            role: resumeRequestForm.role,
+                            message: resumeRequestForm.message,
+                          }),
+                        },
+                      );
                       if (res && res.success) {
                         setResumeRequestSuccess(true);
                         setTimeout(() => {
                           setShowResumeRequestModal(false);
                           setResumeRequestSuccess(false);
-                          setResumeRequestForm({ actorName: "", actorEmail: "", company: "", role: "", message: "" });
+                          setResumeRequestForm({
+                            actorName: "",
+                            actorEmail: "",
+                            company: "",
+                            role: "",
+                            message: "",
+                          });
                         }, 2000);
                       }
                     } catch (err) {
@@ -2077,7 +2118,8 @@ export default function PublicUserProfilePage() {
                       Request Resume Access from {displayName}
                     </h3>
                     <p className="text-[12px] text-zinc-500 mt-1 font-normal">
-                      Submit your details so {displayName} receives an in-app notification and logged request.
+                      Submit your details so {displayName} receives an in-app
+                      notification and logged request.
                     </p>
                   </div>
 
@@ -2091,7 +2133,12 @@ export default function PublicUserProfilePage() {
                         required
                         placeholder="Alex Morgan"
                         value={resumeRequestForm.actorName}
-                        onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, actorName: e.target.value })}
+                        onChange={(e) =>
+                          setResumeRequestForm({
+                            ...resumeRequestForm,
+                            actorName: e.target.value,
+                          })
+                        }
                         className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none"
                       />
                     </div>
@@ -2105,7 +2152,12 @@ export default function PublicUserProfilePage() {
                         required
                         placeholder="alex@techcorp.com"
                         value={resumeRequestForm.actorEmail}
-                        onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, actorEmail: e.target.value })}
+                        onChange={(e) =>
+                          setResumeRequestForm({
+                            ...resumeRequestForm,
+                            actorEmail: e.target.value,
+                          })
+                        }
                         className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none"
                       />
                     </div>
@@ -2120,7 +2172,12 @@ export default function PublicUserProfilePage() {
                         type="text"
                         placeholder="Google / Stripe"
                         value={resumeRequestForm.company}
-                        onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, company: e.target.value })}
+                        onChange={(e) =>
+                          setResumeRequestForm({
+                            ...resumeRequestForm,
+                            company: e.target.value,
+                          })
+                        }
                         className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none"
                       />
                     </div>
@@ -2133,7 +2190,12 @@ export default function PublicUserProfilePage() {
                         type="text"
                         placeholder="Staff Engineer"
                         value={resumeRequestForm.role}
-                        onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, role: e.target.value })}
+                        onChange={(e) =>
+                          setResumeRequestForm({
+                            ...resumeRequestForm,
+                            role: e.target.value,
+                          })
+                        }
                         className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none"
                       />
                     </div>
@@ -2147,7 +2209,12 @@ export default function PublicUserProfilePage() {
                       rows={3}
                       placeholder="Reason for resume request..."
                       value={resumeRequestForm.message}
-                      onChange={(e) => setResumeRequestForm({ ...resumeRequestForm, message: e.target.value })}
+                      onChange={(e) =>
+                        setResumeRequestForm({
+                          ...resumeRequestForm,
+                          message: e.target.value,
+                        })
+                      }
                       className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-900 text-xs border border-zinc-200 focus:border-[#015451] focus:outline-none resize-none"
                     />
                   </div>
@@ -2157,7 +2224,9 @@ export default function PublicUserProfilePage() {
                     disabled={isSubmittingResumeRequest}
                     className="w-full py-3 px-5 rounded-xl bg-[#015451] hover:bg-[#013e3c] text-white text-xs font-semibold uppercase tracking-wider transition-all shadow-md shadow-[#015451]/20 flex items-center justify-center gap-2 cursor-pointer border-0"
                   >
-                    {isSubmittingResumeRequest ? "Submitting..." : "Submit Access Request"}
+                    {isSubmittingResumeRequest
+                      ? "Submitting..."
+                      : "Submit Access Request"}
                   </button>
                 </form>
               )}
@@ -2189,7 +2258,6 @@ export default function PublicUserProfilePage() {
         )}
       </AnimatePresence>
 
-      {/* Toast Notification */}
       <AnimatePresence>
         {toastMessage && (
           <motion.div
@@ -2207,7 +2275,6 @@ export default function PublicUserProfilePage() {
         )}
       </AnimatePresence>
 
-      {/* Share Profile Modal */}
       <AnimatePresence>
         {showShareModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -2220,17 +2287,19 @@ export default function PublicUserProfilePage() {
             />
 
             <motion.div
+              layout
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
               className="relative w-full max-w-lg bg-white rounded-3xl border-2 border-dotted border-zinc-300 shadow-2xl overflow-hidden z-10 font-sans"
             >
-              {/* Modal Header */}
               <div className="p-5 sm:p-6 border-b-2 border-dotted border-zinc-200 bg-zinc-50/70 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <img
-                    src={userData.avatar_url || "/assets/images/avatar/Avatar.jpg"}
+                    src={
+                      userData.avatar_url || "/assets/images/avatar/Avatar.jpg"
+                    }
                     alt={displayName}
                     className="w-11 h-11 rounded-2xl object-cover border-2 border-white shadow-xs shrink-0"
                     onError={(e) => {
@@ -2255,221 +2324,296 @@ export default function PublicUserProfilePage() {
                 </button>
               </div>
 
-              {/* Navigation Tabs */}
-              <div className="px-5 sm:px-6 pt-4 flex items-center gap-1 border-b border-zinc-200">
-                <button
-                  onClick={() => setShareTab("social")}
-                  className={`px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all flex items-center gap-1.5 cursor-pointer border-b-2 ${
-                    shareTab === "social"
-                      ? "border-[#015451] text-[#015451] bg-[#015451]/5"
-                      : "border-transparent text-zinc-500 hover:text-zinc-800"
-                  }`}
-                >
-                  <FaShareNodes className="w-3 h-3" /> Social &amp; Link
-                </button>
-                <button
-                  onClick={() => setShareTab("qrcode")}
-                  className={`px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all flex items-center gap-1.5 cursor-pointer border-b-2 ${
-                    shareTab === "qrcode"
-                      ? "border-[#015451] text-[#015451] bg-[#015451]/5"
-                      : "border-transparent text-zinc-500 hover:text-zinc-800"
-                  }`}
-                >
-                  <FaQrcode className="w-3 h-3" /> QR Code
-                </button>
-                <button
-                  onClick={() => setShareTab("embed")}
-                  className={`px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all flex items-center gap-1.5 cursor-pointer border-b-2 ${
-                    shareTab === "embed"
-                      ? "border-[#015451] text-[#015451] bg-[#015451]/5"
-                      : "border-transparent text-zinc-500 hover:text-zinc-800"
-                  }`}
-                >
-                  <FaCode className="w-3 h-3" /> Embed Badge
-                </button>
+              <div className="px-5 sm:px-6 pt-4 pb-2 bg-zinc-50/50 border-b border-zinc-200">
+                <div className="relative flex items-center p-1.5 rounded-2xl bg-zinc-200/60 border border-zinc-300/60 gap-1">
+                  {[
+                    {
+                      id: "social",
+                      label: "Social & Link",
+                      icon: FaShareNodes,
+                    },
+                    { id: "qrcode", label: "QR Code", icon: FaQrcode },
+                    { id: "embed", label: "Embed Badge", icon: FaCode },
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = shareTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() =>
+                          setShareTab(tab.id as "social" | "qrcode" | "embed")
+                        }
+                        className={`relative flex-1 py-2 px-3 text-xs font-semibold rounded-xl transition-colors cursor-pointer select-none ${
+                          isActive
+                            ? "text-white"
+                            : "text-zinc-600 hover:text-zinc-900"
+                        }`}
+                      >
+                        {isActive && (
+                          <motion.div
+                            layoutId="activeShareTabPill"
+                            className="absolute inset-0 bg-[#015451] rounded-xl shadow-xs"
+                            transition={{
+                              type: "spring",
+                              stiffness: 450,
+                              damping: 35,
+                            }}
+                          />
+                        )}
+                        <span className="relative z-10 flex items-center justify-center gap-1.5">
+                          <Icon
+                            className={`w-3.5 h-3.5 ${
+                              isActive ? "text-white" : "text-zinc-500"
+                            }`}
+                          />
+                          <span>{tab.label}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* Content Body */}
-              <div className="p-5 sm:p-6 space-y-5">
-                {shareTab === "social" && (
-                  <div className="space-y-5">
-                    {/* Copy Link Input */}
-                    <div>
-                      <label className="block text-[11px] font-medium text-zinc-600 mb-1.5 uppercase tracking-wider">
-                        Direct Profile URL
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-800 text-xs font-mono border border-zinc-200 truncate">
-                          {profileShareUrl}
+              <div className="p-5 sm:p-6">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={shareTab}
+                    initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+                    transition={{ duration: 0.18, ease: "easeInOut" }}
+                    className="space-y-5"
+                  >
+                    {shareTab === "social" && (
+                      <div className="space-y-5">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-zinc-600 mb-1.5 uppercase tracking-wider">
+                            Direct Profile URL
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 px-3.5 py-2.5 rounded-xl bg-zinc-50 text-zinc-800 text-xs font-mono border border-zinc-200 truncate">
+                              {profileShareUrl}
+                            </div>
+                            <button
+                              onClick={() => handleCopyShareLink()}
+                              className="px-4 py-2.5 rounded-xl bg-[#015451] text-white hover:bg-[#01413e] transition-all text-xs font-semibold shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
+                            >
+                              <FaCopy className="w-3 h-3" />
+                              {copiedLink ? "Copied!" : "Copy Link"}
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => handleCopyShareLink()}
-                          className="px-4 py-2.5 rounded-xl bg-[#015451] text-white hover:bg-[#01413e] transition-all text-xs font-semibold shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
-                        >
-                          <FaCopy className="w-3 h-3" />
-                          {copiedLink ? "Copied!" : "Copy Link"}
-                        </button>
-                      </div>
-                    </div>
 
-                    {/* Native Share Button */}
-                    {typeof navigator !== "undefined" && "share" in navigator && (
-                      <button
-                        onClick={handleNativeSystemShare}
-                        className="w-full py-2.5 px-4 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 text-xs font-medium transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <FaGlobe className="w-3.5 h-3.5" /> Share via System Apps (Share Sheet)
-                      </button>
+                        {typeof navigator !== "undefined" &&
+                          "share" in navigator && (
+                            <button
+                              onClick={handleNativeSystemShare}
+                              className="w-full py-2.5 px-4 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 text-xs font-medium transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                              <FaGlobe className="w-3.5 h-3.5" /> Share via
+                              System Apps (Share Sheet)
+                            </button>
+                          )}
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-zinc-600 mb-2 uppercase tracking-wider">
+                            Quick Share to Networks
+                          </label>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                            <a
+                              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileShareUrl)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-3 rounded-xl bg-blue-50/80 hover:bg-blue-100 text-blue-700 text-xs font-medium border border-blue-200/80 flex items-center gap-2.5 transition-all"
+                            >
+                              <FaLinkedin className="w-4 h-4 text-blue-600" />
+                              <span>LinkedIn</span>
+                            </a>
+
+                            <a
+                              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${displayName}'s developer profile on Dradix:`)}&url=${encodeURIComponent(profileShareUrl)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-3 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-xs font-medium border border-zinc-300/80 flex items-center gap-2.5 transition-all"
+                            >
+                              <FaXTwitter className="w-4 h-4 text-zinc-900" />
+                              <span>X / Twitter</span>
+                            </a>
+
+                            <a
+                              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out ${displayName}'s developer profile on Dradix: ${profileShareUrl}`)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-3 rounded-xl bg-emerald-50/80 hover:bg-emerald-100 text-emerald-800 text-xs font-medium border border-emerald-200/80 flex items-center gap-2.5 transition-all"
+                            >
+                              <FaWhatsapp className="w-4 h-4 text-emerald-600" />
+                              <span>WhatsApp</span>
+                            </a>
+
+                            <a
+                              href={`https://www.reddit.com/submit?url=${encodeURIComponent(profileShareUrl)}&title=${encodeURIComponent(`${displayName} - Developer Profile on Dradix`)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-3 rounded-xl bg-orange-50/80 hover:bg-orange-100 text-orange-800 text-xs font-medium border border-orange-200/80 flex items-center gap-2.5 transition-all"
+                            >
+                              <FaReddit className="w-4 h-4 text-orange-600" />
+                              <span>Reddit</span>
+                            </a>
+
+                            <a
+                              href={`mailto:?subject=${encodeURIComponent(`Developer Profile: ${displayName}`)}&body=${encodeURIComponent(`Check out ${displayName}'s developer profile on Dradix:\n\n${profileShareUrl}`)}`}
+                              className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 text-zinc-800 text-xs font-medium border border-zinc-200 flex items-center gap-2.5 transition-all col-span-2 sm:col-span-1"
+                            >
+                              <FaEnvelope className="w-4 h-4 text-zinc-600" />
+                              <span>Email</span>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
                     )}
 
-                    {/* Quick Social Shares Grid */}
-                    <div>
-                      <label className="block text-[11px] font-medium text-zinc-600 mb-2 uppercase tracking-wider">
-                        Quick Share to Networks
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                        <a
-                          href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileShareUrl)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-3 rounded-xl bg-blue-50/80 hover:bg-blue-100 text-blue-700 text-xs font-medium border border-blue-200/80 flex items-center gap-2.5 transition-all"
-                        >
-                          <FaLinkedin className="w-4 h-4 text-blue-600" />
-                          <span>LinkedIn</span>
-                        </a>
-
-                        <a
-                          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${displayName}'s developer profile on Dradix:`)}&url=${encodeURIComponent(profileShareUrl)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-3 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-xs font-medium border border-zinc-300/80 flex items-center gap-2.5 transition-all"
-                        >
-                          <FaXTwitter className="w-4 h-4 text-zinc-900" />
-                          <span>X / Twitter</span>
-                        </a>
-
-                        <a
-                          href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out ${displayName}'s developer profile on Dradix: ${profileShareUrl}`)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-3 rounded-xl bg-emerald-50/80 hover:bg-emerald-100 text-emerald-800 text-xs font-medium border border-emerald-200/80 flex items-center gap-2.5 transition-all"
-                        >
-                          <FaWhatsapp className="w-4 h-4 text-emerald-600" />
-                          <span>WhatsApp</span>
-                        </a>
-
-                        <a
-                          href={`https://www.reddit.com/submit?url=${encodeURIComponent(profileShareUrl)}&title=${encodeURIComponent(`${displayName} - Developer Profile on Dradix`)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-3 rounded-xl bg-orange-50/80 hover:bg-orange-100 text-orange-800 text-xs font-medium border border-orange-200/80 flex items-center gap-2.5 transition-all"
-                        >
-                          <FaReddit className="w-4 h-4 text-orange-600" />
-                          <span>Reddit</span>
-                        </a>
-
-                        <a
-                          href={`mailto:?subject=${encodeURIComponent(`Developer Profile: ${displayName}`)}&body=${encodeURIComponent(`Check out ${displayName}'s developer profile on Dradix:\n\n${profileShareUrl}`)}`}
-                          className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 text-zinc-800 text-xs font-medium border border-zinc-200 flex items-center gap-2.5 transition-all col-span-2 sm:col-span-1"
-                        >
-                          <FaEnvelope className="w-4 h-4 text-zinc-600" />
-                          <span>Email</span>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {shareTab === "qrcode" && (
-                  <div className="flex flex-col items-center justify-center space-y-4 py-2 text-center">
-                    <div className="p-4 rounded-2xl bg-white border-2 border-dotted border-zinc-300 shadow-md">
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(profileShareUrl)}`}
-                        alt="Profile QR Code"
-                        className="w-44 h-44 object-contain rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-semibold text-zinc-900">
-                        Scan to View Profile on Mobile
-                      </h4>
-                      <p className="text-[11px] text-zinc-500 font-normal max-w-xs mt-0.5">
-                        Recruiters and visitors can point their phone camera to quickly open {displayName}&apos;s verified profile.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleCopyShareLink(profileShareUrl, "Profile URL copied for QR sharing!")}
-                      className="px-4 py-2 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 transition-all text-xs font-medium flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FaLink className="w-3 h-3" /> Copy Profile URL
-                    </button>
-                  </div>
-                )}
-
-                {shareTab === "embed" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[11px] font-medium text-zinc-600 mb-1.5 uppercase tracking-wider">
-                        Markdown Badge (For GitHub README)
-                      </label>
-                      <div className="relative">
-                        <textarea
-                          readOnly
-                          rows={2}
-                          value={`[![Dradix Profile](https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=for-the-badge&logo=react)](${profileShareUrl})`}
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 text-emerald-400 font-mono text-[11px] border border-zinc-800 focus:outline-none resize-none"
-                        />
+                    {shareTab === "qrcode" && (
+                      <div className="flex flex-col items-center justify-center space-y-4 py-2 text-center">
+                        <div className="p-4 rounded-2xl bg-white border-2 border-dotted border-zinc-300 shadow-md">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(profileShareUrl)}`}
+                            alt="Profile QR Code"
+                            className="w-44 h-44 object-contain rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-semibold text-zinc-900">
+                            Scan to View Profile on Mobile
+                          </h4>
+                          <p className="text-[11px] text-zinc-500 font-normal max-w-xs mt-0.5">
+                            Recruiters and visitors can point their phone camera
+                            to quickly open {displayName}&apos;s verified
+                            profile.
+                          </p>
+                        </div>
                         <button
                           onClick={() =>
                             handleCopyShareLink(
-                              `[![Dradix Profile](https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=for-the-badge&logo=react)](${profileShareUrl})`,
-                              "Markdown badge snippet copied!"
+                              profileShareUrl,
+                              "Profile URL copied for QR sharing!",
                             )
                           }
-                          className="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-[10px] font-medium transition-all flex items-center gap-1 cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 transition-all text-xs font-medium flex items-center gap-1.5 cursor-pointer"
                         >
-                          <FaCopy className="w-2.5 h-2.5" /> Copy
+                          <FaLink className="w-3 h-3" /> Copy Profile URL
                         </button>
                       </div>
-                    </div>
+                    )}
 
-                    <div>
-                      <label className="block text-[11px] font-medium text-zinc-600 mb-1.5 uppercase tracking-wider">
-                        HTML Embed Snippet
-                      </label>
-                      <div className="relative">
-                        <textarea
-                          readOnly
-                          rows={2}
-                          value={`<a href="${profileShareUrl}"><img src="https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=for-the-badge&logo=react" alt="${displayName}'s Dradix Profile"/></a>`}
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 text-emerald-400 font-mono text-[11px] border border-zinc-800 focus:outline-none resize-none"
-                        />
-                        <button
-                          onClick={() =>
-                            handleCopyShareLink(
-                              `<a href="${profileShareUrl}"><img src="https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=for-the-badge&logo=react" alt="${displayName}'s Dradix Profile"/></a>`,
-                              "HTML embed snippet copied!"
-                            )
-                          }
-                          className="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-[10px] font-medium transition-all flex items-center gap-1 cursor-pointer"
-                        >
-                          <FaCopy className="w-2.5 h-2.5" /> Copy
-                        </button>
+                    {shareTab === "embed" && (
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="block text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">
+                            Badge Style
+                          </label>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 rounded-2xl bg-zinc-100/90 border border-zinc-200">
+                            {[
+                              { id: "for-the-badge", label: "For The Badge" },
+                              { id: "flat", label: "Flat" },
+                              { id: "flat-square", label: "Flat Square" },
+                              { id: "plastic", label: "Plastic" },
+                            ].map((style) => (
+                              <button
+                                key={style.id}
+                                onClick={() =>
+                                  setBadgeStyle(
+                                    style.id as
+                                      | "for-the-badge"
+                                      | "flat"
+                                      | "flat-square"
+                                      | "plastic",
+                                  )
+                                }
+                                className={`relative py-1.5 px-2 text-[10px] font-semibold rounded-xl transition-colors cursor-pointer select-none text-center ${
+                                  badgeStyle === style.id
+                                    ? "text-white"
+                                    : "text-zinc-600 hover:text-zinc-900"
+                                }`}
+                              >
+                                {badgeStyle === style.id && (
+                                  <motion.div
+                                    layoutId="badgeStylePill"
+                                    className="absolute inset-0 bg-[#015451] rounded-xl shadow-xs"
+                                    transition={{
+                                      type: "spring",
+                                      stiffness: 450,
+                                      damping: 35,
+                                    }}
+                                  />
+                                )}
+                                <span className="relative z-10 block">
+                                  {style.label}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-linear-to-b from-zinc-50 to-white border-2 border-dotted border-zinc-200 flex flex-col items-center justify-center gap-2.5 text-center shadow-xs">
+                          <div className="py-2.5 px-5 rounded-xl bg-white border border-zinc-200/90 shadow-xs flex items-center justify-center min-h-11">
+                            <img
+                              src={`https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=${badgeStyle}&logo=rust`}
+                              alt="Badge Preview"
+                              className="h-7 object-contain drop-shadow-xs"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">
+                              Markdown Code{" "}
+                              <span className="text-[9px] text-zinc-400 font-normal font-sans">
+                                (For GitHub README)
+                              </span>
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleCopyShareLink(
+                                  `[![Dradix Profile](https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=${badgeStyle}&logo=react)](${profileShareUrl})`,
+                                  "Markdown badge snippet copied!",
+                                )
+                              }
+                              className="px-2.5 py-1 rounded-lg bg-[#015451]/10 hover:bg-[#015451]/20 text-[#015451] text-[10px] font-semibold transition-all flex items-center gap-1 cursor-pointer border border-[#015451]/20 shrink-0"
+                            >
+                              <FaCopy className="w-2.5 h-2.5" /> Copy Markdown
+                            </button>
+                          </div>
+                          <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 font-mono text-[11px] leading-relaxed break-all select-all shadow-inner">
+                            {`[![Dradix Profile](https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=${badgeStyle}&logo=react)](${profileShareUrl})`}
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">
+                              HTML Embed Code
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleCopyShareLink(
+                                  `<a href="${profileShareUrl}"><img src="https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=${badgeStyle}&logo=react" alt="${displayName}'s Dradix Profile"/></a>`,
+                                  "HTML embed snippet copied!",
+                                )
+                              }
+                              className="px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-[10px] font-semibold transition-all flex items-center gap-1 cursor-pointer border border-zinc-300 shrink-0"
+                            >
+                              <FaCopy className="w-2.5 h-2.5" /> Copy HTML
+                            </button>
+                          </div>
+                          <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-emerald-400 font-mono text-[11px] leading-relaxed break-all select-all shadow-inner">
+                            {`<a href="${profileShareUrl}"><img src="https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=${badgeStyle}&logo=react" alt="${displayName}'s Dradix Profile"/></a>`}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200">
-                      <p className="text-[10px] text-zinc-500 font-medium mb-1">
-                        Preview Badge:
-                      </p>
-                      <img
-                        src={`https://img.shields.io/badge/Dradix-${encodeURIComponent(username)}-015451?style=for-the-badge&logo=react`}
-                        alt="Badge Preview"
-                        className="h-7 object-contain"
-                      />
-                    </div>
-                  </div>
-                )}
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </motion.div>
           </div>

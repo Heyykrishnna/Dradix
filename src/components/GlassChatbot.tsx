@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,7 +28,6 @@ import {
   DashboardIcon,
   CameraIcon,
   EyeOpenIcon,
-  DesktopIcon,
 } from "@radix-ui/react-icons";
 import { Mic, MicOff } from "lucide-react";
 
