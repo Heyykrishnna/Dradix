@@ -28,8 +28,9 @@ import {
   CameraIcon,
   EyeOpenIcon,
   DesktopIcon,
+  SpeakerLoudIcon,
+  SpeakerOffIcon,
 } from "@radix-ui/react-icons";
-import { Mic, MicOff, Camera, Monitor, X, Sparkles, Check } from "lucide-react";
 
 export interface AttachedScreenData {
   dataUrl: string;
@@ -507,7 +508,7 @@ export function GlassChatbot() {
                 return (
                   <motion.button
                     key={idx}
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handlePillClick(pill.prompt)}
                     className="px-3.5 py-1.5 bg-white/80 hover:bg-white border border-white/90 shadow-[0_2px_8px_rgba(0,0,0,0.04)] rounded-full text-[11px] font-semibold text-zinc-800 flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
@@ -577,7 +578,7 @@ export function GlassChatbot() {
                                 <div className="mb-2.5 p-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl space-y-1.5">
                                   <div className="flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-1.5">
-                                      <Camera className="w-3.5 h-3.5 text-emerald-400" />
+                                      <CameraIcon className="w-3.5 h-3.5 text-emerald-400" />
                                       <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
                                         Attached Screen View
                                       </span>
@@ -688,12 +689,12 @@ export function GlassChatbot() {
                               className="w-full h-full object-cover"
                             />
                             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
-                              <Camera className="w-3.5 h-3.5" />
+                              <CameraIcon className="w-3.5 h-3.5" />
                             </div>
                           </div>
                         ) : (
                           <div className="w-9 h-9 rounded-lg bg-emerald-600/10 border border-emerald-300 shrink-0 flex items-center justify-center text-emerald-700">
-                            <Camera className="w-4 h-4" />
+                            <CameraIcon className="w-4 h-4" />
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
@@ -749,39 +750,29 @@ export function GlassChatbot() {
                       transition={{ duration: 0.18, ease: "easeOut" }}
                       className="p-2.5 bg-zinc-50 border border-zinc-200/90 shadow-lg rounded-2xl space-y-2 text-[11px] z-50"
                     >
-                      <div className="flex items-center justify-between px-1">
-                        <span className="font-extrabold text-zinc-500 uppercase tracking-wider text-[9px]">
-                          Attach Context or Screen
-                        </span>
-                        <span className="text-[9px] text-[#015451] font-semibold bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
-                          AI Sync Ready
-                        </span>
-                      </div>
-
                       <div className="grid grid-cols-1 gap-1.5">
                         <button
                           type="button"
                           onClick={handleCaptureScreen}
-                          className="p-2 bg-linear-to-r from-emerald-600 to-teal-700 text-white rounded-xl text-left font-medium hover:from-emerald-700 hover:to-teal-800 transition-all flex items-center justify-between shadow-xs cursor-pointer group"
+                          className="w-full p-2.5 bg-[#015451] hover:bg-[#01403d] text-white rounded-xl text-left font-medium transition-colors flex items-center justify-between shadow-xs cursor-pointer group"
                           title="Submit / attach what you are watching currently on screen to ask Dradix AI"
                         >
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                              <Camera className="w-3.5 h-3.5 text-white" />
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-7 h-7 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                              <CameraIcon className="w-3.5 h-3.5 text-white" />
                             </div>
-                            <div>
-                              <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                                <span>Submit Current Screen</span>
-                                <span className="bg-white/20 text-white text-[9px] px-1.5 py-0.2 rounded-full uppercase">
-                                  Live
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-extrabold text-white tracking-tight">
+                                  Submit Current Screen
                                 </span>
-                              </p>
-                              <p className="text-[10px] text-white/80 font-normal">
-                                Snapshot what you are watching & ask AI
+                              </div>
+                              <p className="text-[10px] text-white/80 truncate mt-0.5 font-normal">
+                                Snapshot what you are watching & ask Dradix AI
                               </p>
                             </div>
                           </div>
-                          <PlusIcon className="w-4 h-4 opacity-75 group-hover:translate-x-0.5 transition-transform" />
+                          <PlusIcon className="w-4 h-4 text-white/80 group-hover:scale-110 transition-transform shrink-0 ml-2" />
                         </button>
                       </div>
 
@@ -868,9 +859,9 @@ export function GlassChatbot() {
                       }
                     >
                       {isListening ? (
-                        <Mic className="w-3.5 h-3.5" />
+                        <SpeakerLoudIcon className="w-3.5 h-3.5" />
                       ) : (
-                        <MicOff className="w-3.5 h-3.5" />
+                        <SpeakerOffIcon className="w-3.5 h-3.5" />
                       )}
                     </motion.button>
 
@@ -914,7 +905,7 @@ export function GlassChatbot() {
             >
               <div className="flex items-center justify-between p-3 bg-zinc-950 border-b border-zinc-800 text-white">
                 <div className="flex items-center gap-2">
-                  <Camera className="w-4 h-4 text-emerald-400" />
+                  <CameraIcon className="w-4 h-4 text-emerald-400" />
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
                     Captured Screen View
                   </span>
