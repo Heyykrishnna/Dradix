@@ -149,7 +149,7 @@ export function GlassChatbot() {
         text: m.text,
       }));
 
-      const res = await apiFetch<ChatApiResponse>("/api/v1/ai/coach/chat", {
+      const res = await apiFetch<ChatApiResponse>("/ai/coach/chat", {
         method: "POST",
         body: JSON.stringify({
           message: query,

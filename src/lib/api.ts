@@ -95,8 +95,13 @@ interface FetchOptions extends RequestInit {
 
 export async function apiFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
   const { skipAuth = false, headers = {}, ...rest } = options;
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  const url = `${API_URL}${normalizedPath}`;
+  let cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (cleanPath.startsWith('/api/v1/')) {
+    cleanPath = cleanPath.substring(7);
+  } else if (cleanPath === '/api/v1') {
+    cleanPath = '/';
+  }
+  const url = `${API_URL}${cleanPath}`;
 
   const buildHeaders = (overrideToken?: string): Headers => {
     const h = new Headers(headers);
