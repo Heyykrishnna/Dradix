@@ -8,20 +8,26 @@ interface MarkdownRendererProps {
   className?: string;
 }
 
-export function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
+export function MarkdownRenderer({
+  content,
+  className = "",
+}: MarkdownRendererProps) {
   if (!content) return null;
 
-  // Pre-process reasoning/thinking tags if any
   const cleanedContent = content
     .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<\/?(think|thought|comment|message|reasoning|system|prompt)[^>]*>/gi, "")
+    .replace(
+      /<\/?(think|thought|comment|message|reasoning|system|prompt)[^>]*>/gi,
+      "",
+    )
     .trim();
 
-  // Split content into blocks (paragraphs, headers, code blocks, lists)
   const blocks = parseMarkdownBlocks(cleanedContent);
 
   return (
-    <div className={`space-y-2.5 text-xs text-zinc-800 leading-relaxed font-sans ${className}`}>
+    <div
+      className={`space-y-2.5 text-xs text-zinc-800 leading-relaxed font-sans ${className}`}
+    >
       {blocks.map((block, index) => (
         <RenderBlock key={index} block={block} />
       ))}
@@ -44,7 +50,6 @@ function parseMarkdownBlocks(text: string): BlockType[] {
   while (i < lines.length) {
     const line = lines[i];
 
-    // Fenced Code Block
     if (line.trim().startsWith("```")) {
       const match = line.trim().match(/^```(\w*)/);
       const language = match ? match[1] || "text" : "text";
@@ -54,7 +59,7 @@ function parseMarkdownBlocks(text: string): BlockType[] {
         codeLines.push(lines[i]);
         i++;
       }
-      if (i < lines.length) i++; // skip closing ```
+      if (i < lines.length) i++;
       blocks.push({
         type: "code",
         language,
@@ -63,7 +68,6 @@ function parseMarkdownBlocks(text: string): BlockType[] {
       continue;
     }
 
-    // Headings
     if (line.trim().startsWith("#")) {
       const match = line.trim().match(/^(#{1,6})\s+(.*)$/);
       if (match) {
@@ -77,7 +81,6 @@ function parseMarkdownBlocks(text: string): BlockType[] {
       }
     }
 
-    // Unordered List
     if (/^\s*[-*+]\s+/.test(line)) {
       const items: string[] = [];
       while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
@@ -88,7 +91,6 @@ function parseMarkdownBlocks(text: string): BlockType[] {
       continue;
     }
 
-    // Ordered List
     if (/^\s*\d+\.\s+/.test(line)) {
       const items: string[] = [];
       while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
@@ -99,7 +101,6 @@ function parseMarkdownBlocks(text: string): BlockType[] {
       continue;
     }
 
-    // Blockquote
     if (line.trim().startsWith(">")) {
       const quoteLines: string[] = [];
       while (i < lines.length && lines[i].trim().startsWith(">")) {
@@ -110,7 +111,6 @@ function parseMarkdownBlocks(text: string): BlockType[] {
       continue;
     }
 
-    // Paragraph
     if (line.trim().length > 0) {
       const paragraphLines: string[] = [];
       while (
@@ -143,12 +143,24 @@ function RenderBlock({ block }: { block: BlockType }) {
   if (block.type === "heading") {
     const formatted = formatInlineText(block.text);
     if (block.level === 1) {
-      return <h2 className="font-extrabold text-zinc-950 tracking-tight mt-3 mb-1 text-[15px]">{formatted}</h2>;
+      return (
+        <h2 className="font-extrabold text-zinc-950 tracking-tight mt-3 mb-1 text-[15px]">
+          {formatted}
+        </h2>
+      );
     }
     if (block.level === 2) {
-      return <h3 className="font-bold text-zinc-950 tracking-tight mt-2.5 mb-1 text-[14px]">{formatted}</h3>;
+      return (
+        <h3 className="font-bold text-zinc-950 tracking-tight mt-2.5 mb-1 text-[14px]">
+          {formatted}
+        </h3>
+      );
     }
-    return <h4 className="font-bold text-zinc-950 tracking-tight mt-2 mb-1 text-[13px]">{formatted}</h4>;
+    return (
+      <h4 className="font-bold text-zinc-950 tracking-tight mt-2 mb-1 text-[13px]">
+        {formatted}
+      </h4>
+    );
   }
 
   if (block.type === "list") {
@@ -195,7 +207,9 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   return (
     <div className="relative group rounded-xl overflow-hidden border border-zinc-200/90 bg-zinc-950 text-zinc-100 my-2.5 shadow-sm">
       <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-900/90 border-b border-zinc-800 text-[10px] text-zinc-400 font-mono">
-        <span className="uppercase font-semibold tracking-wider text-zinc-400">{language || "code"}</span>
+        <span className="uppercase font-semibold tracking-wider text-zinc-400">
+          {language || "code"}
+        </span>
         <button
           onClick={handleCopy}
           className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"

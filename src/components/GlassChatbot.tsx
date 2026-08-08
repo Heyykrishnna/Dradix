@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
@@ -25,7 +25,7 @@ import {
   RocketIcon,
   DashboardIcon,
 } from "@radix-ui/react-icons";
-import { Mic, MicOff, Bot } from "lucide-react";
+import { Mic, MicOff } from "lucide-react";
 
 export interface ChatMessage {
   sender: "user" | "coach";
@@ -122,8 +122,26 @@ export function GlassChatbot() {
     },
   ]);
 
+  const optionsMenuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const firstName = user?.first_name || user?.username || "Sam";
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        optionsMenuRef.current &&
+        !optionsMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowOptionsMenu(false);
+      }
+    }
+    if (showOptionsMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showOptionsMenu]);
 
   const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputQuery).trim();
@@ -239,7 +257,6 @@ export function GlassChatbot() {
 
   return (
     <>
-      {/* Floating Trigger Launcher Button with Smooth Motion */}
       <AnimatePresence>
         {!isOpen && (
           <motion.button
@@ -255,16 +272,16 @@ export function GlassChatbot() {
               damping: 25,
             }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 flex items-center justify-center p-2.5 bg-white/85 backdrop-blur-2xl backdrop-saturate-200 border border-white/90 shadow-[0_14px_45px_rgba(0,0,0,0.18),inset_0_1.5px_2px_rgba(255,255,255,1)] hover:bg-white rounded-full transition-shadow duration-300 group cursor-pointer"
+            className="fixed bottom-6 right-6 z-50 flex items-center justify-center p-2.5 bg-white/85 backdrop-blur-2xl backdrop-saturate-200 border border-white/90 shadow-[0_14px_45px_rgba(0,0,0,0.18),inset_0_1.5px_2px_rgba(255,255,255,1)] hover:bg-white rounded-full group cursor-pointer"
             title="Open Dradix AI Assistant"
           >
-            <div className="w-10 h-10 relative flex items-center justify-center rounded-full overflow-hidden">
+            <div className="w-6 h-6 relative flex items-center justify-center rounded-full overflow-hidden">
               <Image
                 src="/assets/images/Logo-DR.png"
                 alt="Dradix Logo"
-                width={40}
-                height={40}
-                className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                width={80}
+                height={80}
+                className="w-full h-full object-contain"
                 priority
               />
             </div>
@@ -272,7 +289,6 @@ export function GlassChatbot() {
         )}
       </AnimatePresence>
 
-      {/* Main Glass Chatbot Modal Window with Smooth Stiffness Spring Motion */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -298,11 +314,9 @@ export function GlassChatbot() {
             }}
             className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-110 max-h-[85vh] h-160 flex flex-col bg-white/75 backdrop-blur-2xl backdrop-saturate-200 border border-white/80 rounded-[32px] shadow-[0_30px_90px_rgba(0,0,0,0.2),inset_0_1.5px_2px_rgba(255,255,255,0.9)] overflow-hidden"
           >
-            {/* Ambient Glass Highlight Effect in Brand Green */}
             <div className="absolute top-0 left-0 right-0 h-40 bg-linear-to-b from-emerald-500/10 via-teal-500/5 to-transparent pointer-events-none" />
 
-            {/* Top Control Header Bar */}
-            <div className="relative z-10 flex items-center justify-between px-6 pt-5 pb-2">
+            <div className="relative z-50 flex items-center justify-between px-6 pt-5 pb-2">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 relative rounded-full overflow-hidden flex items-center justify-center">
                   <Image
@@ -319,7 +333,7 @@ export function GlassChatbot() {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="relative">
+                <div className="relative" ref={optionsMenuRef}>
                   <button
                     onClick={() => setShowOptionsMenu((prev) => !prev)}
                     className="w-8 h-8 rounded-full bg-white/70 hover:bg-white border border-white/80 shadow-xs flex items-center justify-center text-zinc-600 hover:text-zinc-950 transition-all cursor-pointer"
@@ -328,7 +342,6 @@ export function GlassChatbot() {
                     <DotsHorizontalIcon className="w-4 h-4" />
                   </button>
 
-                  {/* Options Menu Dropdown with Smooth Animation */}
                   <AnimatePresence>
                     {showOptionsMenu && (
                       <motion.div
@@ -340,7 +353,7 @@ export function GlassChatbot() {
                           stiffness: 450,
                           damping: 28,
                         }}
-                        className="absolute right-0 top-10 w-48 bg-white/95 backdrop-blur-xl border border-zinc-200/80 rounded-2xl shadow-xl p-1.5 z-30 space-y-1 text-xs"
+                        className="absolute right-0 top-10 w-48 bg-white/98 backdrop-blur-2xl border border-zinc-200/90 shadow-[0_20px_50px_rgba(0,0,0,0.18)] rounded-2xl p-1.5 z-50 space-y-1 text-xs"
                       >
                         <button
                           onClick={handleClearHistory}
@@ -348,13 +361,6 @@ export function GlassChatbot() {
                         >
                           <ReloadIcon className="w-3.5 h-3.5 text-zinc-500" />
                           <span>Clear Chat</span>
-                        </button>
-                        <button
-                          onClick={() => setShowOptionsMenu(false)}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-zinc-700 hover:bg-zinc-100 font-medium transition-colors text-left cursor-pointer"
-                        >
-                          <Bot className="w-3.5 h-3.5 text-[#015451]" />
-                          <span>Scope: Profile & Jobs</span>
                         </button>
                       </motion.div>
                     )}
@@ -371,7 +377,6 @@ export function GlassChatbot() {
               </div>
             </div>
 
-            {/* Header Typography Greeting in Brand Green Accent */}
             <div className="relative z-10 px-7 pt-1 pb-3">
               <h1 className="font-serif italic text-3xl sm:text-4xl text-[#015451] font-medium tracking-tight">
                 Hello {firstName}
@@ -381,7 +386,6 @@ export function GlassChatbot() {
               </h2>
             </div>
 
-            {/* Quick Action Chips Horizontal Bar */}
             <div className="relative z-10 px-7 py-2 overflow-x-auto scrollbar-none flex items-center gap-2 shrink-0">
               {DEFAULT_PILLS.map((pill, idx) => {
                 const IconComp = pill.icon;
@@ -400,7 +404,6 @@ export function GlassChatbot() {
               })}
             </div>
 
-            {/* Expanded Extra Pills Drawer with Spring Height Animation */}
             <AnimatePresence>
               {showMorePills && (
                 <motion.div
@@ -425,7 +428,6 @@ export function GlassChatbot() {
               )}
             </AnimatePresence>
 
-            {/* Chat Messages Feed with MessageScroller Layout */}
             <div className="relative z-10 flex-1 min-h-0 px-6 py-2">
               <MessageScrollerProvider
                 autoScroll={true}
@@ -466,7 +468,6 @@ export function GlassChatbot() {
                         </MessageScrollerItem>
                       ))}
 
-                      {/* Thinking Loader Indicator */}
                       {isAsking && (
                         <MessageScrollerItem
                           messageId="msg-loading"
@@ -489,7 +490,6 @@ export function GlassChatbot() {
               </MessageScrollerProvider>
             </div>
 
-            {/* Floating Bottom Input Card Container */}
             <div className="relative z-10 p-5 pt-2">
               <div className="bg-white/90 backdrop-blur-xl border border-white/95 shadow-[0_10px_30px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,1)] rounded-2xl p-3 space-y-2">
                 <input
@@ -504,7 +504,6 @@ export function GlassChatbot() {
                   className="w-full text-xs font-medium text-zinc-900 placeholder:text-zinc-400 bg-transparent outline-none px-1"
                 />
 
-                {/* Context Attachment Options Drawer with Animated Entrance */}
                 <AnimatePresence>
                   {showContextMenu && (
                     <motion.div
@@ -543,7 +542,6 @@ export function GlassChatbot() {
                   )}
                 </AnimatePresence>
 
-                {/* Bottom Control Actions */}
                 <div className="flex items-center justify-between pt-1">
                   <motion.button
                     whileHover={{ scale: 1.08 }}
