@@ -41,7 +41,8 @@ export default function SubmitFeedbackModal({
   const { user } = useAuth();
 
   const [category, setCategory] = useState(defaultCategory);
-  const [prevDefaultCategory, setPrevDefaultCategory] = useState(defaultCategory);
+  const [prevDefaultCategory, setPrevDefaultCategory] =
+    useState(defaultCategory);
   if (defaultCategory !== prevDefaultCategory) {
     setPrevDefaultCategory(defaultCategory);
     setCategory(defaultCategory);
@@ -54,16 +55,25 @@ export default function SubmitFeedbackModal({
     setSubject(defaultSubject);
   }
 
+  const userFullName = user
+    ? user.first_name
+      ? `${user.first_name} ${user.last_name || ""}`.trim()
+      : user.username || ""
+    : "";
+  const userEmail = user?.email || "";
+
+  const [prevUser, setPrevUser] = useState(user);
+  const [name, setName] = useState(userFullName);
+  const [email, setEmail] = useState(userEmail);
+
+  if (user !== prevUser) {
+    setPrevUser(user);
+    setName(userFullName);
+    setEmail(userEmail);
+  }
+
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
-
-  const initialName = user
-    ? (user.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : user.username || "")
-    : "";
-  const initialEmail = user?.email || "";
-
-  const [name, setName] = useState(initialName);
-  const [email, setEmail] = useState(initialEmail);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
