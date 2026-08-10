@@ -588,13 +588,26 @@ export function GlassChatbot() {
                                   </div>
 
                                   {msg.screenAttachment.dataUrl && (
-                                    <div
+                                    <button
+                                      type="button"
                                       onClick={() =>
                                         setActivePreviewImage(
                                           msg.screenAttachment?.dataUrl || null,
                                         )
                                       }
-                                      className="relative w-full h-28 rounded-lg overflow-hidden border border-white/20 cursor-pointer group/img"
+                                      onKeyDown={(e) => {
+                                        if (
+                                          e.key === "Enter" ||
+                                          e.key === " "
+                                        ) {
+                                          e.preventDefault();
+                                          setActivePreviewImage(
+                                            msg.screenAttachment?.dataUrl ||
+                                              null,
+                                          );
+                                        }
+                                      }}
+                                      className="relative w-full h-28 rounded-lg overflow-hidden border border-white/20 cursor-pointer group/img block p-0 text-left bg-transparent"
                                       title="Click to view full screenshot"
                                     >
                                       <img
@@ -606,7 +619,7 @@ export function GlassChatbot() {
                                         <EyeOpenIcon className="w-4 h-4" />
                                         <span>View Screen</span>
                                       </div>
-                                    </div>
+                                    </button>
                                   )}
 
                                   <p className="text-[11px] font-semibold text-white/90 truncate">
@@ -675,11 +688,18 @@ export function GlassChatbot() {
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         {attachedScreen.dataUrl ? (
-                          <div
+                          <button
+                            type="button"
                             onClick={() =>
                               setActivePreviewImage(attachedScreen.dataUrl)
                             }
-                            className="w-10 h-10 rounded-lg overflow-hidden border border-emerald-300 shrink-0 relative bg-zinc-900 cursor-pointer"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                setActivePreviewImage(attachedScreen.dataUrl);
+                              }
+                            }}
+                            className="w-10 h-10 rounded-lg overflow-hidden border border-emerald-300 shrink-0 relative bg-zinc-900 cursor-pointer p-0 text-left block"
                             title="Click to expand screen preview"
                           >
                             <img
@@ -690,7 +710,7 @@ export function GlassChatbot() {
                             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
                               <CameraIcon className="w-3.5 h-3.5" />
                             </div>
-                          </div>
+                          </button>
                         ) : (
                           <div className="w-9 h-9 rounded-lg bg-emerald-600/10 border border-emerald-300 shrink-0 flex items-center justify-center text-emerald-700">
                             <CameraIcon className="w-4 h-4" />
@@ -895,12 +915,24 @@ export function GlassChatbot() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            role="button"
+            tabIndex={0}
             onClick={() => setActivePreviewImage(null)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " " || e.key === "Escape") {
+                e.preventDefault();
+                setActivePreviewImage(null);
+              }
+            }}
             className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
+            aria-label="Close image preview overlay"
           >
             <div
+              role="document"
+              tabIndex={-1}
               onClick={(e) => e.stopPropagation()}
-              className="relative max-w-4xl max-h-[90vh] bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+              onKeyDown={(e) => e.stopPropagation()}
+              className="relative max-w-4xl max-h-[90vh] bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden shadow-2xl flex flex-col cursor-default"
             >
               <div className="flex items-center justify-between p-3 bg-zinc-950 border-b border-zinc-800 text-white">
                 <div className="flex items-center gap-2">
