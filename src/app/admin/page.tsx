@@ -2458,31 +2458,29 @@ The dradix Operations Team`,
 
               {activeTab === "feedback" && (
                 <div className="space-y-4">
-                  {/* Top Stats */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="bg-white rounded-lg border border-zinc-200 p-3.5 shadow-2xs">
+                    <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-3.5 shadow-xs">
                       <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Total Feedbacks</p>
-                      <p className="text-2xl font-bold font-mono text-zinc-900 mt-1">{feedbackStats.totalFeedbacks}</p>
+                      <p className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-1">{feedbackStats.totalFeedbacks}</p>
                     </div>
-                    <div className="bg-white rounded-lg border border-amber-200 bg-amber-50/30 p-3.5 shadow-2xs">
-                      <p className="text-[11px] font-medium text-amber-700 uppercase tracking-wider">Pending Action</p>
-                      <p className="text-2xl font-bold font-mono text-amber-900 mt-1">{feedbackStats.pendingCount}</p>
+                    <div className="bg-amber-50/40 dark:bg-amber-950/20 backdrop-blur-md rounded-xl border border-amber-200/80 dark:border-amber-900/40 p-3.5 shadow-xs">
+                      <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wider">Pending Action</p>
+                      <p className="text-2xl font-bold font-mono text-amber-900 dark:text-amber-300 mt-1">{feedbackStats.pendingCount}</p>
                     </div>
-                    <div className="bg-white rounded-lg border border-emerald-200 bg-emerald-50/30 p-3.5 shadow-2xs">
-                      <p className="text-[11px] font-medium text-emerald-700 uppercase tracking-wider">Resolved</p>
-                      <p className="text-2xl font-bold font-mono text-emerald-900 mt-1">{feedbackStats.resolvedCount}</p>
+                    <div className="bg-emerald-50/40 dark:bg-emerald-950/20 backdrop-blur-md rounded-xl border border-emerald-200/80 dark:border-emerald-900/40 p-3.5 shadow-xs">
+                      <p className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Resolved</p>
+                      <p className="text-2xl font-bold font-mono text-emerald-900 dark:text-emerald-300 mt-1">{feedbackStats.resolvedCount}</p>
                     </div>
-                    <div className="bg-white rounded-lg border border-zinc-200 p-3.5 shadow-2xs">
+                    <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-3.5 shadow-xs">
                       <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Avg User Rating</p>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <p className="text-2xl font-bold font-mono text-zinc-900">{feedbackStats.avgRating}</p>
+                        <p className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100">{feedbackStats.avgRating}</p>
                         <StarFilledIcon className="w-5 h-5 text-amber-400" />
                       </div>
                     </div>
                   </div>
 
-                  {/* Filter & Search Toolbar */}
-                  <div className="bg-white rounded-md border border-zinc-200 p-3.5 shadow-2xs space-y-3">
+                  <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-3.5 shadow-xs space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="relative flex-1 min-w-[200px]">
                         <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-zinc-400" />
@@ -2491,7 +2489,7 @@ The dradix Operations Team`,
                           placeholder="Search by user name, email, subject, or message..."
                           value={feedbackSearch}
                           onChange={(e) => setFeedbackSearch(e.target.value)}
-                          className="w-full pl-8 pr-3 py-1.5 text-xs rounded border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#015451]"
+                          className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#015451]"
                         />
                       </div>
 
@@ -2499,7 +2497,7 @@ The dradix Operations Team`,
                         <select
                           value={feedbackCategoryFilter}
                           onChange={(e) => setFeedbackCategoryFilter(e.target.value)}
-                          className="px-2.5 py-1 rounded border border-zinc-200 bg-white text-zinc-700 focus:outline-none"
+                          className="px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none"
                         >
                           <option value="ALL">All Categories</option>
                           <option value="Documentation">Documentation</option>
@@ -2512,7 +2510,7 @@ The dradix Operations Team`,
                         <select
                           value={feedbackStatusFilter}
                           onChange={(e) => setFeedbackStatusFilter(e.target.value)}
-                          className="px-2.5 py-1 rounded border border-zinc-200 bg-white text-zinc-700 focus:outline-none"
+                          className="px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none"
                         >
                           <option value="ALL">All Statuses</option>
                           <option value="PENDING">PENDING</option>
@@ -2524,19 +2522,19 @@ The dradix Operations Team`,
                         <select
                           value={feedbackRatingFilter}
                           onChange={(e) => setFeedbackRatingFilter(e.target.value)}
-                          className="px-2.5 py-1 rounded border border-zinc-200 bg-white text-zinc-700 focus:outline-none"
+                          className="px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none"
                         >
                           <option value="ALL">All Ratings</option>
-                          <option value="5">5 Stars ⭐⭐⭐⭐⭐</option>
-                          <option value="4">4 Stars ⭐⭐⭐⭐</option>
-                          <option value="3">3 Stars ⭐⭐⭐</option>
-                          <option value="2">2 Stars ⭐⭐</option>
-                          <option value="1">1 Star ⭐</option>
+                          <option value="5">5 Stars</option>
+                          <option value="4">4 Stars</option>
+                          <option value="3">3 Stars</option>
+                          <option value="2">2 Stars</option>
+                          <option value="1">1 Star</option>
                         </select>
 
                         <button
                           onClick={() => void fetchFeedbacks()}
-                          className="flex items-center gap-1.5 px-3 py-1 rounded border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 font-medium cursor-pointer transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 text-zinc-700 dark:text-zinc-300 font-medium cursor-pointer transition-colors"
                         >
                           <ReloadIcon className={`w-3 h-3 ${loadingFeedbacks ? "animate-spin" : ""}`} />
                           Refresh
@@ -2545,8 +2543,7 @@ The dradix Operations Team`,
                     </div>
                   </div>
 
-                  {/* Feedback Table */}
-                  <div className="bg-white rounded-md border border-zinc-200 overflow-hidden shadow-2xs">
+                  <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl border border-zinc-200/80 dark:border-zinc-800 overflow-hidden shadow-xs">
                     {loadingFeedbacks ? (
                       <div className="py-16 text-center text-xs text-zinc-500 space-y-2">
                         <div className="w-5 h-5 border-2 border-[#015451]/30 border-t-[#015451] rounded-full animate-spin mx-auto" />
@@ -2554,12 +2551,12 @@ The dradix Operations Team`,
                       </div>
                     ) : feedbacksList.length === 0 ? (
                       <div className="py-16 text-center text-xs text-zinc-500 space-y-2">
-                        <ChatBubbleIcon className="w-8 h-8 text-zinc-300 mx-auto" />
-                        <p className="font-semibold text-zinc-700">No feedbacks found</p>
+                        <ChatBubbleIcon className="w-8 h-8 text-zinc-300 dark:text-zinc-700 mx-auto" />
+                        <p className="font-semibold text-zinc-700 dark:text-zinc-300">No feedbacks found</p>
                         <p className="text-zinc-400">User feedback submitted from Documentation or Modal will appear here.</p>
                       </div>
                     ) : (
-                      <div className="divide-y divide-zinc-100">
+                      <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                         {feedbacksList.map((item) => {
                           const formattedDate = new Date(item.created_at).toLocaleString("en-US", {
                             month: "short",
@@ -2573,11 +2570,9 @@ The dradix Operations Team`,
                           const isUpdating = updatingFeedbackId === item.id;
 
                           return (
-                            <div key={item.id} className="p-4 hover:bg-zinc-50/50 transition-colors space-y-3">
-                              {/* Top Bar of Card */}
+                            <div key={item.id} className="p-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors space-y-3">
                               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                                 <div className="flex items-center gap-2.5">
-                                  {/* User Avatar */}
                                   <div className="w-8 h-8 rounded-full bg-[#015451] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                                     {item.user?.avatar_url ? (
                                       <img src={item.user.avatar_url} alt={item.name} className="w-8 h-8 rounded-full object-cover" />
@@ -2588,38 +2583,36 @@ The dradix Operations Team`,
 
                                   <div>
                                     <div className="flex items-center gap-2">
-                                      <span className="font-bold text-zinc-900">{item.name}</span>
+                                      <span className="font-bold text-zinc-900 dark:text-zinc-100">{item.name}</span>
                                       <span className="text-zinc-400">•</span>
                                       <span className="text-zinc-500 font-mono text-[11px]">{item.email}</span>
                                       {item.user?.role && (
                                         <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
-                                          item.user.role === "ADMIN" ? "bg-purple-100 text-purple-700" : "bg-zinc-100 text-zinc-600"
+                                          item.user.role === "ADMIN" ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300" : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                                         }`}>
                                           {item.user.role}
                                         </span>
                                       )}
                                     </div>
                                     <p className="text-[11px] text-zinc-400">
-                                      Submitted on <span className="font-mono font-medium text-zinc-600">{formattedDate}</span>
+                                      Submitted on <span className="font-mono font-medium text-zinc-600 dark:text-zinc-300">{formattedDate}</span>
                                     </p>
                                   </div>
                                 </div>
 
-                                {/* Status & Actions */}
                                 <div className="flex items-center gap-2">
-                                  {/* Status Selector */}
                                   <select
                                     disabled={isUpdating}
                                     value={item.status}
                                     onChange={(e) => handleUpdateFeedbackStatus(item.id, { status: e.target.value })}
                                     className={`px-2 py-1 rounded text-xs font-bold border transition-colors cursor-pointer ${
                                       item.status === "PENDING"
-                                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                                        ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
                                         : item.status === "IN_REVIEW"
-                                        ? "bg-blue-50 text-blue-700 border-blue-200"
+                                        ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                                         : item.status === "RESOLVED"
-                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                        : "bg-zinc-100 text-zinc-600 border-zinc-200"
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                                        : "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
                                     }`}
                                   >
                                     <option value="PENDING">PENDING</option>
@@ -2628,12 +2621,11 @@ The dradix Operations Team`,
                                     <option value="ARCHIVED">ARCHIVED</option>
                                   </select>
 
-                                  {/* Priority Selector */}
                                   <select
                                     disabled={isUpdating}
                                     value={item.priority}
                                     onChange={(e) => handleUpdateFeedbackStatus(item.id, { priority: e.target.value })}
-                                    className="px-2 py-1 rounded text-xs font-semibold bg-white border border-zinc-200 text-zinc-700 focus:outline-none cursor-pointer"
+                                    className="px-2 py-1 rounded text-xs font-semibold bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer"
                                   >
                                     <option value="LOW">Priority: Low</option>
                                     <option value="MEDIUM">Priority: Med</option>
@@ -2641,21 +2633,20 @@ The dradix Operations Team`,
                                     <option value="URGENT">Priority: Urgent</option>
                                   </select>
 
-                                  {/* Notes Button */}
                                   <button
                                     onClick={() => {
                                       setEditingAdminNotesFeedback(item);
                                       setAdminNotesInput(item.admin_notes || "");
                                     }}
-                                    className="px-2 py-1 rounded border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-600 font-medium text-[11px] cursor-pointer"
+                                    className="flex items-center gap-1 px-2 py-1 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 font-medium text-[11px] cursor-pointer"
                                   >
-                                    {item.admin_notes ? "📝 Notes" : "+ Note"}
+                                    <Pencil1Icon className="w-3 h-3 text-[#015451] dark:text-[#38bdf8]" />
+                                    <span>{item.admin_notes ? "Notes" : "Note"}</span>
                                   </button>
 
-                                  {/* Delete Button */}
                                   <button
                                     onClick={() => handleDeleteFeedback(item.id)}
-                                    className="p-1 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                    className="p-1 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
                                     title="Delete Feedback"
                                   >
                                     <TrashIcon className="w-3.5 h-3.5" />
@@ -2663,41 +2654,38 @@ The dradix Operations Team`,
                                 </div>
                               </div>
 
-                              {/* Feedback Body Details */}
-                              <div className="bg-zinc-50/80 rounded-lg p-3 border border-zinc-200/60 space-y-2">
+                              <div className="bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-200/60 dark:border-zinc-800 space-y-2">
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <div className="flex items-center gap-2">
-                                    <span className="px-2 py-0.5 rounded bg-zinc-200/80 text-zinc-800 text-[10px] font-bold">
+                                    <span className="px-2 py-0.5 rounded-md bg-zinc-200/80 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-[10px] font-bold">
                                       {item.category}
                                     </span>
-                                    <h4 className="font-bold text-xs text-zinc-900">{item.subject}</h4>
+                                    <h4 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">{item.subject}</h4>
                                   </div>
 
-                                  {/* Stars */}
                                   <div className="flex items-center gap-0.5">
                                     {[1, 2, 3, 4, 5].map((star) => (
                                       <StarFilledIcon
                                         key={star}
-                                        className={`w-3.5 h-3.5 ${star <= (item.rating || 5) ? "text-amber-400" : "text-zinc-300"}`}
+                                        className={`w-3.5 h-3.5 ${star <= (item.rating || 5) ? "text-amber-400" : "text-zinc-300 dark:text-zinc-700"}`}
                                       />
                                     ))}
                                   </div>
                                 </div>
 
-                                <p className="text-xs text-zinc-700 leading-relaxed whitespace-pre-wrap">
+                                <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
                                   {item.message}
                                 </p>
 
-                                {/* Context Badges */}
                                 <div className="flex flex-wrap items-center gap-3 pt-1 text-[10px] text-zinc-500 font-mono">
                                   {item.page_url && (
-                                    <span className="truncate max-w-xs bg-white px-2 py-0.5 rounded border border-zinc-200">
-                                      📍 Page: {item.page_url}
+                                    <span className="truncate max-w-xs bg-white dark:bg-zinc-800 px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">
+                                      Page: {item.page_url}
                                     </span>
                                   )}
                                   {item.admin_notes && (
-                                    <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded border border-amber-200 font-sans">
-                                      📝 Admin Note: {item.admin_notes}
+                                    <span className="bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800 font-sans">
+                                      Admin Note: {item.admin_notes}
                                     </span>
                                   )}
                                 </div>

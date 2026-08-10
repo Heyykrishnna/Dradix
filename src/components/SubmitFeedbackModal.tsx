@@ -11,6 +11,10 @@ import {
   CheckCircledIcon,
   PaperPlaneIcon,
   ChatBubbleIcon,
+  FileTextIcon,
+  ExclamationTriangleIcon,
+  RocketIcon,
+  Pencil1Icon,
 } from "@radix-ui/react-icons";
 
 interface SubmitFeedbackModalProps {
@@ -21,11 +25,11 @@ interface SubmitFeedbackModalProps {
 }
 
 const CATEGORIES = [
-  { id: "Documentation", label: "Documentation", icon: "📚" },
-  { id: "Bug Report", label: "Bug Report", icon: "🐛" },
-  { id: "Feature Request", label: "Feature Request", icon: "💡" },
-  { id: "UI/UX", label: "UI / UX Design", icon: "🎨" },
-  { id: "General", label: "General Feedback", icon: "💬" },
+  { id: "Documentation", label: "Documentation", icon: FileTextIcon },
+  { id: "Bug Report", label: "Bug Report", icon: ExclamationTriangleIcon },
+  { id: "Feature Request", label: "Feature Request", icon: RocketIcon },
+  { id: "UI/UX", label: "UI / UX Design", icon: Pencil1Icon },
+  { id: "General", label: "General Feedback", icon: ChatBubbleIcon },
 ];
 
 export default function SubmitFeedbackModal({
@@ -100,7 +104,7 @@ export default function SubmitFeedbackModal({
         setSubject("");
         setMessage("");
         onClose();
-      }, 2000);
+      }, 1800);
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to submit feedback. Please try again.");
     } finally {
@@ -112,27 +116,24 @@ export default function SubmitFeedbackModal({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 text-left">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/65 backdrop-blur-md"
+            className="fixed inset-0 bg-black/70 backdrop-blur-xl transition-all duration-300"
           />
 
-          {/* Modal Card */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            initial={{ opacity: 0, scale: 0.96, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 12 }}
-            transition={{ type: "spring", stiffness: 350, damping: 28 }}
-            className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden z-10 text-zinc-900 dark:text-zinc-100"
+            exit={{ opacity: 0, scale: 0.96, y: 16 }}
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            className="relative w-full max-w-lg bg-white/85 dark:bg-zinc-900/85 backdrop-blur-2xl border border-white/40 dark:border-zinc-800/80 rounded-3xl shadow-[0_16px_48px_0_rgba(0,0,0,0.2)] overflow-hidden z-10 text-zinc-900 dark:text-zinc-100"
           >
-            {/* Header */}
-            <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
+            <div className="px-6 py-5 border-b border-zinc-200/60 dark:border-zinc-800/80 flex items-center justify-between bg-zinc-100/40 dark:bg-zinc-900/40">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#015451] text-white flex items-center justify-center shadow-md shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-[#015451] text-white flex items-center justify-center shadow-lg shrink-0">
                   <ChatBubbleIcon className="w-5 h-5" />
                 </div>
                 <div>
@@ -140,60 +141,59 @@ export default function SubmitFeedbackModal({
                     Submit Feedback
                   </h3>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Help us improve Dradix with your thoughts & suggestions
+                    Direct telemetry sync to platform admin core
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
               >
                 <Cross2Icon className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Content */}
             <div className="p-6">
               {submitted ? (
                 <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
-                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2 animate-bounce">
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2 shadow-inner">
                     <CheckCircledIcon className="w-10 h-10" />
                   </div>
                   <h4 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                    Feedback Received!
+                    Feedback Synchronized
                   </h4>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs">
-                    Your feedback has been logged directly to our core dashboard. Thank you for making Dradix better!
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed">
+                    Your feedback has been registered and synced directly to the admin dashboard.
                   </p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {errorMsg && (
-                    <div className="p-3 text-xs font-medium bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 text-red-600 dark:text-red-400 rounded-xl">
+                    <div className="p-3 text-xs font-medium bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-2xl">
                       {errorMsg}
                     </div>
                   )}
 
-                  {/* Category Picker */}
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                      Category
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 uppercase tracking-wider">
+                      Feedback Category
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {CATEGORIES.map((cat) => {
                         const isSelected = category === cat.id;
+                        const Icon = cat.icon;
                         return (
                           <button
                             key={cat.id}
                             type="button"
                             onClick={() => setCategory(cat.id)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border transition-all text-left ${
+                            className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-xs transition-all duration-200 text-left cursor-pointer border ${
                               isSelected
-                                ? "bg-[#015451]/10 border-[#015451] text-[#015451] dark:text-[#38bdf8] dark:bg-[#015451]/20 font-semibold shadow-xs"
-                                : "bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-700"
+                                ? "bg-[#015451]/15 border-[#015451] text-[#015451] dark:text-[#38bdf8] font-bold shadow-xs backdrop-blur-md"
+                                : "bg-zinc-100/60 dark:bg-zinc-800/40 border-zinc-200/80 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-700"
                             }`}
                           >
-                            <span className="text-sm">{cat.icon}</span>
+                            <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-[#015451] dark:text-[#38bdf8]" : "text-zinc-400"}`} />
                             <span className="truncate">{cat.label}</span>
                           </button>
                         );
@@ -201,49 +201,49 @@ export default function SubmitFeedbackModal({
                     </div>
                   </div>
 
-                  {/* Rating Selector */}
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                      Experience Rating
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 uppercase tracking-wider">
+                      Rating Score
                     </label>
-                    <div className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800/40 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                      {[1, 2, 3, 4, 5].map((star) => {
-                        const isFilled = (hoverRating !== null ? hoverRating : rating) >= star;
-                        return (
-                          <button
-                            key={star}
-                            type="button"
-                            onMouseEnter={() => setHoverRating(star)}
-                            onMouseLeave={() => setHoverRating(null)}
-                            onClick={() => setRating(star)}
-                            className="p-1 transition-transform hover:scale-110 focus:outline-none"
-                          >
-                            {isFilled ? (
-                              <StarFilledIcon className="w-5 h-5 text-amber-400 drop-shadow-xs" />
-                            ) : (
-                              <StarIcon className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
-                            )}
-                          </button>
-                        );
-                      })}
-                      <span className="ml-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                        {rating === 5 ? "Excellent (5/5)" : rating === 4 ? "Good (4/5)" : rating === 3 ? "Average (3/5)" : rating === 2 ? "Needs Work (2/5)" : "Poor (1/5)"}
+                    <div className="flex items-center justify-between bg-zinc-100/60 dark:bg-zinc-800/40 px-3.5 py-2.5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 backdrop-blur-md">
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const isFilled = (hoverRating !== null ? hoverRating : rating) >= star;
+                          return (
+                            <button
+                              key={star}
+                              type="button"
+                              onMouseEnter={() => setHoverRating(star)}
+                              onMouseLeave={() => setHoverRating(null)}
+                              onClick={() => setRating(star)}
+                              className="p-1 transition-transform hover:scale-110 focus:outline-none cursor-pointer"
+                            >
+                              {isFilled ? (
+                                <StarFilledIcon className="w-5 h-5 text-amber-400" />
+                              ) : (
+                                <StarIcon className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-zinc-500 dark:text-zinc-400">
+                        {rating} / 5
                       </span>
                     </div>
                   </div>
 
-                  {/* Name & Email (Pre-filled or Editable) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                        Your Name
+                        Full Name
                       </label>
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#015451]"
+                        className="w-full px-3.5 py-2 text-xs rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#015451] transition-all"
                       />
                     </div>
                     <div>
@@ -255,64 +255,61 @@ export default function SubmitFeedbackModal({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="john@example.com"
-                        className="w-full px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#015451]"
+                        className="w-full px-3.5 py-2 text-xs rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#015451] transition-all"
                       />
                     </div>
                   </div>
 
-                  {/* Subject */}
                   <div>
                     <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                      Subject / Topic <span className="text-red-500">*</span>
+                      Subject
                     </label>
                     <input
                       type="text"
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
-                      placeholder="e.g. Navigation issue on API documentation section"
+                      placeholder="Enter a descriptive topic header"
                       required
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#015451]"
+                      className="w-full px-3.5 py-2 text-xs rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#015451] transition-all"
                     />
                   </div>
 
-                  {/* Detailed Message */}
                   <div>
                     <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                      Detailed Feedback <span className="text-red-500">*</span>
+                      Detailed Feedback Message
                     </label>
                     <textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       rows={4}
-                      placeholder="Describe your feedback, suggestion, or issue in detail..."
+                      placeholder="Write your suggestions, documentation observations, or feedback details..."
                       required
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#015451] resize-none"
+                      className="w-full px-3.5 py-2.5 text-xs rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#015451] transition-all resize-none"
                     />
                   </div>
 
-                  {/* Footer Action Buttons */}
-                  <div className="pt-2 flex items-center justify-end gap-2.5">
+                  <div className="pt-2 flex items-center justify-end gap-3">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                      className="px-4 py-2 rounded-2xl text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold bg-[#015451] hover:bg-[#01403e] text-white shadow-md transition-all disabled:opacity-50 cursor-pointer"
+                      className="flex items-center gap-2 px-5 py-2 rounded-2xl text-xs font-semibold bg-[#015451] hover:bg-[#01403e] text-white shadow-lg transition-all disabled:opacity-50 cursor-pointer"
                     >
                       {submitting ? (
                         <>
                           <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Submitting...
+                          <span>Submitting...</span>
                         </>
                       ) : (
                         <>
                           <PaperPlaneIcon className="w-3.5 h-3.5" />
-                          Submit Feedback
+                          <span>Submit Feedback</span>
                         </>
                       )}
                     </button>
