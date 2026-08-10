@@ -12,12 +12,10 @@ import {
   ChevronRightIcon,
   MagnifyingGlassIcon,
   ChatBubbleIcon,
-  RocketIcon,
   CodeIcon,
   CheckIcon,
   InfoCircledIcon,
   LightningBoltIcon,
-  QuestionMarkCircledIcon,
 } from "@radix-ui/react-icons";
 
 interface Section {
@@ -33,7 +31,9 @@ export default function DocumentationPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [feedbackCategory, setFeedbackCategory] = useState("Documentation");
-  const [sectionHelpfulStatus, setSectionHelpfulStatus] = useState<Record<string, "yes" | "no" | null>>({});
+  const [sectionHelpfulStatus, setSectionHelpfulStatus] = useState<
+    Record<string, "yes" | "no" | null>
+  >({});
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const isClickScrollingRef = useRef(false);
@@ -85,16 +85,25 @@ export default function DocumentationPage() {
         content: (
           <div className="space-y-5">
             <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
-              Welcome to the official <strong className="text-zinc-900 dark:text-zinc-100 font-semibold">Dradix Documentation Hub</strong>. Dradix is an advanced developer portfolio engine, resume ATS scanner, and telemetry analyzer designed to aggregate software engineering achievements into a verified digital showcase.
+              Welcome to the official{" "}
+              <strong className="text-zinc-900 dark:text-zinc-100 font-semibold">
+                Dradix Documentation Hub
+              </strong>
+              . Dradix is an advanced developer portfolio engine, resume ATS
+              scanner, and telemetry analyzer designed to aggregate software
+              engineering achievements into a verified digital showcase.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-[#015451]/5 dark:bg-[#015451]/10 border border-[#015451]/20 rounded-2xl p-5 text-[#003c3a] dark:text-[#38bdf8] space-y-2 backdrop-blur-md">
                 <div className="flex items-center gap-2 font-bold text-sm text-[#015451] dark:text-[#38bdf8]">
-                  <LightningBoltIcon className="w-4 h-4" /> Live Metric Telemetry
+                  <LightningBoltIcon className="w-4 h-4" /> Live Metric
+                  Telemetry
                 </div>
                 <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  Real-time synchronization of commits, pull requests, ratings, and stats from GitHub, LeetCode, and competitive coding platforms.
+                  Real-time synchronization of commits, pull requests, ratings,
+                  and stats from GitHub, LeetCode, and competitive coding
+                  platforms.
                 </p>
               </div>
 
@@ -103,7 +112,9 @@ export default function DocumentationPage() {
                   <CodeIcon className="w-4 h-4" /> AI Resume ATS Engine
                 </div>
                 <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  Instant ATS compatibility parsing, keyword gap identification, structural formatting analysis, and recruiter alignment recommendations.
+                  Instant ATS compatibility parsing, keyword gap identification,
+                  structural formatting analysis, and recruiter alignment
+                  recommendations.
                 </p>
               </div>
             </div>
@@ -126,8 +137,13 @@ export default function DocumentationPage() {
                   1
                 </span>
                 <div>
-                  <h4 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">Account Authentication</h4>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Register through Google OAuth or email and password authentication.</p>
+                  <h4 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                    Account Authentication
+                  </h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Register through Google OAuth or email and password
+                    authentication.
+                  </p>
                 </div>
               </div>
 
@@ -136,8 +152,13 @@ export default function DocumentationPage() {
                   2
                 </span>
                 <div>
-                  <h4 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">Sync Developer Profiles</h4>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Connect your GitHub Personal Access Token or username to sync activity.</p>
+                  <h4 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                    Sync Developer Profiles
+                  </h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Connect your GitHub Personal Access Token or username to
+                    sync activity.
+                  </p>
                 </div>
               </div>
 
@@ -146,8 +167,13 @@ export default function DocumentationPage() {
                   3
                 </span>
                 <div>
-                  <h4 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">Analyze & Showcase</h4>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Upload your resume for ATS scoring and publish your verified developer portfolio.</p>
+                  <h4 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                    Analyze & Showcase
+                  </h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Upload your resume for ATS scoring and publish your verified
+                    developer portfolio.
+                  </p>
                 </div>
               </div>
             </div>
@@ -161,33 +187,47 @@ export default function DocumentationPage() {
         content: (
           <div className="space-y-6">
             <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
-              Dradix exposes a high-performance REST API rooted at <code className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-[#015451] dark:text-[#38bdf8] font-mono text-xs">/api/v1</code>.
+              Dradix exposes a high-performance REST API rooted at{" "}
+              <code className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-[#015451] dark:text-[#38bdf8] font-mono text-xs">
+                /api/v1
+              </code>
+              .
             </p>
 
             <div className="space-y-3 font-mono text-xs">
               <div className="p-4 rounded-2xl bg-zinc-900 text-zinc-100 border border-zinc-800 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">POST</span>
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">
+                      POST
+                    </span>
                     <span className="font-bold">/api/v1/feedback</span>
                   </div>
-                  <span className="text-[10px] text-zinc-500">Public / Optional JWT</span>
+                  <span className="text-[10px] text-zinc-500">
+                    Public / Optional JWT
+                  </span>
                 </div>
                 <p className="text-xs text-zinc-400 font-sans leading-relaxed">
-                  Submits feedback, category, star rating, subject, message, and page URL telemetry directly to backend database.
+                  Submits feedback, category, star rating, subject, message, and
+                  page URL telemetry directly to backend database.
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-zinc-900 text-zinc-100 border border-zinc-800 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 font-bold text-[10px]">GET</span>
+                    <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 font-bold text-[10px]">
+                      GET
+                    </span>
                     <span className="font-bold">/api/v1/admin/feedback</span>
                   </div>
-                  <span className="text-[10px] text-purple-400 font-bold">Admin Only</span>
+                  <span className="text-[10px] text-purple-400 font-bold">
+                    Admin Only
+                  </span>
                 </div>
                 <p className="text-xs text-zinc-400 font-sans leading-relaxed">
-                  Retrieves aggregated feedback records with user details, status badges, priority filtering, and search options.
+                  Retrieves aggregated feedback records with user details,
+                  status badges, priority filtering, and search options.
                 </p>
               </div>
             </div>
@@ -225,7 +265,9 @@ export default function DocumentationPage() {
                     className="w-full px-5 py-4 flex items-center justify-between gap-4 text-left font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-[#015451] dark:hover:text-[#38bdf8] transition-colors cursor-pointer"
                   >
                     <span>{item.q}</span>
-                    <ChevronDownIcon className={`w-4 h-4 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#015451] dark:text-[#38bdf8]" : "text-zinc-400"}`} />
+                    <ChevronDownIcon
+                      className={`w-4 h-4 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[#015451] dark:text-[#38bdf8]" : "text-zinc-400"}`}
+                    />
                   </button>
                   <AnimatePresence>
                     {isOpen && (
@@ -247,17 +289,20 @@ export default function DocumentationPage() {
         ),
       },
     ],
-    [openFaq]
+    [openFaq],
   );
 
   useEffect(() => {
     const handleObserver = (entries: IntersectionObserverEntry[]) => {
       if (isClickScrollingRef.current) return;
 
-      const intersectingEntries = entries.filter((entry) => entry.isIntersecting);
+      const intersectingEntries = entries.filter(
+        (entry) => entry.isIntersecting,
+      );
       if (intersectingEntries.length > 0) {
         const topEntry = intersectingEntries.reduce((prev, curr) => {
-          return Math.abs(curr.boundingClientRect.top) < Math.abs(prev.boundingClientRect.top)
+          return Math.abs(curr.boundingClientRect.top) <
+            Math.abs(prev.boundingClientRect.top)
             ? curr
             : prev;
         }, intersectingEntries[0]);
@@ -286,7 +331,7 @@ export default function DocumentationPage() {
     ? sections.filter(
         (sec) =>
           sec.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          sec.badge.toLowerCase().includes(searchQuery.toLowerCase())
+          sec.badge.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : sections;
 
@@ -346,12 +391,16 @@ export default function DocumentationPage() {
           </h1>
 
           <p className="text-zinc-200 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed font-normal mb-8">
-            Complete technical documentation, API specifications, user onboarding guides, and platform feedback integration.
+            Complete technical documentation, API specifications, user
+            onboarding guides, and platform feedback integration.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-zinc-300">
             <span className="bg-black/50 border border-white/15 px-4 py-2 rounded-xl backdrop-blur-md">
-              API Status: <strong className="text-emerald-400 font-semibold">Active (v1)</strong>
+              API Status:{" "}
+              <strong className="text-emerald-400 font-semibold">
+                Active (v1)
+              </strong>
             </span>
             <span className="bg-black/50 border border-white/15 px-4 py-2 rounded-xl backdrop-blur-md">
               Sync Mode: <strong className="text-white">Real-Time</strong>
@@ -412,19 +461,22 @@ export default function DocumentationPage() {
                         }`}
                       >
                         <span className="truncate">{sec.title}</span>
-                        {isActive && <ChevronRightIcon className="w-3.5 h-3.5 text-[#015451] dark:text-[#38bdf8] shrink-0" />}
+                        {isActive && (
+                          <ChevronRightIcon className="w-3.5 h-3.5 text-[#015451] dark:text-[#38bdf8] shrink-0" />
+                        )}
                       </button>
                     );
                   })}
                 </nav>
               </div>
 
-              <div className="bg-gradient-to-br from-[#015451]/10 to-emerald-500/5 dark:from-[#015451]/20 dark:to-emerald-950/20 border border-[#015451]/20 rounded-2xl p-4 text-xs space-y-2 backdrop-blur-xl">
+              <div className="bg-linear-to-br from-[#015451]/10 to-emerald-500/5 dark:from-[#015451]/20 dark:to-emerald-950/20 border border-[#015451]/20 rounded-2xl p-4 text-xs space-y-2 backdrop-blur-xl">
                 <div className="flex items-center gap-2 text-[#015451] dark:text-[#38bdf8] font-bold">
                   <InfoCircledIcon className="w-4 h-4" /> Need Custom Help?
                 </div>
                 <p className="text-zinc-600 dark:text-zinc-400 text-[11px] leading-relaxed">
-                  Have a suggestion or found an issue in documentation? Send feedback directly to platform administrators.
+                  Have a suggestion or found an issue in documentation? Send
+                  feedback directly to platform administrators.
                 </p>
                 <button
                   onClick={() => setIsFeedbackModalOpen(true)}
@@ -453,14 +505,15 @@ export default function DocumentationPage() {
 
                   <div>{sec.content}</div>
 
-                  <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50">
+                  <div className="pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50">
                     <span className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
                       Was this documentation section helpful?
                     </span>
 
                     {sectionHelpfulStatus[sec.id] ? (
                       <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                        <CheckIcon className="w-4 h-4" /> Thank you for your feedback
+                        <CheckIcon className="w-4 h-4" /> Thank you for your
+                        feedback
                       </span>
                     ) : (
                       <div className="flex items-center gap-2">

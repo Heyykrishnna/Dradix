@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminGuard from "@/components/AdminGuard";
 import { useAuth } from "@/context/AuthContext";
@@ -31,7 +32,6 @@ import {
   Cross2Icon,
   ChatBubbleIcon,
   StarFilledIcon,
-  StarIcon,
 } from "@radix-ui/react-icons";
 import { Shield } from "lucide-react";
 
@@ -498,7 +498,13 @@ export default function AdminPage() {
 function AdminDashboardContent() {
   const { user, checkAuth } = useAuth();
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "users" | "feedback" | "notifications" | "logs" | "health" | "assets"
+    | "dashboard"
+    | "users"
+    | "feedback"
+    | "notifications"
+    | "logs"
+    | "health"
+    | "assets"
   >("dashboard");
 
   const [feedbacksList, setFeedbacksList] = useState<AdminFeedbackItem[]>([]);
@@ -513,8 +519,11 @@ function AdminDashboardContent() {
     resolvedCount: 0,
     avgRating: 5,
   });
-  const [updatingFeedbackId, setUpdatingFeedbackId] = useState<number | null>(null);
-  const [editingAdminNotesFeedback, setEditingAdminNotesFeedback] = useState<AdminFeedbackItem | null>(null);
+  const [updatingFeedbackId, setUpdatingFeedbackId] = useState<number | null>(
+    null,
+  );
+  const [editingAdminNotesFeedback, setEditingAdminNotesFeedback] =
+    useState<AdminFeedbackItem | null>(null);
   const [adminNotesInput, setAdminNotesInput] = useState("");
 
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -761,14 +770,19 @@ The dradix Operations Team`,
     try {
       const params = new URLSearchParams();
       if (feedbackSearch.trim()) params.set("search", feedbackSearch.trim());
-      if (feedbackCategoryFilter !== "ALL") params.set("category", feedbackCategoryFilter);
-      if (feedbackStatusFilter !== "ALL") params.set("status", feedbackStatusFilter);
-      if (feedbackRatingFilter !== "ALL") params.set("rating", feedbackRatingFilter);
+      if (feedbackCategoryFilter !== "ALL")
+        params.set("category", feedbackCategoryFilter);
+      if (feedbackStatusFilter !== "ALL")
+        params.set("status", feedbackStatusFilter);
+      if (feedbackRatingFilter !== "ALL")
+        params.set("rating", feedbackRatingFilter);
 
-      const res = await apiFetch<ApiResponse<{
-        feedbacks: AdminFeedbackItem[];
-        stats: FeedbackStats;
-      }>>(`/admin/feedback?${params.toString()}`);
+      const res = await apiFetch<
+        ApiResponse<{
+          feedbacks: AdminFeedbackItem[];
+          stats: FeedbackStats;
+        }>
+      >(`/admin/feedback?${params.toString()}`);
 
       if (res.success && res.data) {
         setFeedbacksList(res.data.feedbacks || []);
@@ -781,18 +795,26 @@ The dradix Operations Team`,
     } finally {
       setLoadingFeedbacks(false);
     }
-  }, [feedbackSearch, feedbackCategoryFilter, feedbackStatusFilter, feedbackRatingFilter]);
+  }, [
+    feedbackSearch,
+    feedbackCategoryFilter,
+    feedbackStatusFilter,
+    feedbackRatingFilter,
+  ]);
 
   const handleUpdateFeedbackStatus = async (
     id: number,
-    updates: { status?: string; priority?: string; admin_notes?: string }
+    updates: { status?: string; priority?: string; admin_notes?: string },
   ) => {
     try {
       setUpdatingFeedbackId(id);
-      const res = await apiFetch<ApiResponse<AdminFeedbackItem>>(`/admin/feedback/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(updates),
-      });
+      const res = await apiFetch<ApiResponse<AdminFeedbackItem>>(
+        `/admin/feedback/${id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(updates),
+        },
+      );
       if (res.success) {
         showNotice("Feedback updated successfully!");
         await fetchFeedbacks();
@@ -800,8 +822,9 @@ The dradix Operations Team`,
           setEditingAdminNotesFeedback(null);
         }
       }
-    } catch (err: any) {
-      showNotice(`Failed to update feedback: ${err.message}`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      showNotice(`Failed to update feedback: ${error.message}`);
     } finally {
       setUpdatingFeedbackId(null);
     }
@@ -813,8 +836,9 @@ The dradix Operations Team`,
       await apiFetch(`/admin/feedback/${id}`, { method: "DELETE" });
       showNotice("Feedback deleted successfully");
       await fetchFeedbacks();
-    } catch (err: any) {
-      showNotice(`Failed to delete feedback: ${err.message}`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      showNotice(`Failed to delete feedback: ${error.message}`);
     }
   };
 
@@ -1394,7 +1418,14 @@ The dradix Operations Team`,
   const upcomingList = analyticsData?.upcomingActivities || [];
 
   const navItems: {
-    id: "dashboard" | "users" | "feedback" | "notifications" | "logs" | "health" | "assets";
+    id:
+      | "dashboard"
+      | "users"
+      | "feedback"
+      | "notifications"
+      | "logs"
+      | "health"
+      | "assets";
     label: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: React.ReactNode;
@@ -1418,15 +1449,16 @@ The dradix Operations Team`,
       id: "feedback",
       label: "User Feedback",
       icon: ChatBubbleIcon,
-      badge: feedbackStats.pendingCount > 0 ? (
-        <span className="text-[10px] bg-amber-100 text-amber-800 font-mono font-bold px-1.5 py-0.2 rounded border border-amber-300">
-          {feedbackStats.pendingCount}
-        </span>
-      ) : (
-        <span className="text-[10px] bg-zinc-100 text-zinc-600 font-mono font-semibold px-1.5 py-0.2 rounded border border-zinc-200">
-          {feedbackStats.totalFeedbacks}
-        </span>
-      ),
+      badge:
+        feedbackStats.pendingCount > 0 ? (
+          <span className="text-[10px] bg-amber-100 text-amber-800 font-mono font-bold px-1.5 py-0.2 rounded border border-amber-300">
+            {feedbackStats.pendingCount}
+          </span>
+        ) : (
+          <span className="text-[10px] bg-zinc-100 text-zinc-600 font-mono font-semibold px-1.5 py-0.2 rounded border border-zinc-200">
+            {feedbackStats.totalFeedbacks}
+          </span>
+        ),
     },
     {
       id: "notifications",
@@ -1583,7 +1615,8 @@ The dradix Operations Team`,
               <DashboardIcon className="w-4 h-4 text-[#015451]" />
               {activeTab === "dashboard" && "Operations Telemetry"}
               {activeTab === "users" && "User Directory & Management"}
-              {activeTab === "feedback" && "User Feedback & Documentation Reviews"}
+              {activeTab === "feedback" &&
+                "User Feedback & Documentation Reviews"}
               {activeTab === "notifications" &&
                 "Notification Dispatch & Target Studio"}
               {activeTab === "logs" && "System Audit Logs"}
@@ -2460,21 +2493,37 @@ The dradix Operations Team`,
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-3.5 shadow-xs">
-                      <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Total Feedbacks</p>
-                      <p className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-1">{feedbackStats.totalFeedbacks}</p>
+                      <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                        Total Feedbacks
+                      </p>
+                      <p className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-1">
+                        {feedbackStats.totalFeedbacks}
+                      </p>
                     </div>
                     <div className="bg-amber-50/40 dark:bg-amber-950/20 backdrop-blur-md rounded-xl border border-amber-200/80 dark:border-amber-900/40 p-3.5 shadow-xs">
-                      <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wider">Pending Action</p>
-                      <p className="text-2xl font-bold font-mono text-amber-900 dark:text-amber-300 mt-1">{feedbackStats.pendingCount}</p>
+                      <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                        Pending Action
+                      </p>
+                      <p className="text-2xl font-bold font-mono text-amber-900 dark:text-amber-300 mt-1">
+                        {feedbackStats.pendingCount}
+                      </p>
                     </div>
                     <div className="bg-emerald-50/40 dark:bg-emerald-950/20 backdrop-blur-md rounded-xl border border-emerald-200/80 dark:border-emerald-900/40 p-3.5 shadow-xs">
-                      <p className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Resolved</p>
-                      <p className="text-2xl font-bold font-mono text-emerald-900 dark:text-emerald-300 mt-1">{feedbackStats.resolvedCount}</p>
+                      <p className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                        Resolved
+                      </p>
+                      <p className="text-2xl font-bold font-mono text-emerald-900 dark:text-emerald-300 mt-1">
+                        {feedbackStats.resolvedCount}
+                      </p>
                     </div>
                     <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-3.5 shadow-xs">
-                      <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Avg User Rating</p>
+                      <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                        Avg User Rating
+                      </p>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <p className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100">{feedbackStats.avgRating}</p>
+                        <p className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100">
+                          {feedbackStats.avgRating}
+                        </p>
                         <StarFilledIcon className="w-5 h-5 text-amber-400" />
                       </div>
                     </div>
@@ -2482,7 +2531,7 @@ The dradix Operations Team`,
 
                   <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-3.5 shadow-xs space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="relative flex-1 min-w-[200px]">
+                      <div className="relative flex-1 min-w-50">
                         <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-zinc-400" />
                         <input
                           type="text"
@@ -2496,20 +2545,26 @@ The dradix Operations Team`,
                       <div className="flex flex-wrap items-center gap-2 text-xs">
                         <select
                           value={feedbackCategoryFilter}
-                          onChange={(e) => setFeedbackCategoryFilter(e.target.value)}
+                          onChange={(e) =>
+                            setFeedbackCategoryFilter(e.target.value)
+                          }
                           className="px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none"
                         >
                           <option value="ALL">All Categories</option>
                           <option value="Documentation">Documentation</option>
                           <option value="Bug Report">Bug Report</option>
-                          <option value="Feature Request">Feature Request</option>
+                          <option value="Feature Request">
+                            Feature Request
+                          </option>
                           <option value="UI/UX">UI / UX Design</option>
                           <option value="General">General Feedback</option>
                         </select>
 
                         <select
                           value={feedbackStatusFilter}
-                          onChange={(e) => setFeedbackStatusFilter(e.target.value)}
+                          onChange={(e) =>
+                            setFeedbackStatusFilter(e.target.value)
+                          }
                           className="px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none"
                         >
                           <option value="ALL">All Statuses</option>
@@ -2521,7 +2576,9 @@ The dradix Operations Team`,
 
                         <select
                           value={feedbackRatingFilter}
-                          onChange={(e) => setFeedbackRatingFilter(e.target.value)}
+                          onChange={(e) =>
+                            setFeedbackRatingFilter(e.target.value)
+                          }
                           className="px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none"
                         >
                           <option value="ALL">All Ratings</option>
@@ -2536,7 +2593,9 @@ The dradix Operations Team`,
                           onClick={() => void fetchFeedbacks()}
                           className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 text-zinc-700 dark:text-zinc-300 font-medium cursor-pointer transition-colors"
                         >
-                          <ReloadIcon className={`w-3 h-3 ${loadingFeedbacks ? "animate-spin" : ""}`} />
+                          <ReloadIcon
+                            className={`w-3 h-3 ${loadingFeedbacks ? "animate-spin" : ""}`}
+                          />
                           Refresh
                         </button>
                       </div>
@@ -2552,13 +2611,20 @@ The dradix Operations Team`,
                     ) : feedbacksList.length === 0 ? (
                       <div className="py-16 text-center text-xs text-zinc-500 space-y-2">
                         <ChatBubbleIcon className="w-8 h-8 text-zinc-300 dark:text-zinc-700 mx-auto" />
-                        <p className="font-semibold text-zinc-700 dark:text-zinc-300">No feedbacks found</p>
-                        <p className="text-zinc-400">User feedback submitted from Documentation or Modal will appear here.</p>
+                        <p className="font-semibold text-zinc-700 dark:text-zinc-300">
+                          No feedbacks found
+                        </p>
+                        <p className="text-zinc-400">
+                          User feedback submitted from Documentation or Modal
+                          will appear here.
+                        </p>
                       </div>
                     ) : (
                       <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                         {feedbacksList.map((item) => {
-                          const formattedDate = new Date(item.created_at).toLocaleString("en-US", {
+                          const formattedDate = new Date(
+                            item.created_at,
+                          ).toLocaleString("en-US", {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
@@ -2570,12 +2636,22 @@ The dradix Operations Team`,
                           const isUpdating = updatingFeedbackId === item.id;
 
                           return (
-                            <div key={item.id} className="p-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors space-y-3">
+                            <div
+                              key={item.id}
+                              className="p-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors space-y-3"
+                            >
                               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                                 <div className="flex items-center gap-2.5">
                                   <div className="w-8 h-8 rounded-full bg-[#015451] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                                     {item.user?.avatar_url ? (
-                                      <img src={item.user.avatar_url} alt={item.name} className="w-8 h-8 rounded-full object-cover" />
+                                      <Image
+                                        src={item.user.avatar_url}
+                                        alt={item.name}
+                                        width={32}
+                                        height={32}
+                                        unoptimized
+                                        className="w-8 h-8 rounded-full object-cover"
+                                      />
                                     ) : (
                                       item.name.substring(0, 2).toUpperCase()
                                     )}
@@ -2583,19 +2659,30 @@ The dradix Operations Team`,
 
                                   <div>
                                     <div className="flex items-center gap-2">
-                                      <span className="font-bold text-zinc-900 dark:text-zinc-100">{item.name}</span>
+                                      <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                                        {item.name}
+                                      </span>
                                       <span className="text-zinc-400">•</span>
-                                      <span className="text-zinc-500 font-mono text-[11px]">{item.email}</span>
+                                      <span className="text-zinc-500 font-mono text-[11px]">
+                                        {item.email}
+                                      </span>
                                       {item.user?.role && (
-                                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
-                                          item.user.role === "ADMIN" ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300" : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-                                        }`}>
+                                        <span
+                                          className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                            item.user.role === "ADMIN"
+                                              ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
+                                              : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                                          }`}
+                                        >
                                           {item.user.role}
                                         </span>
                                       )}
                                     </div>
                                     <p className="text-[11px] text-zinc-400">
-                                      Submitted on <span className="font-mono font-medium text-zinc-600 dark:text-zinc-300">{formattedDate}</span>
+                                      Submitted on{" "}
+                                      <span className="font-mono font-medium text-zinc-600 dark:text-zinc-300">
+                                        {formattedDate}
+                                      </span>
                                     </p>
                                   </div>
                                 </div>
@@ -2604,15 +2691,19 @@ The dradix Operations Team`,
                                   <select
                                     disabled={isUpdating}
                                     value={item.status}
-                                    onChange={(e) => handleUpdateFeedbackStatus(item.id, { status: e.target.value })}
+                                    onChange={(e) =>
+                                      handleUpdateFeedbackStatus(item.id, {
+                                        status: e.target.value,
+                                      })
+                                    }
                                     className={`px-2 py-1 rounded text-xs font-bold border transition-colors cursor-pointer ${
                                       item.status === "PENDING"
                                         ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
                                         : item.status === "IN_REVIEW"
-                                        ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
-                                        : item.status === "RESOLVED"
-                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                                        : "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
+                                          ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
+                                          : item.status === "RESOLVED"
+                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                                            : "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
                                     }`}
                                   >
                                     <option value="PENDING">PENDING</option>
@@ -2624,28 +2715,42 @@ The dradix Operations Team`,
                                   <select
                                     disabled={isUpdating}
                                     value={item.priority}
-                                    onChange={(e) => handleUpdateFeedbackStatus(item.id, { priority: e.target.value })}
+                                    onChange={(e) =>
+                                      handleUpdateFeedbackStatus(item.id, {
+                                        priority: e.target.value,
+                                      })
+                                    }
                                     className="px-2 py-1 rounded text-xs font-semibold bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer"
                                   >
                                     <option value="LOW">Priority: Low</option>
-                                    <option value="MEDIUM">Priority: Med</option>
+                                    <option value="MEDIUM">
+                                      Priority: Med
+                                    </option>
                                     <option value="HIGH">Priority: High</option>
-                                    <option value="URGENT">Priority: Urgent</option>
+                                    <option value="URGENT">
+                                      Priority: Urgent
+                                    </option>
                                   </select>
 
                                   <button
                                     onClick={() => {
                                       setEditingAdminNotesFeedback(item);
-                                      setAdminNotesInput(item.admin_notes || "");
+                                      setAdminNotesInput(
+                                        item.admin_notes || "",
+                                      );
                                     }}
                                     className="flex items-center gap-1 px-2 py-1 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 font-medium text-[11px] cursor-pointer"
                                   >
                                     <Pencil1Icon className="w-3 h-3 text-[#015451] dark:text-[#38bdf8]" />
-                                    <span>{item.admin_notes ? "Notes" : "Note"}</span>
+                                    <span>
+                                      {item.admin_notes ? "Notes" : "Note"}
+                                    </span>
                                   </button>
 
                                   <button
-                                    onClick={() => handleDeleteFeedback(item.id)}
+                                    onClick={() =>
+                                      handleDeleteFeedback(item.id)
+                                    }
                                     className="p-1 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
                                     title="Delete Feedback"
                                   >
@@ -2660,7 +2765,9 @@ The dradix Operations Team`,
                                     <span className="px-2 py-0.5 rounded-md bg-zinc-200/80 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-[10px] font-bold">
                                       {item.category}
                                     </span>
-                                    <h4 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">{item.subject}</h4>
+                                    <h4 className="font-bold text-xs text-zinc-900 dark:text-zinc-100">
+                                      {item.subject}
+                                    </h4>
                                   </div>
 
                                   <div className="flex items-center gap-0.5">
@@ -2696,6 +2803,54 @@ The dradix Operations Team`,
                       </div>
                     )}
                   </div>
+
+                  {editingAdminNotesFeedback && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+                      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 max-w-md w-full space-y-4 shadow-2xl">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                            Admin Notes: {editingAdminNotesFeedback.subject}
+                          </h3>
+                          <button
+                            onClick={() => setEditingAdminNotesFeedback(null)}
+                            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                          >
+                            <Cross2Icon className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <textarea
+                          value={adminNotesInput}
+                          onChange={(e) => setAdminNotesInput(e.target.value)}
+                          rows={4}
+                          placeholder="Write admin internal resolution notes or remarks..."
+                          className="w-full p-3 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#015451]"
+                        />
+
+                        <div className="flex items-center justify-end gap-2 text-xs">
+                          <button
+                            onClick={() => setEditingAdminNotesFeedback(null)}
+                            className="px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              void handleUpdateFeedbackStatus(
+                                editingAdminNotesFeedback.id,
+                                {
+                                  admin_notes: adminNotesInput,
+                                },
+                              );
+                            }}
+                            className="px-4 py-1.5 rounded-lg bg-[#015451] hover:bg-[#01403e] text-white font-semibold cursor-pointer"
+                          >
+                            Save Note
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
