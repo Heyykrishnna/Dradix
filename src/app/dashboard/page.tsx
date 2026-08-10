@@ -7,8 +7,10 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import SubmitFeedbackModal from "@/components/SubmitFeedbackModal";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -1159,6 +1161,7 @@ function RepoVisibilitySlider({
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [projectsList, setProjectsList] = useState<Project[]>(() => {
     if (typeof window !== "undefined") {
       const cached = localStorage.getItem("dradix_dashboard_data");
@@ -4524,20 +4527,29 @@ export default function DashboardPage() {
           <span>v0.1.3-beta</span>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <a href="#" className="hover:text-zinc-600 transition-colors">
+          <Link href="/privacy" className="hover:text-zinc-600 transition-colors">
             Privacy Policy
-          </a>
-          <a href="#" className="hover:text-zinc-600 transition-colors">
+          </Link>
+          <Link href="/docs#faq" className="hover:text-zinc-600 transition-colors">
             Support Portal
-          </a>
-          <a href="#" className="hover:text-zinc-600 transition-colors">
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsFeedbackModalOpen(true)}
+            className="hover:text-zinc-600 transition-colors cursor-pointer"
+          >
             Submit Feedback
-          </a>
-          <a href="#" className="hover:text-zinc-600 transition-colors">
+          </button>
+          <Link href="/docs" className="hover:text-zinc-600 transition-colors">
             Documentation
-          </a>
+          </Link>
         </div>
       </footer>
+
+      <SubmitFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+      />
 
       {projectModalType === "add" && addProjectStep === "github_select" && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-all duration-300 ease-in-out text-left animate-fade-in">

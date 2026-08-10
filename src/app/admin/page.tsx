@@ -29,8 +29,45 @@ import {
   LockClosedIcon,
   CubeIcon,
   Cross2Icon,
+  ChatBubbleIcon,
+  StarFilledIcon,
+  StarIcon,
 } from "@radix-ui/react-icons";
 import { Shield } from "lucide-react";
+
+interface AdminFeedbackItem {
+  id: number;
+  user_id: number | null;
+  name: string;
+  email: string;
+  category: string;
+  rating: number;
+  subject: string;
+  message: string;
+  page_url: string | null;
+  device_info: string | null;
+  status: "PENDING" | "IN_REVIEW" | "RESOLVED" | "ARCHIVED" | string;
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT" | string;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    id: number;
+    username: string;
+    email: string;
+    avatar_url: string | null;
+    role: string;
+    first_name: string | null;
+    last_name: string | null;
+  };
+}
+
+interface FeedbackStats {
+  totalFeedbacks: number;
+  pendingCount: number;
+  resolvedCount: number;
+  avgRating: number;
+}
 
 interface AdminUserItem {
   id: number;
@@ -461,8 +498,24 @@ export default function AdminPage() {
 function AdminDashboardContent() {
   const { user, checkAuth } = useAuth();
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "users" | "notifications" | "logs" | "health" | "assets"
+    "dashboard" | "users" | "feedback" | "notifications" | "logs" | "health" | "assets"
   >("dashboard");
+
+  const [feedbacksList, setFeedbacksList] = useState<AdminFeedbackItem[]>([]);
+  const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
+  const [feedbackSearch, setFeedbackSearch] = useState("");
+  const [feedbackCategoryFilter, setFeedbackCategoryFilter] = useState("ALL");
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState("ALL");
+  const [feedbackRatingFilter, setFeedbackRatingFilter] = useState("ALL");
+  const [feedbackStats, setFeedbackStats] = useState<FeedbackStats>({
+    totalFeedbacks: 0,
+    pendingCount: 0,
+    resolvedCount: 0,
+    avgRating: 5,
+  });
+  const [updatingFeedbackId, setUpdatingFeedbackId] = useState<number | null>(null);
+  const [editingAdminNotesFeedback, setEditingAdminNotesFeedback] = useState<AdminFeedbackItem | null>(null);
+  const [adminNotesInput, setAdminNotesInput] = useState("");
 
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -703,6 +756,68 @@ The dradix Operations Team`,
     }
   }, []);
 
+  const fetchFeedbacks = useCallback(async () => {
+    setLoadingFeedbacks(true);
+    try {
+      const params = new URLSearchParams();
+      if (feedbackSearch.trim()) params.set("search", feedbackSearch.trim());
+      if (feedbackCategoryFilter !== "ALL") params.set("category", feedbackCategoryFilter);
+      if (feedbackStatusFilter !== "ALL") params.set("status", feedbackStatusFilter);
+      if (feedbackRatingFilter !== "ALL") params.set("rating", feedbackRatingFilter);
+
+      const res = await apiFetch<ApiResponse<{
+        feedbacks: AdminFeedbackItem[];
+        stats: FeedbackStats;
+      }>>(`/admin/feedback?${params.toString()}`);
+
+      if (res.success && res.data) {
+        setFeedbacksList(res.data.feedbacks || []);
+        if (res.data.stats) {
+          setFeedbackStats(res.data.stats);
+        }
+      }
+    } catch (err: unknown) {
+      console.error("Failed to fetch feedbacks", err);
+    } finally {
+      setLoadingFeedbacks(false);
+    }
+  }, [feedbackSearch, feedbackCategoryFilter, feedbackStatusFilter, feedbackRatingFilter]);
+
+  const handleUpdateFeedbackStatus = async (
+    id: number,
+    updates: { status?: string; priority?: string; admin_notes?: string }
+  ) => {
+    try {
+      setUpdatingFeedbackId(id);
+      const res = await apiFetch<ApiResponse<AdminFeedbackItem>>(`/admin/feedback/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      });
+      if (res.success) {
+        showNotice("Feedback updated successfully!");
+        await fetchFeedbacks();
+        if (editingAdminNotesFeedback?.id === id) {
+          setEditingAdminNotesFeedback(null);
+        }
+      }
+    } catch (err: any) {
+      showNotice(`Failed to update feedback: ${err.message}`);
+    } finally {
+      setUpdatingFeedbackId(null);
+    }
+  };
+
+  const handleDeleteFeedback = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this feedback item?")) return;
+    try {
+      await apiFetch(`/admin/feedback/${id}`, { method: "DELETE" });
+      showNotice("Feedback deleted successfully");
+      await fetchFeedbacks();
+    } catch (err: any) {
+      showNotice(`Failed to delete feedback: ${err.message}`);
+    }
+  };
+
   const reloadAll = useCallback(() => {
     setLoadingStats(true);
     void fetchStats();
@@ -710,6 +825,9 @@ The dradix Operations Team`,
     if (activeTab === "users") {
       setLoadingUsers(true);
       void fetchUsers();
+    }
+    if (activeTab === "feedback") {
+      void fetchFeedbacks();
     }
     if (activeTab === "logs") {
       setLoadingLogs(true);
@@ -727,6 +845,7 @@ The dradix Operations Team`,
     fetchStats,
     fetchAnalytics,
     fetchUsers,
+    fetchFeedbacks,
     fetchLogs,
     fetchHealth,
     fetchWaitlist,
@@ -736,14 +855,14 @@ The dradix Operations Team`,
     let ignore = false;
     async function loadData() {
       if (!ignore) {
-        await Promise.all([fetchStats(), fetchAnalytics()]);
+        await Promise.all([fetchStats(), fetchAnalytics(), fetchFeedbacks()]);
       }
     }
     void loadData();
     return () => {
       ignore = true;
     };
-  }, [fetchStats, fetchAnalytics]);
+  }, [fetchStats, fetchAnalytics, fetchFeedbacks]);
 
   useEffect(() => {
     let ignore = false;
@@ -754,6 +873,8 @@ The dradix Operations Team`,
         } else if (activeTab === "users") {
           setLoadingUsers(true);
           await fetchUsers();
+        } else if (activeTab === "feedback") {
+          await fetchFeedbacks();
         } else if (activeTab === "logs") {
           setLoadingLogs(true);
           await fetchLogs();
@@ -772,6 +893,7 @@ The dradix Operations Team`,
     activeTab,
     fetchAnalytics,
     fetchUsers,
+    fetchFeedbacks,
     fetchLogs,
     fetchHealth,
     fetchWaitlist,
@@ -1272,7 +1394,7 @@ The dradix Operations Team`,
   const upcomingList = analyticsData?.upcomingActivities || [];
 
   const navItems: {
-    id: "dashboard" | "users" | "notifications" | "logs" | "health" | "assets";
+    id: "dashboard" | "users" | "feedback" | "notifications" | "logs" | "health" | "assets";
     label: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: React.ReactNode;
@@ -1291,6 +1413,20 @@ The dradix Operations Team`,
           {stats.counts.totalUsers}
         </span>
       ) : null,
+    },
+    {
+      id: "feedback",
+      label: "User Feedback",
+      icon: ChatBubbleIcon,
+      badge: feedbackStats.pendingCount > 0 ? (
+        <span className="text-[10px] bg-amber-100 text-amber-800 font-mono font-bold px-1.5 py-0.2 rounded border border-amber-300">
+          {feedbackStats.pendingCount}
+        </span>
+      ) : (
+        <span className="text-[10px] bg-zinc-100 text-zinc-600 font-mono font-semibold px-1.5 py-0.2 rounded border border-zinc-200">
+          {feedbackStats.totalFeedbacks}
+        </span>
+      ),
     },
     {
       id: "notifications",
@@ -1447,6 +1583,7 @@ The dradix Operations Team`,
               <DashboardIcon className="w-4 h-4 text-[#015451]" />
               {activeTab === "dashboard" && "Operations Telemetry"}
               {activeTab === "users" && "User Directory & Management"}
+              {activeTab === "feedback" && "User Feedback & Documentation Reviews"}
               {activeTab === "notifications" &&
                 "Notification Dispatch & Target Studio"}
               {activeTab === "logs" && "System Audit Logs"}
@@ -2315,6 +2452,261 @@ The dradix Operations Team`,
                         </button>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "feedback" && (
+                <div className="space-y-4">
+                  {/* Top Stats */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-white rounded-lg border border-zinc-200 p-3.5 shadow-2xs">
+                      <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Total Feedbacks</p>
+                      <p className="text-2xl font-bold font-mono text-zinc-900 mt-1">{feedbackStats.totalFeedbacks}</p>
+                    </div>
+                    <div className="bg-white rounded-lg border border-amber-200 bg-amber-50/30 p-3.5 shadow-2xs">
+                      <p className="text-[11px] font-medium text-amber-700 uppercase tracking-wider">Pending Action</p>
+                      <p className="text-2xl font-bold font-mono text-amber-900 mt-1">{feedbackStats.pendingCount}</p>
+                    </div>
+                    <div className="bg-white rounded-lg border border-emerald-200 bg-emerald-50/30 p-3.5 shadow-2xs">
+                      <p className="text-[11px] font-medium text-emerald-700 uppercase tracking-wider">Resolved</p>
+                      <p className="text-2xl font-bold font-mono text-emerald-900 mt-1">{feedbackStats.resolvedCount}</p>
+                    </div>
+                    <div className="bg-white rounded-lg border border-zinc-200 p-3.5 shadow-2xs">
+                      <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Avg User Rating</p>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <p className="text-2xl font-bold font-mono text-zinc-900">{feedbackStats.avgRating}</p>
+                        <StarFilledIcon className="w-5 h-5 text-amber-400" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Filter & Search Toolbar */}
+                  <div className="bg-white rounded-md border border-zinc-200 p-3.5 shadow-2xs space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="relative flex-1 min-w-[200px]">
+                        <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-zinc-400" />
+                        <input
+                          type="text"
+                          placeholder="Search by user name, email, subject, or message..."
+                          value={feedbackSearch}
+                          onChange={(e) => setFeedbackSearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 text-xs rounded border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#015451]"
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <select
+                          value={feedbackCategoryFilter}
+                          onChange={(e) => setFeedbackCategoryFilter(e.target.value)}
+                          className="px-2.5 py-1 rounded border border-zinc-200 bg-white text-zinc-700 focus:outline-none"
+                        >
+                          <option value="ALL">All Categories</option>
+                          <option value="Documentation">Documentation</option>
+                          <option value="Bug Report">Bug Report</option>
+                          <option value="Feature Request">Feature Request</option>
+                          <option value="UI/UX">UI / UX Design</option>
+                          <option value="General">General Feedback</option>
+                        </select>
+
+                        <select
+                          value={feedbackStatusFilter}
+                          onChange={(e) => setFeedbackStatusFilter(e.target.value)}
+                          className="px-2.5 py-1 rounded border border-zinc-200 bg-white text-zinc-700 focus:outline-none"
+                        >
+                          <option value="ALL">All Statuses</option>
+                          <option value="PENDING">PENDING</option>
+                          <option value="IN_REVIEW">IN REVIEW</option>
+                          <option value="RESOLVED">RESOLVED</option>
+                          <option value="ARCHIVED">ARCHIVED</option>
+                        </select>
+
+                        <select
+                          value={feedbackRatingFilter}
+                          onChange={(e) => setFeedbackRatingFilter(e.target.value)}
+                          className="px-2.5 py-1 rounded border border-zinc-200 bg-white text-zinc-700 focus:outline-none"
+                        >
+                          <option value="ALL">All Ratings</option>
+                          <option value="5">5 Stars ⭐⭐⭐⭐⭐</option>
+                          <option value="4">4 Stars ⭐⭐⭐⭐</option>
+                          <option value="3">3 Stars ⭐⭐⭐</option>
+                          <option value="2">2 Stars ⭐⭐</option>
+                          <option value="1">1 Star ⭐</option>
+                        </select>
+
+                        <button
+                          onClick={() => void fetchFeedbacks()}
+                          className="flex items-center gap-1.5 px-3 py-1 rounded border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 font-medium cursor-pointer transition-colors"
+                        >
+                          <ReloadIcon className={`w-3 h-3 ${loadingFeedbacks ? "animate-spin" : ""}`} />
+                          Refresh
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Feedback Table */}
+                  <div className="bg-white rounded-md border border-zinc-200 overflow-hidden shadow-2xs">
+                    {loadingFeedbacks ? (
+                      <div className="py-16 text-center text-xs text-zinc-500 space-y-2">
+                        <div className="w-5 h-5 border-2 border-[#015451]/30 border-t-[#015451] rounded-full animate-spin mx-auto" />
+                        <p>Loading user feedbacks & reviews...</p>
+                      </div>
+                    ) : feedbacksList.length === 0 ? (
+                      <div className="py-16 text-center text-xs text-zinc-500 space-y-2">
+                        <ChatBubbleIcon className="w-8 h-8 text-zinc-300 mx-auto" />
+                        <p className="font-semibold text-zinc-700">No feedbacks found</p>
+                        <p className="text-zinc-400">User feedback submitted from Documentation or Modal will appear here.</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-zinc-100">
+                        {feedbacksList.map((item) => {
+                          const formattedDate = new Date(item.created_at).toLocaleString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                          });
+
+                          const isUpdating = updatingFeedbackId === item.id;
+
+                          return (
+                            <div key={item.id} className="p-4 hover:bg-zinc-50/50 transition-colors space-y-3">
+                              {/* Top Bar of Card */}
+                              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                                <div className="flex items-center gap-2.5">
+                                  {/* User Avatar */}
+                                  <div className="w-8 h-8 rounded-full bg-[#015451] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                                    {item.user?.avatar_url ? (
+                                      <img src={item.user.avatar_url} alt={item.name} className="w-8 h-8 rounded-full object-cover" />
+                                    ) : (
+                                      item.name.substring(0, 2).toUpperCase()
+                                    )}
+                                  </div>
+
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-zinc-900">{item.name}</span>
+                                      <span className="text-zinc-400">•</span>
+                                      <span className="text-zinc-500 font-mono text-[11px]">{item.email}</span>
+                                      {item.user?.role && (
+                                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                          item.user.role === "ADMIN" ? "bg-purple-100 text-purple-700" : "bg-zinc-100 text-zinc-600"
+                                        }`}>
+                                          {item.user.role}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-zinc-400">
+                                      Submitted on <span className="font-mono font-medium text-zinc-600">{formattedDate}</span>
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Status & Actions */}
+                                <div className="flex items-center gap-2">
+                                  {/* Status Selector */}
+                                  <select
+                                    disabled={isUpdating}
+                                    value={item.status}
+                                    onChange={(e) => handleUpdateFeedbackStatus(item.id, { status: e.target.value })}
+                                    className={`px-2 py-1 rounded text-xs font-bold border transition-colors cursor-pointer ${
+                                      item.status === "PENDING"
+                                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                                        : item.status === "IN_REVIEW"
+                                        ? "bg-blue-50 text-blue-700 border-blue-200"
+                                        : item.status === "RESOLVED"
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                        : "bg-zinc-100 text-zinc-600 border-zinc-200"
+                                    }`}
+                                  >
+                                    <option value="PENDING">PENDING</option>
+                                    <option value="IN_REVIEW">IN REVIEW</option>
+                                    <option value="RESOLVED">RESOLVED</option>
+                                    <option value="ARCHIVED">ARCHIVED</option>
+                                  </select>
+
+                                  {/* Priority Selector */}
+                                  <select
+                                    disabled={isUpdating}
+                                    value={item.priority}
+                                    onChange={(e) => handleUpdateFeedbackStatus(item.id, { priority: e.target.value })}
+                                    className="px-2 py-1 rounded text-xs font-semibold bg-white border border-zinc-200 text-zinc-700 focus:outline-none cursor-pointer"
+                                  >
+                                    <option value="LOW">Priority: Low</option>
+                                    <option value="MEDIUM">Priority: Med</option>
+                                    <option value="HIGH">Priority: High</option>
+                                    <option value="URGENT">Priority: Urgent</option>
+                                  </select>
+
+                                  {/* Notes Button */}
+                                  <button
+                                    onClick={() => {
+                                      setEditingAdminNotesFeedback(item);
+                                      setAdminNotesInput(item.admin_notes || "");
+                                    }}
+                                    className="px-2 py-1 rounded border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-600 font-medium text-[11px] cursor-pointer"
+                                  >
+                                    {item.admin_notes ? "📝 Notes" : "+ Note"}
+                                  </button>
+
+                                  {/* Delete Button */}
+                                  <button
+                                    onClick={() => handleDeleteFeedback(item.id)}
+                                    className="p-1 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                                    title="Delete Feedback"
+                                  >
+                                    <TrashIcon className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Feedback Body Details */}
+                              <div className="bg-zinc-50/80 rounded-lg p-3 border border-zinc-200/60 space-y-2">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="px-2 py-0.5 rounded bg-zinc-200/80 text-zinc-800 text-[10px] font-bold">
+                                      {item.category}
+                                    </span>
+                                    <h4 className="font-bold text-xs text-zinc-900">{item.subject}</h4>
+                                  </div>
+
+                                  {/* Stars */}
+                                  <div className="flex items-center gap-0.5">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <StarFilledIcon
+                                        key={star}
+                                        className={`w-3.5 h-3.5 ${star <= (item.rating || 5) ? "text-amber-400" : "text-zinc-300"}`}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <p className="text-xs text-zinc-700 leading-relaxed whitespace-pre-wrap">
+                                  {item.message}
+                                </p>
+
+                                {/* Context Badges */}
+                                <div className="flex flex-wrap items-center gap-3 pt-1 text-[10px] text-zinc-500 font-mono">
+                                  {item.page_url && (
+                                    <span className="truncate max-w-xs bg-white px-2 py-0.5 rounded border border-zinc-200">
+                                      📍 Page: {item.page_url}
+                                    </span>
+                                  )}
+                                  {item.admin_notes && (
+                                    <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded border border-amber-200 font-sans">
+                                      📝 Admin Note: {item.admin_notes}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
